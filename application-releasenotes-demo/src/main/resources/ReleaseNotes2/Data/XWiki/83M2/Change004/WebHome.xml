@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.2" reference="ReleaseNotes2.Data.XWiki.83M2.Change004.WebHome" locale="">
+  <web>ReleaseNotes2.Data.XWiki.83M2.Change004</web>
+  <name>WebHome</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <parent>ReleaseNotes2.Data.WebHome</parent>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1474633489000</creationDate>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1474633489000</date>
+  <contentUpdateDate>1474633489000</contentUpdateDate>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content/>
+  <object>
+    <name>ReleaseNotes2.Data.XWiki.83M2.Change004.WebHome</name>
+    <number>0</number>
+    <className>ReleaseNotes2.Code.ChangesClass</className>
+    <guid>dd3c721f-c740-4932-bb6b-ed91c009aed0</guid>
+    <class>
+      <name>ReleaseNotes2.Code.ChangesClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <audience>
+        <cache>0</cache>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>audience</name>
+        <number>7</number>
+        <picker>0</picker>
+        <prettyName>Target Audience</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>user=User|administrator=Administrator|developer=Developer</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </audience>
+      <category>
+        <cache>0</cache>
+        <classname/>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <idField/>
+        <multiSelect>0</multiSelect>
+        <name>category</name>
+        <number>2</number>
+        <picker>1</picker>
+        <prettyName>Category</prettyName>
+        <relationalStorage>1</relationalStorage>
+        <separator> </separator>
+        <separators/>
+        <size>30</size>
+        <sort>none</sort>
+        <sql/>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <valueField/>
+        <classType>com.xpn.xwiki.objects.classes.DBListClass</classType>
+      </category>
+      <description>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <editor>---</editor>
+        <name>description</name>
+        <number>5</number>
+        <picker>0</picker>
+        <prettyName>Additional Description (Optional)</prettyName>
+        <rows>20</rows>
+        <size>120</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </description>
+      <importance>
+        <cache>0</cache>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>importance</name>
+        <number>8</number>
+        <picker>0</picker>
+        <prettyName>Importance</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>30</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>2=High|1=Medium|0=Low</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </importance>
+      <product>
+        <cache>0</cache>
+        <classname/>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <idField/>
+        <multiSelect>0</multiSelect>
+        <name>product</name>
+        <number>9</number>
+        <picker>1</picker>
+        <prettyName>Product</prettyName>
+        <relationalStorage>1</relationalStorage>
+        <separator> </separator>
+        <separators/>
+        <size>30</size>
+        <sort>none</sort>
+        <sql/>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <valueField/>
+        <classType>com.xpn.xwiki.objects.classes.DBListClass</classType>
+      </product>
+      <screenshots>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>screenshots</name>
+        <number>6</number>
+        <picker>0</picker>
+        <prettyName>Screenshots</prettyName>
+        <size>90</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </screenshots>
+      <summary>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <editor>---</editor>
+        <name>summary</name>
+        <number>4</number>
+        <picker>0</picker>
+        <prettyName>Short Description</prettyName>
+        <rows>20</rows>
+        <size>120</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </summary>
+      <title>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>title</name>
+        <number>3</number>
+        <picker>0</picker>
+        <prettyName>Title</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </title>
+      <version>
+        <cache>0</cache>
+        <classname/>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <idField/>
+        <multiSelect>0</multiSelect>
+        <name>version</name>
+        <number>1</number>
+        <picker>1</picker>
+        <prettyName>Version</prettyName>
+        <relationalStorage>1</relationalStorage>
+        <separator> </separator>
+        <separators/>
+        <size>30</size>
+        <sort>none</sort>
+        <sql/>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <valueField/>
+        <classType>com.xpn.xwiki.objects.classes.DBListClass</classType>
+      </version>
+    </class>
+    <property>
+      <audience>administrator</audience>
+    </property>
+    <property>
+      <category>Distribution</category>
+    </property>
+    <property>
+      <description/>
+    </property>
+    <property>
+      <importance>0</importance>
+    </property>
+    <property>
+      <product>XWiki</product>
+    </property>
+    <property>
+      <screenshots/>
+    </property>
+    <property>
+      <summary>The [[Let's Encrypt&gt;&gt;http://letsencrypt.org/]] root certificate is now automatically registered at runtime</summary>
+    </property>
+    <property>
+      <title/>
+    </property>
+    <property>
+      <version>8.3-milestone-2</version>
+    </property>
+  </object>
+</xwikidoc>
