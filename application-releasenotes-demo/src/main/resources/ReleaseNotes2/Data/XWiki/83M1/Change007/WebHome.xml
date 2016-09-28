@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes2.Data.XWiki.83M1.Change007.WebHome" locale="">
-  <web>ReleaseNotes2.Data.XWiki.83M1.Change007</web>
+<xwikidoc version="1.2" reference="ReleaseNotes2.Data.XWiki.8\.3M1.Change007.WebHome" locale="">
+  <web>ReleaseNotes2.Data.XWiki.8\.3M1.Change007</web>
   <name>WebHome</name>
   <language/>
   <defaultLanguage/>
@@ -59,7 +59,7 @@
     <filesize>42730</filesize>
   </attachment>
   <object>
-    <name>ReleaseNotes2.Data.XWiki.83M1.Change007.WebHome</name>
+    <name>ReleaseNotes2.Data.XWiki.8\.3M1.Change007.WebHome</name>
     <number>0</number>
     <className>ReleaseNotes2.Code.ChangesClass</className>
     <guid>53ba5181-5227-4576-908d-92fdb09f265f</guid>
