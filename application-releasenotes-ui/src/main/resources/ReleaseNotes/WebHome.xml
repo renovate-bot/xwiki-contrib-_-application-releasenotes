@@ -39,6 +39,11 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>TODO
-</content>
+  <content>You should customize this page to your needs, for example by listing the Release Notes that exist.
+
+It's recommended to create the release notes pages in ##ReleaseNotes.Data.&lt;product name&gt;.&lt;short version&gt;.WebHome## (e.g. ##ReleaseNotes.Data.XWiki.8.3M1.WebHome## for the Release Note for XWiki 8.3 Milestone 1.
+
+To get started, [[add Changes for Release Notes&gt;&gt;ReleaseNotes.Data.WebHome]].
+
+You can also [[generate reports&gt;&gt;ReleaseNotes.Data.WebHome]] for existing changes.</content>
 </xwikidoc>
