@@ -52,29 +52,7 @@ The highlight of this release is the support of Recommended Extensions (both on 
 
 [[Full list of issues fixed and Dashboard for 8.3&gt;&gt;http://jira.xwiki.org/secure/Dashboard.jspa?selectPageId=13629]].
 
-== For Users ==
-
-{{changes displayEditLink="true" displayer="simple" products="XWiki" versions="8.3-rc-1" audience="user" containsScreenshots="true"/}}
-
-=== Miscellaneous ===
-
-{{changes displayEditLink="true" displayer="list" products="XWiki" versions="8.3-rc-1" audience="user" containsScreenshots="false"/}}
-
-== For Admins ==
-
-{{changes displayEditLink="true" displayer="simple" products="XWiki" versions="8.3-rc-1" audience="administrator" containsScreenshots="true"/}}
-
-=== Miscellaneous ===
-
-{{changes displayEditLink="true" displayer="list" products="XWiki" versions="8.3-rc-1" audience="administrator" containsScreenshots="false"/}}
-
-== For Developers ==
-
-{{changes displayEditLink="true" displayer="simple" products="XWiki" versions="8.3-rc-1" audience="developer" importance="high,medium"/}}
-
-=== Miscellaneous ===
-
-{{changes displayEditLink="true" displayer="list" products="XWiki" versions="8.3-rc-1" audience="developer" importance="low"/}}
+{{releasenotechanges/}}
 
 === Upgrades ===
 
