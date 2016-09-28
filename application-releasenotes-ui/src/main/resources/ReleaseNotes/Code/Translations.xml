@@ -47,7 +47,8 @@ releasenotes.changes.livetable.doc.creationDate=Created
 releasenotes.changes.livetable.title=Title
 releasenotes.changes.livetable.importance=Importance
 releasenotes.changes.livetable.product=Product
-releasenotes.changes.livetable.emptyvalue=</content>
+releasenotes.changes.livetable.emptyvalue=
+releasenotes.applicationsPanelEntryLabel=Release Notes</content>
   <object>
     <name>ReleaseNotes.Code.Translations</name>
     <number>0</number>
