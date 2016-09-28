@@ -244,7 +244,7 @@
       <screenshots/>
     </property>
     <property>
-      <summary>XWiki can now be [[deployed fine in WildFly 10.x&gt;&gt;platform:AdminGuide.InstallationJBoss]].</summary>
+      <summary>XWiki can now be deployed fine in WildFly 10.x.</summary>
     </property>
     <property>
       <title/>

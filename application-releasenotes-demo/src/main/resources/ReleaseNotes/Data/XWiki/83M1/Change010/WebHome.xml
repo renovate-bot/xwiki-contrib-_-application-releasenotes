@@ -244,7 +244,7 @@
       <screenshots/>
     </property>
     <property>
-      <summary>Thanks to Java 8 now supporting getting method parameter names through reflection, it's not required anymore to use ##@Name## annotation in the definition of a filter. See [[extensions:Extension.Filter Module||anchor="HAnnotations"]] for more details.
+      <summary>Thanks to Java 8 now supporting getting method parameter names through reflection, it's not required anymore to use ##@Name## annotation in the definition of a filter.
 
 It's also possible to override the name of the event (which is by default extracted from the method name) using the ##@Name## annotation.
 

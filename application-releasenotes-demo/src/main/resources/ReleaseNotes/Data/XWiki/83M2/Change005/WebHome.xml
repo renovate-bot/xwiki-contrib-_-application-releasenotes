@@ -244,7 +244,7 @@
       <screenshots/>
     </property>
     <property>
-      <summary>The Velocity ###try()## directive [[now accepts an optional parameter&gt;&gt;extensions:Extension.Velocity Module||anchor="HVelocityDirectives"]] to specify the name of a Velocity variable into which to save the caught exception. For example:
+      <summary>The Velocity ###try()## directive now accepts an optional parameter to specify the name of a Velocity variable into which to save the caught exception. For example:
 
 {{code language="velocity"}}
 {{velocity}}

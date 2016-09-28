@@ -244,7 +244,7 @@
       <screenshots/>
     </property>
     <property>
-      <summary>Added an ##order## field to the [["After Header"&gt;&gt;platform:ExtensionPoint.AfterHeaderUIX]] extension point.</summary>
+      <summary>Added an ##order## field to the "After Header" extension point.</summary>
     </property>
     <property>
       <title/>

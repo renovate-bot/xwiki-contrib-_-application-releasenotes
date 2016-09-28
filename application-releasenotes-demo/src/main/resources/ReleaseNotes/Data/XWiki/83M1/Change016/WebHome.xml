@@ -245,8 +245,8 @@
     </property>
     <property>
       <summary>Two new generic extension points for the Document/Attachment Not Found views:
-* [[platform:ExtensionPoint.Document Does Not Exist]]
-* [[platform:ExtensionPoint.Attachment Does Not Exist]]</summary>
+* Document Does Not Exist
+* Attachment Does Not Exist</summary>
     </property>
     <property>
       <title/>

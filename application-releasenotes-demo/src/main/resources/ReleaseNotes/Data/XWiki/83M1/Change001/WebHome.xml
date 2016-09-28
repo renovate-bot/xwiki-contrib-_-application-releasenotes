@@ -254,7 +254,7 @@
       <screenshots>childrenmacro.png</screenshots>
     </property>
     <property>
-      <summary>A new [[##~~{~~{children/}}## macro&gt;&gt;extensions:Extension.Children Macro.WebHome]] has been added to display a tree view of all children of the current page.</summary>
+      <summary>A new ##~~{~~{children/}}## macro has been added to display a tree view of all children of the current page.</summary>
     </property>
     <property>
       <title>Children Macro</title>

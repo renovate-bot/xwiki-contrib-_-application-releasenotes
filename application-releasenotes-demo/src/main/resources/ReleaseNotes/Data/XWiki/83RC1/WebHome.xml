@@ -46,7 +46,7 @@
 
 This is the release notes for [[XWiki Commons&gt;&gt;http://commons.xwiki.org]], [[XWiki Rendering&gt;&gt;http://rendering.xwiki.org]], [[XWiki Platform&gt;&gt;http://platform.xwiki.org]] and [[XWiki Enterprise&gt;&gt;http://enterprise.xwiki.org]]. They share the same release notes as they are released together and have the same version.
 
-The highlight of this release is the support of Recommended Extensions (both on [[extensions.xwiki.org&gt;&gt;extensions:Main.WebHome]] and inside the Extension Manager UI in XWiki). Other changes consist in minor improvements and bug fixes.
+The highlight of this release is the support of Recommended Extensions (both on extensions.xwiki.org and inside the Extension Manager UI in XWiki). Other changes consist in minor improvements and bug fixes.
 
 = New and Noteworthy (since XWiki 8.3 Milestone 2) =
 

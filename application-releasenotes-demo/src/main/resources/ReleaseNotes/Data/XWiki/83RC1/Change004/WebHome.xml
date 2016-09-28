@@ -254,7 +254,7 @@
       <screenshots>contexttoc.png</screenshots>
     </property>
     <property>
-      <summary>The [[Context Macro&gt;&gt;extensions:Extension.Context Macro]] now supports executing macros in the context of the referenced document. 
+      <summary>The Context Macro now supports executing macros in the context of the referenced document.
 
 For example the following content generates the screenshot:
 

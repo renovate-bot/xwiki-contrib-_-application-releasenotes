@@ -264,7 +264,7 @@
       <screenshots>home-with-recommendations.png,extension.png</screenshots>
     </property>
     <property>
-      <summary>The [[Extension Repository Application&gt;&gt;extensions:Extension.Repository Application]] now supports the optional feature of being able to mark some Extensions as Recommended. This provides some form of curation and separate "good" Extensions from others. The need arises when there are lots of Extensions. 
+      <summary>The Extension Repository Application now supports the optional feature of being able to mark some Extensions as Recommended. This provides some form of curation and separate "good" Extensions from others. The need arises when there are lots of Extensions.
 
 The screenshots show:
 * The view when the Recommendation feature is turned on

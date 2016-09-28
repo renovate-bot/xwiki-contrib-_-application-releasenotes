@@ -254,7 +254,7 @@
       <screenshots>TemplateProvider-Edit-creationRestrictions.png</screenshots>
     </property>
     <property>
-      <summary>It's now possible to specify visibility restrictions separate from creation restrictions on a template provider and to set default values. See the [[documentation&gt;&gt;extensions:Extension.Administration Application||anchor="HRestrictthespaceswherethetemplateisavailable"]] for more details.</summary>
+      <summary>It's now possible to specify visibility restrictions separate from creation restrictions on a template provider and to set default values. See the documentation for more details.</summary>
     </property>
     <property>
       <title>Template Restrictions</title>

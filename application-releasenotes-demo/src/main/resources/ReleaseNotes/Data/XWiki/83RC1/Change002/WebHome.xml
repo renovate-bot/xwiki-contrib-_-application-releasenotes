@@ -244,7 +244,7 @@
       <screenshots/>
     </property>
     <property>
-      <summary>A new ##"instance"## ScriptService has been introduced with an API to get the XWiki instance id. New methods will be added if needed. See [[Instance Module extension&gt;&gt;extensions:Extension.Instance Module]] for more details.</summary>
+      <summary>A new ##"instance"## ScriptService has been introduced with an API to get the XWiki instance id. New methods will be added if needed.</summary>
     </property>
     <property>
       <title/>

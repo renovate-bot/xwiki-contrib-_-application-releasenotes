@@ -245,8 +245,8 @@
     </property>
     <property>
       <summary>Two new specific extension points for providing recommendations in the Document/Attachment Not Found views:
-* [[platform:ExtensionPoint.Suggestions for Document Does Not Exist]]
-* [[platform:ExtensionPoint.Suggestions for Attachment Does Not Exist]]</summary>
+* Suggestions for Document Does Not Exist
+* Suggestions for Attachment Does Not Exist</summary>
     </property>
     <property>
       <title/>

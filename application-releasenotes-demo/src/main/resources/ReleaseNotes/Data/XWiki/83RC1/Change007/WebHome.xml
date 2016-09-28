@@ -244,7 +244,7 @@
       <screenshots/>
     </property>
     <property>
-      <summary>The [[Gallery Macro&gt;&gt;extensions:Extension.Gallery Macro]] has 3 new parameters. You can use the ##width## and ##height## parameters to control the amount of space reserved for the gallery. The ##class## parameter can be used to add custom CSS class names in order to customize the appearance of a gallery. Here's an example where we use the Bootstrap Grid system:
+      <summary>The Gallery Macro has 3 new parameters. You can use the ##width## and ##height## parameters to control the amount of space reserved for the gallery. The ##class## parameter can be used to add custom CSS class names in order to customize the appearance of a gallery. Here's an example where we use the Bootstrap Grid system:
 
 {{code language="none"}}
 {{gallery class="col-xs-12 col-sm-6 col-md-4" width="" height="300px"}}
