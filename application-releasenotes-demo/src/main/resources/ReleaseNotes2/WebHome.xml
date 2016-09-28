@@ -20,8 +20,8 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes2.WebHome" locale="">
-  <web>ReleaseNotes2</web>
+<xwikidoc version="1.2" reference="ReleaseNotes.WebHome" locale="">
+  <web>ReleaseNotes</web>
   <name>WebHome</name>
   <language/>
   <defaultLanguage/>
@@ -39,11 +39,11 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>Add changes and generate reports [[using this page&gt;&gt;ReleaseNotes2.Data.WebHome]].
+  <content>Add changes and generate reports [[using this page&gt;&gt;ReleaseNotes.Data.WebHome]].
 
-* [[Release Notes for XWiki 8.3&gt;&gt;ReleaseNotes2.Data.XWiki.8\.3.WebHome]] (Aggregated)
-* [[Release Notes for XWiki 8.3-rc-1&gt;&gt;ReleaseNotes2.Data.XWiki.8\.3RC1.WebHome]]
-* [[Release Notes for XWiki 8.3-milestone-2&gt;&gt;ReleaseNotes2.Data.XWiki.8\.3M2.WebHome]]
-* [[Release Notes for XWiki 8.3-milestone-1&gt;&gt;ReleaseNotes2.Data.XWiki.8\.3M1.WebHome]]
+* [[Release Notes for XWiki 8.3&gt;&gt;ReleaseNotes.Data.XWiki.8\.3.WebHome]] (Aggregated)
+* [[Release Notes for XWiki 8.3-rc-1&gt;&gt;ReleaseNotes.Data.XWiki.8\.3RC1.WebHome]]
+* [[Release Notes for XWiki 8.3-milestone-2&gt;&gt;ReleaseNotes.Data.XWiki.8\.3M2.WebHome]]
+* [[Release Notes for XWiki 8.3-milestone-1&gt;&gt;ReleaseNotes.Data.XWiki.8\.3M1.WebHome]]
 </content>
 </xwikidoc>

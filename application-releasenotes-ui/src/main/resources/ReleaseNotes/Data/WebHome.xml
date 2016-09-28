@@ -20,13 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes2.Data.WebHome" locale="">
-  <web>ReleaseNotes2.Data</web>
+<xwikidoc version="1.2" reference="ReleaseNotes.Data.WebHome" locale="">
+  <web>ReleaseNotes.Data</web>
   <name>WebHome</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>ReleaseNotes2.WebHome</parent>
+  <parent>ReleaseNotes.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474376757000</creationDate>
   <author>xwiki:XWiki.Admin</author>
@@ -135,7 +135,7 @@ $!xwiki.jsx.use($doc.documentReference.toString())
 #livetable("releasenoteschanges" $columns $columnsProperties $options)
 {{/velocity}}</content>
   <object>
-    <name>ReleaseNotes2.Data.WebHome</name>
+    <name>ReleaseNotes.Data.WebHome</name>
     <number>0</number>
     <className>XWiki.JavaScriptExtension</className>
     <guid>7a418dc1-5a02-422e-90e9-7cfa4a6db629</guid>
@@ -242,7 +242,7 @@ $!xwiki.jsx.use($doc.documentReference.toString())
     if($('version')) {
       Event.observe($('version'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
-             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes2.Code.ChangesClass&amp;fieldname=version&amp;secCol=-&amp;', 
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=version&amp;secCol=-&amp;',
              varname: "input", 
              seps: " ,|",
              offsety: 13
@@ -252,7 +252,7 @@ $!xwiki.jsx.use($doc.documentReference.toString())
     if($('version2')) {
       Event.observe($('version2'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
-             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes2.Code.ChangesClass&amp;fieldname=version&amp;secCol=-&amp;', 
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=version&amp;secCol=-&amp;',
              varname: "input", 
              seps: " ,|",
              offsety: 13
@@ -262,7 +262,7 @@ $!xwiki.jsx.use($doc.documentReference.toString())
     if($('category')) {
       Event.observe($('category'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
-             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes2.Code.ChangesClass&amp;fieldname=category&amp;secCol=-&amp;', 
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=category&amp;secCol=-&amp;',
              varname: "input", 
              seps: " ,|",
              offsety: 13
@@ -272,7 +272,7 @@ $!xwiki.jsx.use($doc.documentReference.toString())
     if($('product')) {
       Event.observe($('product'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
-             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes2.Code.ChangesClass&amp;fieldname=product&amp;secCol=-&amp;', 
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=product&amp;secCol=-&amp;',
              varname: "input", 
              seps: " ,|",
              offsety: 13
@@ -282,7 +282,7 @@ $!xwiki.jsx.use($doc.documentReference.toString())
     if($('product2')) {
       Event.observe($('product2'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
-             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes2.Code.ChangesClass&amp;fieldname=product&amp;secCol=-&amp;', 
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=product&amp;secCol=-&amp;',
              varname: "input", 
              seps: " ,|",
              offsety: 13
@@ -292,7 +292,7 @@ $!xwiki.jsx.use($doc.documentReference.toString())
     if($('audience')) {
       Event.observe($('audience'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
-             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes2.Code.ChangesClass&amp;fieldname=audience&amp;secCol=-&amp;', 
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=audience&amp;secCol=-&amp;',
              varname: "input", 
              seps: " ,|",
              offsety: 13
@@ -302,7 +302,7 @@ $!xwiki.jsx.use($doc.documentReference.toString())
     if($('importance')) {
       Event.observe($('importance'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
-             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes2.Code.ChangesClass&amp;fieldname=importance&amp;secCol=-&amp;', 
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=importance&amp;secCol=-&amp;',
              varname: "input", 
              seps: " ,|",
              offsety: 13

@@ -20,13 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes2.Code.Translations" locale="">
-  <web>ReleaseNotes2.Code</web>
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.Translations" locale="">
+  <web>ReleaseNotes.Code</web>
   <name>Translations</name>
   <language/>
   <defaultLanguage>en</defaultLanguage>
   <translation>0</translation>
-  <parent>ReleaseNotes2.Code.WebHome</parent>
+  <parent>ReleaseNotes.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474376757000</creationDate>
   <author>xwiki:XWiki.Admin</author>
@@ -49,7 +49,7 @@ releasenotes.changes.livetable.importance=Importance
 releasenotes.changes.livetable.product=Product
 releasenotes.changes.livetable.emptyvalue=</content>
   <object>
-    <name>ReleaseNotes2.Code.Translations</name>
+    <name>ReleaseNotes.Code.Translations</name>
     <number>0</number>
     <className>XWiki.TranslationDocumentClass</className>
     <guid>c8e5fa9f-2383-4026-88c7-2694af37fd18</guid>

@@ -20,16 +20,16 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes2.Data.XWiki.8\.3M2.WebHome" locale="">
-  <web>ReleaseNotes2.Data.XWiki.8\.3M2</web>
+<xwikidoc version="1.2" reference="ReleaseNotes.Data.XWiki.8\.3M2.WebHome" locale="">
+  <web>ReleaseNotes.Data.XWiki.8\.3M2</web>
   <name>WebHome</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>ReleaseNotes2.Data.WebHome</parent>
+  <parent>ReleaseNotes.Data.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474633893000</creationDate>
-  <parent>ReleaseNotes2.WebHome</parent>
+  <parent>ReleaseNotes.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <date>1474649614000</date>

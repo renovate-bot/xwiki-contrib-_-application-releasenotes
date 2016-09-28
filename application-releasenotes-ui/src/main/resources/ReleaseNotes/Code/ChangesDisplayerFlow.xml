@@ -20,13 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes2.Code.ChangesDisplayerFlow" locale="">
-  <web>ReleaseNotes2.Code</web>
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.ChangesDisplayerFlow" locale="">
+  <web>ReleaseNotes.Code</web>
   <name>ChangesDisplayerFlow</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>ReleaseNotes2.Code.WebHome</parent>
+  <parent>ReleaseNotes.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474376756000</creationDate>
   <author>xwiki:XWiki.Admin</author>
@@ -39,7 +39,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="ReleaseNotes2.Code.DisplayerMacros"/}}
+  <content>{{include reference="ReleaseNotes.Code.DisplayerMacros"/}}
 
 {{velocity}}
 ## Inputs:

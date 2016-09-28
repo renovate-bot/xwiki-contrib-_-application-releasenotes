@@ -20,13 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes2.Code.ChangesMacro" locale="">
-  <web>ReleaseNotes2.Code</web>
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.ChangesMacro" locale="">
+  <web>ReleaseNotes.Code</web>
   <name>ChangesMacro</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>ReleaseNotes2.Code.WebHome</parent>
+  <parent>ReleaseNotes.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474376756000</creationDate>
   <author>xwiki:XWiki.Admin</author>
@@ -57,7 +57,7 @@
     <filesize>12731</filesize>
   </attachment>
   <object>
-    <name>ReleaseNotes2.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.ChangesMacro</name>
     <number>0</number>
     <className>XWiki.WikiMacroClass</className>
     <guid>577c8aa4-fde3-4929-8a3c-a95d396d4b33</guid>
@@ -254,7 +254,7 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes2.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.ChangesMacro</name>
     <number>0</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>70a02371-3284-45ea-ad76-2fc10c898fa6</guid>
@@ -320,7 +320,7 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes2.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.ChangesMacro</name>
     <number>1</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>73de0991-3236-42dc-a259-1000f4f02ee8</guid>
@@ -386,7 +386,7 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes2.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.ChangesMacro</name>
     <number>2</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>c3a70fc0-57cc-4947-bbc7-47791e366f51</guid>
@@ -452,7 +452,7 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes2.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.ChangesMacro</name>
     <number>3</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>b4eaac28-627c-4031-a930-5a3c36ec6e10</guid>
@@ -518,7 +518,7 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes2.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.ChangesMacro</name>
     <number>4</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>b7a20d85-1ee7-4f10-a15f-d083a7ee0f0b</guid>
@@ -584,7 +584,7 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes2.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.ChangesMacro</name>
     <number>5</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>0a0dc37d-b1c2-40ca-94f5-f3872e3d613f</guid>
@@ -650,7 +650,7 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes2.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.ChangesMacro</name>
     <number>6</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>4e3691ae-d782-4429-bef1-ed0c8b7cac05</guid>
@@ -716,7 +716,7 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes2.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.ChangesMacro</name>
     <number>7</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>71e1deef-8295-4c8e-ab4c-ce836dcaebbe</guid>
@@ -782,7 +782,7 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes2.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.ChangesMacro</name>
     <number>8</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>79d487f7-1b63-4f34-bd45-5d044d615a09</guid>

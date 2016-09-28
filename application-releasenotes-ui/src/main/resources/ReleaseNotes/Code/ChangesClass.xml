@@ -20,13 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes2.Code.ChangesClass" locale="">
-  <web>ReleaseNotes2.Code</web>
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.ChangesClass" locale="">
+  <web>ReleaseNotes.Code</web>
   <name>ChangesClass</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>ReleaseNotes2.Code.WebHome</parent>
+  <parent>ReleaseNotes.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474376756000</creationDate>
   <author>xwiki:XWiki.Admin</author>
@@ -41,7 +41,7 @@
   <hidden>true</hidden>
   <content/>
   <class>
-    <name>ReleaseNotes2.Code.ChangesClass</name>
+    <name>ReleaseNotes.Code.ChangesClass</name>
     <customClass/>
     <customMapping/>
     <defaultViewSheet/>
@@ -221,7 +221,7 @@
     </version>
   </class>
   <object>
-    <name>ReleaseNotes2.Code.ChangesClass</name>
+    <name>ReleaseNotes.Code.ChangesClass</name>
     <number>0</number>
     <className>XWiki.ClassSheetBinding</className>
     <guid>52b24f82-bff8-4cee-985a-61c793fe2942</guid>
@@ -249,7 +249,7 @@
       </sheet>
     </class>
     <property>
-      <sheet>ReleaseNotes2.Code.ChangesSheet</sheet>
+      <sheet>ReleaseNotes.Code.ChangesSheet</sheet>
     </property>
   </object>
 </xwikidoc>

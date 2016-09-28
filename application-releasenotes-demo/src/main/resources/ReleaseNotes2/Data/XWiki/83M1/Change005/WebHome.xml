@@ -20,13 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes2.Data.XWiki.8\.3M1.Change005.WebHome" locale="">
-  <web>ReleaseNotes2.Data.XWiki.8\.3M1.Change005</web>
+<xwikidoc version="1.2" reference="ReleaseNotes.Data.XWiki.8\.3M1.Change005.WebHome" locale="">
+  <web>ReleaseNotes.Data.XWiki.8\.3M1.Change005</web>
   <name>WebHome</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>ReleaseNotes2.Data.WebHome</parent>
+  <parent>ReleaseNotes.Data.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474303591000</creationDate>
   <author>xwiki:XWiki.Admin</author>
@@ -59,12 +59,12 @@
     <filesize>16932</filesize>
   </attachment>
   <object>
-    <name>ReleaseNotes2.Data.XWiki.8\.3M1.Change005.WebHome</name>
+    <name>ReleaseNotes.Data.XWiki.8\.3M1.Change005.WebHome</name>
     <number>0</number>
-    <className>ReleaseNotes2.Code.ChangesClass</className>
+    <className>ReleaseNotes.Code.ChangesClass</className>
     <guid>24ba8c42-497e-4943-9c35-0c2ccdc28e79</guid>
     <class>
-      <name>ReleaseNotes2.Code.ChangesClass</name>
+      <name>ReleaseNotes.Code.ChangesClass</name>
       <customClass/>
       <customMapping/>
       <defaultViewSheet/>
