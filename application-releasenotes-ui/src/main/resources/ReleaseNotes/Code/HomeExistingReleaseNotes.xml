@@ -99,11 +99,13 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeExistingReleaseNotes")
   'date' : { 'type' : 'date' }
 })
 #set($options = { 
-   "className" : "${topSpace}.Code.ReleaseNoteClass",
-   "translationPrefix" : "releasenotes.releases.livetable.",
-   "rowCount": 15
+   'className' : "${topSpace}.Code.ReleaseNoteClass",
+   'selectedColumn' : 'date',
+   'defaultOrder' : 'desc',
+   'translationPrefix' : 'releasenotes.releases.livetable.',
+   'rowCount' : 15
 })
-#livetable("releasenotes" $columns $columnsProperties $options)
+#livetable('releasenotes' $columns $columnsProperties $options)
 {{/velocity}}</content>
   <object>
     <name>ReleaseNotes.Code.HomeExistingReleaseNotes</name>
