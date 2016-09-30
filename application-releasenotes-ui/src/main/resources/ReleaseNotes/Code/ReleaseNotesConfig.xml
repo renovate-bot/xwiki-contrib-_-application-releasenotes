@@ -20,47 +20,33 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Code.Translations" locale="">
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.ReleaseNotesConfig" locale="">
   <web>ReleaseNotes.Code</web>
-  <name>Translations</name>
+  <name>ReleaseNotesConfig</name>
   <language/>
-  <defaultLanguage>en</defaultLanguage>
+  <defaultLanguage/>
   <translation>0</translation>
   <parent>ReleaseNotes.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
-  <creationDate>1474376757000</creationDate>
+  <creationDate>1475182469000</creationDate>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1474386599000</date>
-  <contentUpdateDate>1474386599000</contentUpdateDate>
+  <date>1475182572000</date>
+  <contentUpdateDate>1475182469000</contentUpdateDate>
   <version>1.1</version>
   <title/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>releasenotes.changes.livetable.version=Version
-releasenotes.changes.livetable.category=Category
-releasenotes.changes.livetable.audience=Target
-releasenotes.changes.livetable.summary=Summary
-releasenotes.changes.livetable.doc.creationDate=Created
-releasenotes.changes.livetable.title=Title
-releasenotes.changes.livetable.importance=Importance
-releasenotes.changes.livetable.product=Product
-releasenotes.changes.livetable.emptyvalue=
-releasenotes.applicationsPanelEntryLabel=Release Notes
-releasenotes.releases.livetable.product=Product
-releasenotes.releases.livetable.version=Version
-releasenotes.releases.livetable.released=Released?
-releasenotes.releases.livetable.date=Release Date
-releasenotes.releases.livetable.emptyvalue=</content>
+  <content/>
   <object>
-    <name>ReleaseNotes.Code.Translations</name>
+    <name>ReleaseNotes.Code.ReleaseNotesConfig</name>
     <number>0</number>
-    <className>XWiki.TranslationDocumentClass</className>
-    <guid>c8e5fa9f-2383-4026-88c7-2694af37fd18</guid>
+    <className>ReleaseNotes.Code.ReleaseNotesConfigClass</className>
+    <guid>1792fbdc-8771-46d2-aa02-e2497f217645</guid>
     <class>
-      <name>XWiki.TranslationDocumentClass</name>
+      <name>ReleaseNotes.Code.ReleaseNotesConfigClass</name>
       <customClass/>
       <customMapping/>
       <defaultViewSheet/>
@@ -68,25 +54,49 @@ releasenotes.releases.livetable.emptyvalue=</content>
       <defaultWeb/>
       <nameField/>
       <validationScript/>
-      <scope>
-        <cache>0</cache>
+      <product>
+        <customDisplay/>
         <disabled>0</disabled>
-        <displayType>select</displayType>
+        <name>product</name>
+        <number>2</number>
+        <picker>1</picker>
+        <prettyName>Default Product Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </product>
+      <template>
+        <cache>0</cache>
+        <classname/>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <idField/>
         <multiSelect>0</multiSelect>
-        <name>scope</name>
+        <name>template</name>
         <number>1</number>
-        <prettyName>Scope</prettyName>
+        <picker>1</picker>
+        <prettyName>Template Reference</prettyName>
         <relationalStorage>0</relationalStorage>
         <separator> </separator>
-        <separators>|, </separators>
+        <separators/>
         <size>1</size>
+        <sort>none</sort>
+        <sql/>
         <unmodifiable>0</unmodifiable>
-        <values>GLOBAL|WIKI|USER|ON_DEMAND</values>
-        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
-      </scope>
+        <validationMessage/>
+        <validationRegExp/>
+        <valueField/>
+        <classType>com.xpn.xwiki.objects.classes.PageClass</classType>
+      </template>
     </class>
     <property>
-      <scope>WIKI</scope>
+      <product>XWiki</product>
+    </property>
+    <property>
+      <template>ReleaseNotes.Code.ReleaseNoteTemplate</template>
     </property>
   </object>
 </xwikidoc>

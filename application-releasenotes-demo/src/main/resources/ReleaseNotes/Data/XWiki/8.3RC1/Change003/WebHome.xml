@@ -256,7 +256,7 @@
       <screenshots>debug.png</screenshots>
     </property>
     <property>
-      <summary>The [[performance tree&gt;&gt;dev:Community.Debugging||anchor="HDebugmode"]] give interesting information but it was hard to see quickly which steps where causing performances issues.</summary>
+      <summary>The performance tree gives interesting information but it was hard to see quickly which steps where causing performances issues.</summary>
     </property>
     <property>
       <title>Make most expensive steps more visible</title>

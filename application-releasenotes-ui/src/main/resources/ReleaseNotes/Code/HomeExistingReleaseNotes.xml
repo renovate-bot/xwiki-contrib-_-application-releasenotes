@@ -20,97 +20,96 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Data.WebHome" locale="">
-  <web>ReleaseNotes.Data</web>
-  <name>WebHome</name>
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.HomeExistingReleaseNotes" locale="">
+  <web>ReleaseNotes.Code</web>
+  <name>HomeExistingReleaseNotes</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
+  <parent>ReleaseNotes.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
-  <creationDate>1474376757000</creationDate>
-  <parent>ReleaseNotes.WebHome</parent>
+  <creationDate>1475248529000</creationDate>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1475249105000</date>
-  <contentUpdateDate>1475249083000</contentUpdateDate>
+  <date>1475248641000</date>
+  <contentUpdateDate>1475248641000</contentUpdateDate>
   <version>1.1</version>
-  <title>Release Notes Changes</title>
+  <title/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>= Generate Report =
-
-{{include reference="ReleaseNotes.Code.HomeGenerateReleaseNotes"/}}
-
-= Existing Changes =
-
-{{velocity}}
-  #set ($productName = $request.product)
-  #if ("$!productName" == '')
-    #set ($productName = "XWiki")
-  #end
-  ## Add new change
+  <content>{{velocity}}
+#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
+$!xwiki.jsx.use("${topSpace}.Code.HomeExistingReleaseNotes")
+#if ($hasAdmin)
+  #set ($configDoc = $xwiki.getDocument("${topSpace}.Code.ReleaseNotesConfig"))
+  #set ($defaultProduct = $configDoc.getValue('product'))
+  #set ($defaultTemplateReferenceString = $configDoc.getValue('template'))
   #if ($request.action == 'add')
-    #if ("$!request.version" == '')
-      {{error}}Version must be set for creating a new Release Note change!{{/error}}
-
-    #else
-      ## Compute automatically a new page name, using the format "Change###" where ### is a zero-padded number.
-      #set ($shortVersion = $stringtool.replaceChars($request.version, "-", ""))
-      #set ($shortVersion = $stringtool.upperCase($shortVersion))
-      #set ($shortVersion = $shortVersion.replace('MILESTONE', 'M'))
-      #set ($versionSpaceReference = $services.model.createDocumentReference('', ["$topSpace", 'Data', "$productName", "$shortVersion"], 'WebHome').parent)
-      #set ($versionSpaceReferenceString = $services.model.serialize($versionSpaceReference))
-      ## Make sure we have existing entries, otherwise start at 1
-      #set ($query = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space like :space").bindValue('space', "${versionSpaceReferenceString}%"))
-      #if ($query.count() &gt; 0)
-        #set ($highest = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space like '${versionSpaceReferenceString}%' order by doc.space desc").setLimit(1).execute())
-        #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).parent.name.substring(6)).intValue())
-        #set ($nextUniqueNumber = $numbertool.format('000', $mathtool.add($currentNumber, 1)))
-      #else
-        #set ($nextUniqueNumber = '001')
+    #set ($product = $!request.product)
+    #set ($version = $!request.version)
+    ## Create page if it doesn't exist
+    #set ($rnPageReference = $services.model.createDocumentReference('', ["$topSpace", 'Data', $product, $version], 'WebHome'))
+    #set ($rnDoc = $xwiki.getDocument($rnPageReference))
+    #if ($rnDoc.isNew())
+      #set ($rnObject = $rnDoc.newObject("${topSpace}.Code.ReleaseNoteClass"))
+      #set ($discard = $rnObject.set('product', $product))
+      #set ($discard = $rnObject.set('version', $version))
+      #set ($discard = $rnObject.set('released', '0'))
+      ## Copy the template content + title
+      #set ($templateDoc = $xwiki.getDocument($defaultTemplateReferenceString))
+      ## Run Velocity on the template to evaluate the velocity code in the template
+      #define($evaluatedContent)
+        #evaluate($templateDoc.content)
       #end
-      #set ($versionPageReference = "${versionSpaceReferenceString}.Change${nextUniqueNumber}.WebHome")
-      $response.sendRedirect($xwiki.getURL($versionPageReference.toString(), 'inline', "$!{request.queryString}&amp;shortVersion=${escapetool.url($shortVersion)}"))
+      #set ($discard = $rnDoc.setContent($evaluatedContent))
+      #define($evaluatedTitle)
+        #evaluate($templateDoc.title)
+      #end
+      #set ($discard = $rnDoc.setTitle($evaluatedTitle))
+      #set ($discard = $rnDoc.save('New Release note'))
+      ## Redirect in edit mode to edit the RN
+      $response.sendRedirect($xwiki.getURL($services.model.serialize($rnPageReference)))
+    #else
+
+      {{error}}That release notes already exists!{{/error}}
+
     #end
   #end
-{{html clean='false'}}
-&lt;form&gt;
-  &lt;input type="hidden" name="action" value="add"/&gt;
-  &lt;input type="hidden" name="template" value="${topSpace}.Code.ChangesTemplate"/&gt;
-  &lt;input id="product" type="text" name="product" value="XWiki" size="16"/&gt;
-  &lt;input id="version" type="text" name="version" value="Product version..." size="16" class="withTip"/&gt;
-  &lt;span class="buttonwrapper"&gt;
-    &lt;input class="button" type="submit" value="Add Change"/&gt;
-  &lt;/span&gt;
-&lt;/form&gt;
-{{/html}}
+  {{html}}
+    &lt;form&gt;
+      &lt;input type="hidden" name="action" value="add"/&gt;
+      &lt;input id="product" type="text" name="product" value="$defaultProduct" size="32"/&gt;
+      &lt;input id="version" type="text" name="version" value="Short version e.g. 8.3M1..." size="32" class="withTip"/&gt;
+      &lt;span class="buttonwrapper"&gt;
+        &lt;input class="button" type="submit" value="Add Release Note"/&gt;
+      &lt;/span&gt;
+    &lt;/form&gt;
+  {{/html}}
+#end
+{{/velocity}}
 
-#set($columns = ['doc.creationDate', 'product', 'version', 'category', 'audience', 'title', 'importance', 'summary' ])
+{{velocity}}
+#set($columns = ['product', 'version', 'released', 'date'])
 #set($columnsProperties = {
-  'doc.creationDate' : { 'type' : 'date', 'link' : true  },
-  'product' : { 'type' : 'text', 'match': 'partial' },
-  'version' : { 'type' : 'text', 'match': 'partial' },
-  'category' : { 'type' : 'text', 'match': 'partial' },
-  'audience' : { 'type' : 'text', 'match': 'partial' },
-  'title' : { 'type' : 'text', 'sortable' : false },
-  'importance' : { 'type' : 'text'},
-  'summary' : { 'type' : 'text', 'html' : 'true', 'sortable' : false }
+  'product' : { 'type' : 'text' },
+  'version' : { 'type' : 'text', 'link' : true },
+  'released' : { 'type' : 'boolean' },
+  'date' : { 'type' : 'date', 'link' : true }
 })
 #set($options = { 
-   "className" : "${topSpace}.Code.ChangesClass",
-   "translationPrefix" : "releasenotes.changes.livetable.",
-   "tagCloud" : true,
+   "className" : "${topSpace}.Code.ReleaseNoteClass",
+   "translationPrefix" : "releasenotes.releases.livetable.",
    "rowCount": 15
 })
-#livetable("releasenoteschanges" $columns $columnsProperties $options)
+#livetable("releasenotes" $columns $columnsProperties $options)
 {{/velocity}}</content>
   <object>
-    <name>ReleaseNotes.Data.WebHome</name>
+    <name>ReleaseNotes.Code.HomeExistingReleaseNotes</name>
     <number>0</number>
     <className>XWiki.JavaScriptExtension</className>
-    <guid>7a418dc1-5a02-422e-90e9-7cfa4a6db629</guid>
+    <guid>c601c766-8185-4fa5-9c2c-cc0bf3744053</guid>
     <class>
       <name>XWiki.JavaScriptExtension</name>
       <customClass/>
@@ -193,7 +192,7 @@
     if($('version')) {
       Event.observe($('version'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
-             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=version&amp;secCol=-&amp;',
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;amp;classname=ReleaseNotes.Code.ReleaseNoteClass&amp;amp;fieldname=version&amp;amp;secCol=-&amp;amp;',
              varname: "input", 
              seps: " ,|",
              offsety: 13
@@ -203,7 +202,7 @@
     if($('product')) {
       Event.observe($('product'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
-             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=product&amp;secCol=-&amp;',
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;amp;classname=ReleaseNotes.Code.ReleaseNoteClass&amp;amp;fieldname=product&amp;amp;secCol=-&amp;amp;',
              varname: "input", 
              seps: " ,|",
              offsety: 13
@@ -217,7 +216,7 @@
       <name/>
     </property>
     <property>
-      <parse>0</parse>
+      <parse>1</parse>
     </property>
     <property>
       <use>onDemand</use>

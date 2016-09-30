@@ -29,7 +29,6 @@
   <parent>ReleaseNotes.Data.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474634701000</creationDate>
-  <parent>ReleaseNotes.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <date>1474909130000</date>
@@ -97,10 +96,10 @@ Vincent Massol</content>
   <object>
     <name>ReleaseNotes.Data.XWiki.8\.3RC1.WebHome</name>
     <number>0</number>
-    <className>ReleaseNotes.BackwardCompatibility</className>
-    <guid>3a7b2268-4bda-48ca-97d7-2fa7eb073475</guid>
+    <className>ReleaseNotes.Code.ReleaseNoteClass</className>
+    <guid>de62da2c-8dca-4d30-b6db-95af4beec353</guid>
     <class>
-      <name>ReleaseNotes.BackwardCompatibility</name>
+      <name>ReleaseNotes.Code.ReleaseNoteClass</name>
       <customClass/>
       <customMapping/>
       <defaultViewSheet/>
@@ -108,92 +107,73 @@ Vincent Massol</content>
       <defaultWeb/>
       <nameField/>
       <validationScript/>
-      <violations>
+      <date>
         <customDisplay/>
+        <dateFormat>dd/MM/yyyy HH:mm:ss</dateFormat>
         <disabled>0</disabled>
-        <editor>---</editor>
-        <name>violations</name>
-        <number>1</number>
-        <picker>0</picker>
-        <prettyName>Violations</prettyName>
-        <rows>5</rows>
-        <size>40</size>
+        <emptyIsToday>0</emptyIsToday>
+        <name>date</name>
+        <number>4</number>
+        <picker>1</picker>
+        <prettyName>Release Date</prettyName>
+        <size>20</size>
         <unmodifiable>0</unmodifiable>
         <validationMessage/>
         <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </violations>
+        <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
+      </date>
+      <product>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>product</name>
+        <number>1</number>
+        <picker>1</picker>
+        <prettyName>Product</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </product>
+      <released>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>released</name>
+        <number>3</number>
+        <prettyName>Is Released?</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </released>
+      <version>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>version</name>
+        <number>2</number>
+        <picker>1</picker>
+        <prettyName>Version</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </version>
     </class>
     <property>
-      <violations>[
-    [
-        {
-            "code": "java.method.exception.checkedAdded",
-            "justification": "Align with ExtensionRepository API",
-            "new": "method org.xwiki.extension.repository.result.IterableResult&lt;org.xwiki.extension.Extension&gt; org.xwiki.extension.repository.ExtensionRepositoryManager::search(java.lang.String, int, int) throws org.xwiki.extension.repository.search.SearchException",
-            "old": "method org.xwiki.extension.repository.result.IterableResult&lt;org.xwiki.extension.Extension&gt; org.xwiki.extension.repository.ExtensionRepositoryManager::search(java.lang.String, int, int)"
-        },
-        {
-            "code": "java.method.exception.checkedAdded",
-            "justification": "Align with ExtensionRepository API",
-            "new": "method org.xwiki.extension.repository.result.IterableResult&lt;org.xwiki.extension.Extension&gt; org.xwiki.extension.repository.ExtensionRepositoryManager::search(org.xwiki.extension.repository.search.ExtensionQuery) throws org.xwiki.extension.repository.search.SearchException",
-            "old": "method org.xwiki.extension.repository.result.IterableResult&lt;org.xwiki.extension.Extension&gt; org.xwiki.extension.repository.ExtensionRepositoryManager::search(org.xwiki.extension.repository.search.ExtensionQuery)"
-        }
-    ],
-    [
-        
-    ],
-    [
-        {
-            "code": "java.method.addedToInterface",
-            "justification": "Young API. Remember the external name of the resource",
-            "new": "method java.lang.String org.xwiki.skin.Resource&lt;I extends org.xwiki.filter.input.InputSource&gt;::getResourceName()"
-        },
-        {
-            "code": "java.method.addedToInterface",
-            "justification": "Young API. Add helpers",
-            "new": "method org.xwiki.rendering.block.XDOM org.xwiki.template.TemplateManager::execute(org.xwiki.template.Template) throws java.lang.Exception"
-        },
-        {
-            "code": "java.method.addedToInterface",
-            "justification": "Young API. Add helpers",
-            "new": "method org.xwiki.rendering.block.XDOM org.xwiki.template.TemplateManager::executeNoException(org.xwiki.template.Template)"
-        },
-        {
-            "code": "java.method.addedToInterface",
-            "justification": "Young API. Add helpers",
-            "new": "method org.xwiki.rendering.block.XDOM org.xwiki.template.TemplateManager::getXDOM(org.xwiki.template.Template) throws java.lang.Exception"
-        },
-        {
-            "code": "java.method.addedToInterface",
-            "justification": "Young API. Add helpers",
-            "new": "method org.xwiki.rendering.block.XDOM org.xwiki.template.TemplateManager::getXDOMNoException(org.xwiki.template.Template)"
-        },
-        {
-            "code": "java.method.addedToInterface",
-            "justification": "Young API. Add helpers",
-            "new": "method void org.xwiki.template.TemplateManager::renderNoException(org.xwiki.template.Template, java.io.Writer)"
-        },
-        {
-            "code": "java.method.exception.checkedAdded",
-            "justification": "Align with ExtensionRepository API",
-            "new": "method org.xwiki.extension.repository.result.IterableResult&lt;org.xwiki.extension.Extension&gt; org.xwiki.platform.flavor.FlavorManager::getFlavors(org.xwiki.platform.flavor.FlavorQuery) throws org.xwiki.extension.repository.search.SearchException",
-            "old": "method org.xwiki.extension.repository.result.IterableResult&lt;org.xwiki.extension.Extension&gt; org.xwiki.platform.flavor.FlavorManager::getFlavors(org.xwiki.platform.flavor.FlavorQuery)"
-        },
-        {
-            "code": "java.method.exception.checkedAdded",
-            "justification": "Align with ExtensionRepository API",
-            "new": "method org.xwiki.extension.repository.result.IterableResult&lt;org.xwiki.extension.Extension&gt; org.xwiki.platform.flavor.FlavorManager::searchFlavors(org.xwiki.platform.flavor.FlavorQuery) throws org.xwiki.extension.repository.search.SearchException",
-            "old": "method org.xwiki.extension.repository.result.IterableResult&lt;org.xwiki.extension.Extension&gt; org.xwiki.platform.flavor.FlavorManager::searchFlavors(org.xwiki.platform.flavor.FlavorQuery)"
-        },
-        {
-            "code": "java.field.typeChanged",
-            "justification": "Was publicly exposing internal class",
-            "new": "field org.xwiki.mail.script.AbstractMailScriptService.sessionFactory",
-            "old": "field org.xwiki.mail.script.AbstractMailScriptService.sessionFactory"
-        }
-    ]
-]</violations>
+      <date>2016-09-26 17:42:11.0</date>
+    </property>
+    <property>
+      <product>XWiki</product>
+    </property>
+    <property>
+      <released>1</released>
+    </property>
+    <property>
+      <version>8.3RC1</version>
     </property>
   </object>
 </xwikidoc>

@@ -20,97 +20,61 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Data.WebHome" locale="">
-  <web>ReleaseNotes.Data</web>
-  <name>WebHome</name>
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.HomeGenerateReleaseNotes" locale="">
+  <web>ReleaseNotes.Code</web>
+  <name>HomeGenerateReleaseNotes</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
+  <parent>ReleaseNotes.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
-  <creationDate>1474376757000</creationDate>
-  <parent>ReleaseNotes.WebHome</parent>
+  <creationDate>1475248887000</creationDate>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1475249105000</date>
-  <contentUpdateDate>1475249083000</contentUpdateDate>
+  <date>1475249022000</date>
+  <contentUpdateDate>1475249022000</contentUpdateDate>
   <version>1.1</version>
-  <title>Release Notes Changes</title>
+  <title/>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>= Generate Report =
-
-{{include reference="ReleaseNotes.Code.HomeGenerateReleaseNotes"/}}
-
-= Existing Changes =
+  <content>Notes:
+* Lists are allowed by using commas (e.g. "High,Medium")
+* Wildcards are allowed (e.g. "8.3%")
 
 {{velocity}}
-  #set ($productName = $request.product)
-  #if ("$!productName" == '')
-    #set ($productName = "XWiki")
-  #end
-  ## Add new change
-  #if ($request.action == 'add')
-    #if ("$!request.version" == '')
-      {{error}}Version must be set for creating a new Release Note change!{{/error}}
-
-    #else
-      ## Compute automatically a new page name, using the format "Change###" where ### is a zero-padded number.
-      #set ($shortVersion = $stringtool.replaceChars($request.version, "-", ""))
-      #set ($shortVersion = $stringtool.upperCase($shortVersion))
-      #set ($shortVersion = $shortVersion.replace('MILESTONE', 'M'))
-      #set ($versionSpaceReference = $services.model.createDocumentReference('', ["$topSpace", 'Data', "$productName", "$shortVersion"], 'WebHome').parent)
-      #set ($versionSpaceReferenceString = $services.model.serialize($versionSpaceReference))
-      ## Make sure we have existing entries, otherwise start at 1
-      #set ($query = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space like :space").bindValue('space', "${versionSpaceReferenceString}%"))
-      #if ($query.count() &gt; 0)
-        #set ($highest = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space like '${versionSpaceReferenceString}%' order by doc.space desc").setLimit(1).execute())
-        #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).parent.name.substring(6)).intValue())
-        #set ($nextUniqueNumber = $numbertool.format('000', $mathtool.add($currentNumber, 1)))
-      #else
-        #set ($nextUniqueNumber = '001')
-      #end
-      #set ($versionPageReference = "${versionSpaceReferenceString}.Change${nextUniqueNumber}.WebHome")
-      $response.sendRedirect($xwiki.getURL($versionPageReference.toString(), 'inline', "$!{request.queryString}&amp;shortVersion=${escapetool.url($shortVersion)}"))
-    #end
-  #end
-{{html clean='false'}}
-&lt;form&gt;
-  &lt;input type="hidden" name="action" value="add"/&gt;
-  &lt;input type="hidden" name="template" value="${topSpace}.Code.ChangesTemplate"/&gt;
-  &lt;input id="product" type="text" name="product" value="XWiki" size="16"/&gt;
-  &lt;input id="version" type="text" name="version" value="Product version..." size="16" class="withTip"/&gt;
+#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
+$!xwiki.jsx.use("${topSpace}.Code.HomeGenerateReleaseNotes")
+{{html clean="false"}}
+&lt;form action="$xwiki.getURL("${topSpace}.Code.Report")"&gt;
+  &lt;input type="hidden" name="action" value="report"/&gt;
+  &lt;select name="displayer"&gt;
+    &lt;option value="grid"&gt;Grid&lt;/option&gt;
+    &lt;option value="flow"&gt;Flow&lt;/option&gt;
+    &lt;option value="simple"&gt;Simple&lt;/option&gt;
+    &lt;option value="list"&gt;List&lt;/option&gt;
+  &lt;/select&gt;
+  &lt;input id="report-product" type="text" name="products" value="Products..." size="30" class="withTip"/&gt;
+  &lt;input id="report-version" type="text" name="versions" value="Versions..." size="30" class="withTip"/&gt;
+  &lt;input id="report-category" type="text" name="categories" value="Categories..." size="30" class="withTip"/&gt;
+  &lt;input id="report-audience" type="text" name="audience" value="Audience..." size="30" class="withTip"/&gt;
+  &lt;input id="report-importance" type="text" name="importance" value="Importance..." size="30" class="withTip"/&gt;
+  <br/>
+  &lt;input type="radio" name="containsScreenshots" value="true"&gt; With Screenshots
+  &lt;input type="radio" name="containsScreenshots" value="false"&gt; Without Screenshots
+  <br/>
   &lt;span class="buttonwrapper"&gt;
-    &lt;input class="button" type="submit" value="Add Change"/&gt;
+    &lt;input class="button" type="submit" value="Generate Report"/&gt;
   &lt;/span&gt;
 &lt;/form&gt;
 {{/html}}
-
-#set($columns = ['doc.creationDate', 'product', 'version', 'category', 'audience', 'title', 'importance', 'summary' ])
-#set($columnsProperties = {
-  'doc.creationDate' : { 'type' : 'date', 'link' : true  },
-  'product' : { 'type' : 'text', 'match': 'partial' },
-  'version' : { 'type' : 'text', 'match': 'partial' },
-  'category' : { 'type' : 'text', 'match': 'partial' },
-  'audience' : { 'type' : 'text', 'match': 'partial' },
-  'title' : { 'type' : 'text', 'sortable' : false },
-  'importance' : { 'type' : 'text'},
-  'summary' : { 'type' : 'text', 'html' : 'true', 'sortable' : false }
-})
-#set($options = { 
-   "className" : "${topSpace}.Code.ChangesClass",
-   "translationPrefix" : "releasenotes.changes.livetable.",
-   "tagCloud" : true,
-   "rowCount": 15
-})
-#livetable("releasenoteschanges" $columns $columnsProperties $options)
 {{/velocity}}</content>
   <object>
-    <name>ReleaseNotes.Data.WebHome</name>
+    <name>ReleaseNotes.Code.HomeGenerateReleaseNotes</name>
     <number>0</number>
     <className>XWiki.JavaScriptExtension</className>
-    <guid>7a418dc1-5a02-422e-90e9-7cfa4a6db629</guid>
+    <guid>9e8ee473-1051-4488-ac63-465813fdb117</guid>
     <class>
       <name>XWiki.JavaScriptExtension</name>
       <customClass/>
@@ -190,8 +154,8 @@
     <property>
       <code>(function(){
   document.observe('dom:loaded', function () {
-    if($('version')) {
-      Event.observe($('version'), "focus", function() {
+    if($('report-version')) {
+      Event.observe($('report-version'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
              script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=version&amp;secCol=-&amp;',
              varname: "input", 
@@ -200,10 +164,40 @@
         });
       });
     }
-    if($('product')) {
-      Event.observe($('product'), "focus", function() {
+    if($('report-category')) {
+      Event.observe($('report-category'), "focus", function() {
+        new XWiki.widgets.Suggest(this, {
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=category&amp;secCol=-&amp;',
+             varname: "input", 
+             seps: " ,|",
+             offsety: 13
+        });
+      });
+    }
+    if($('report-product')) {
+      Event.observe($('report-product'), "focus", function() {
         new XWiki.widgets.Suggest(this, {
              script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=product&amp;secCol=-&amp;',
+             varname: "input", 
+             seps: " ,|",
+             offsety: 13
+        });
+      });
+    }
+    if($('report-audience')) {
+      Event.observe($('report-audience'), "focus", function() {
+        new XWiki.widgets.Suggest(this, {
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=audience&amp;secCol=-&amp;',
+             varname: "input", 
+             seps: " ,|",
+             offsety: 13
+        });
+      });
+    }
+    if($('report-importance')) {
+      Event.observe($('report-importance'), "focus", function() {
+        new XWiki.widgets.Suggest(this, {
+             script: '$xwiki.getURL("${doc.space}.WebHome", "view")?xpage=suggest&amp;classname=ReleaseNotes.Code.ChangesClass&amp;fieldname=importance&amp;secCol=-&amp;',
              varname: "input", 
              seps: " ,|",
              offsety: 13
@@ -217,7 +211,7 @@
       <name/>
     </property>
     <property>
-      <parse>0</parse>
+      <parse>1</parse>
     </property>
     <property>
       <use>onDemand</use>

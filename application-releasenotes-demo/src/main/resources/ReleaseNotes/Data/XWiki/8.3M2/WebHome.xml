@@ -88,4 +88,87 @@ The following people have contributed code to this release (sorted alphabeticall
 * Marius Dumitru Florea
 * Thomas Mortagne
 * Vincent Massol</content>
+  <object>
+    <name>ReleaseNotes.Data.XWiki.8\.3M2.WebHome</name>
+    <number>0</number>
+    <className>ReleaseNotes.Code.ReleaseNoteClass</className>
+    <guid>6746e346-fb6e-420c-9051-d4aed0f53d41</guid>
+    <class>
+      <name>ReleaseNotes.Code.ReleaseNoteClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <date>
+        <customDisplay/>
+        <dateFormat>dd/MM/yyyy HH:mm:ss</dateFormat>
+        <disabled>0</disabled>
+        <emptyIsToday>0</emptyIsToday>
+        <name>date</name>
+        <number>4</number>
+        <picker>1</picker>
+        <prettyName>Release Date</prettyName>
+        <size>20</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.DateClass</classType>
+      </date>
+      <product>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>product</name>
+        <number>1</number>
+        <picker>1</picker>
+        <prettyName>Product</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </product>
+      <released>
+        <customDisplay/>
+        <defaultValue/>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <name>released</name>
+        <number>3</number>
+        <prettyName>Is Released?</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </released>
+      <version>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <name>version</name>
+        <number>2</number>
+        <picker>1</picker>
+        <prettyName>Version</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </version>
+    </class>
+    <property>
+      <date>2016-09-13 17:41:31.0</date>
+    </property>
+    <property>
+      <product>XWiki</product>
+    </property>
+    <property>
+      <released>1</released>
+    </property>
+    <property>
+      <version>8.3M2</version>
+    </property>
+  </object>
 </xwikidoc>
