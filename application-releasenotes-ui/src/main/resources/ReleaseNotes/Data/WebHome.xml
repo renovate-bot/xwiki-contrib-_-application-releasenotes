@@ -41,6 +41,10 @@
   <hidden>false</hidden>
   <content>= Generate Report =
 
+Notes:
+* Lists are allowed by using commas (e.g. "High,Medium")
+* Wildcards are allowed (e.g. "8.3%")
+
 {{include reference="ReleaseNotes.Code.HomeGenerateReleaseNotes"/}}
 
 = Existing Changes =

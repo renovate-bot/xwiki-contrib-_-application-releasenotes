@@ -39,11 +39,15 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>= Generate your own Release Note =
+  <content>= Existing Release Notes =
 
-{{include reference="ReleaseNotes.Code.HomeGenerateReleaseNotes"/}}
+{{include reference="ReleaseNotes.Code.HomeExistingReleaseNotes"/}}
 
-= Prepared Release Notes =
+= Custom Release Notes =
 
-{{include reference="ReleaseNotes.Code.HomeExistingReleaseNotes"/}}</content>
+Notes:
+* Lists are allowed by using commas (e.g. "High,Medium")
+* Wildcards are allowed (e.g. "8.3%")
+
+{{include reference="ReleaseNotes.Code.HomeGenerateReleaseNotes"/}}</content>
 </xwikidoc>
