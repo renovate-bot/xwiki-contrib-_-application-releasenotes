@@ -96,7 +96,7 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeExistingReleaseNotes")
   'product' : { 'type' : 'text' },
   'version' : { 'type' : 'text', 'link' : true },
   'released' : { 'type' : 'boolean' },
-  'date' : { 'type' : 'date', 'link' : true }
+  'date' : { 'type' : 'date' }
 })
 #set($options = { 
    "className" : "${topSpace}.Code.ReleaseNoteClass",
