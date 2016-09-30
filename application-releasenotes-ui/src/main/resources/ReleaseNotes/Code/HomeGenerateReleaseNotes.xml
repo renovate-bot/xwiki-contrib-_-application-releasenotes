@@ -60,10 +60,10 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeGenerateReleaseNotes")
   &lt;input id="report-category" type="text" name="categories" value="Categories..." size="30" class="withTip"/&gt;
   &lt;input id="report-audience" type="text" name="audience" value="Audience..." size="30" class="withTip"/&gt;
   &lt;input id="report-importance" type="text" name="importance" value="Importance..." size="30" class="withTip"/&gt;
-  <br/>
+  &lt;br/&gt;
   &lt;input type="radio" name="containsScreenshots" value="true"&gt; With Screenshots
   &lt;input type="radio" name="containsScreenshots" value="false"&gt; Without Screenshots
-  <br/>
+  &lt;br/&gt;
   &lt;span class="buttonwrapper"&gt;
     &lt;input class="button" type="submit" value="Generate Report"/&gt;
   &lt;/span&gt;
