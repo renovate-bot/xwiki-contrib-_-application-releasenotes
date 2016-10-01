@@ -158,7 +158,9 @@
       </visibility>
     </class>
     <property>
-      <code>{{velocity}}
+      <code>{{include reference="ReleaseNotes.Code.ChangesVelocityMacros"/}}
+
+{{velocity}}
 ## For final release notes, aggregate all changes from milestones and rcs.
 ## Use the page name to extract the version. The page has to be named using the short version syntax, e.g. "8.3M1"
 #set ($shortVersion = $doc.documentReference.parent.name)
@@ -177,7 +179,29 @@
     #set ($versionsParameter =  "${shortVersion}%")
   #end
 #end
+## Extract product + version + released info from xobject
+#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
+#set ($product = $!doc.getValue('product'))
+#set ($version = $!doc.getValue('version'))
+#set ($released = $!doc.getValue('released'))
 == For Users ==
+#if ("$!request.action" == 'useradd')
+  #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
+#end
+#if ($hasAdmin &amp;&amp;$ $released != '1')
+{{html clean='false'}}
+&lt;form&gt;
+  &lt;input type="hidden" name="action" value="useradd"/&gt;
+  &lt;input type="hidden" name="template" value="${topSpace}.Code.ChangesTemplate"/&gt;
+  &lt;input type="hidden" name="product" value="$product"/&gt;
+  &lt;input type="hidden" name="version" value="$version"/&gt;
+  &lt;input type="hidden" name="audience" value="user"/&gt;
+  &lt;span class="buttonwrapper"&gt;
+    &lt;input class="button" type="submit" value="Add User Change"/&gt;
+  &lt;/span&gt;
+&lt;/form&gt;
+{{/html}}
+#end
 
 {{changes displayer="simple" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="user" containsScreenshots="true"/}}
 
@@ -186,6 +210,23 @@
 {{changes displayer="list" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="user" containsScreenshots="false"/}}
 
 == For Admins ==
+#if ("$!request.action" == 'adminadd')
+  #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
+#end
+#if ($hasAdmin &amp;&amp;$ $released != '1')
+{{html clean='false'}}
+&lt;form&gt;
+  &lt;input type="hidden" name="action" value="adminadd"/&gt;
+  &lt;input type="hidden" name="template" value="${topSpace}.Code.ChangesTemplate"/&gt;
+  &lt;input type="hidden" name="product" value="$product"/&gt;
+  &lt;input type="hidden" name="version" value="$version"/&gt;
+  &lt;input type="hidden" name="audience" value="administrator"/&gt;
+  &lt;span class="buttonwrapper"&gt;
+    &lt;input class="button" type="submit" value="Add Admin Change"/&gt;
+  &lt;/span&gt;
+&lt;/form&gt;
+{{/html}}
+#end
 
 {{changes displayer="simple" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="administrator" containsScreenshots="true"/}}
 
@@ -194,6 +235,23 @@
 {{changes displayer="list" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="administrator" containsScreenshots="false"/}}
 
 == For Developers ==
+#if ("$!request.action" == 'devadd')
+  #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
+#end
+#if ($hasAdmin &amp;&amp;$ $released != '1')
+{{html clean='false'}}
+&lt;form&gt;
+  &lt;input type="hidden" name="action" value="devadd"/&gt;
+  &lt;input type="hidden" name="template" value="${topSpace}.Code.ChangesTemplate"/&gt;
+  &lt;input type="hidden" name="product" value="$product"/&gt;
+  &lt;input type="hidden" name="version" value="$version"/&gt;
+  &lt;input type="hidden" name="audience" value="developer"/&gt;
+  &lt;span class="buttonwrapper"&gt;
+    &lt;input class="button" type="submit" value="Add Developer Change"/&gt;
+  &lt;/span&gt;
+&lt;/form&gt;
+{{/html}}
+#end
 
 {{changes displayer="simple" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="developer" importance="Medium,High"/}}
 

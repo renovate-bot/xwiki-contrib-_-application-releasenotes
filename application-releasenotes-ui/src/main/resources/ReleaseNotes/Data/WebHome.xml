@@ -49,35 +49,18 @@ Notes:
 
 = Existing Changes =
 
+{{include reference="ReleaseNotes.Code.ChangesVelocityMacros"/}}
+
 {{velocity}}
-  #set ($productName = $request.product)
-  #if ("$!productName" == '')
-    #set ($productName = "XWiki")
+  #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
+  #set ($product = $request.product)
+  #if ("$!product" == '')
+    #set ($configDoc = $xwiki.getDocument("${topSpace}.Code.ReleaseNotesConfig"))
+    #set ($product = $configDoc.getValue('product'))
   #end
   ## Add new change
   #if ($request.action == 'add')
-    #if ("$!request.version" == '')
-      {{error}}Version must be set for creating a new Release Note change!{{/error}}
-
-    #else
-      ## Compute automatically a new page name, using the format "Change###" where ### is a zero-padded number.
-      #set ($shortVersion = $stringtool.replaceChars($request.version, "-", ""))
-      #set ($shortVersion = $stringtool.upperCase($shortVersion))
-      #set ($shortVersion = $shortVersion.replace('MILESTONE', 'M'))
-      #set ($versionSpaceReference = $services.model.createDocumentReference('', ["$topSpace", 'Data', "$productName", "$shortVersion"], 'WebHome').parent)
-      #set ($versionSpaceReferenceString = $services.model.serialize($versionSpaceReference))
-      ## Make sure we have existing entries, otherwise start at 1
-      #set ($query = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space like :space").bindValue('space', "${versionSpaceReferenceString}%"))
-      #if ($query.count() &gt; 0)
-        #set ($highest = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space like '${versionSpaceReferenceString}%' order by doc.space desc").setLimit(1).execute())
-        #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).parent.name.substring(6)).intValue())
-        #set ($nextUniqueNumber = $numbertool.format('000', $mathtool.add($currentNumber, 1)))
-      #else
-        #set ($nextUniqueNumber = '001')
-      #end
-      #set ($versionPageReference = "${versionSpaceReferenceString}.Change${nextUniqueNumber}.WebHome")
-      $response.sendRedirect($xwiki.getURL($versionPageReference.toString(), 'inline', "$!{request.queryString}&amp;shortVersion=${escapetool.url($shortVersion)}"))
-    #end
+    #handleAddAction($product, $!request.version, $!request.queryString)
   #end
 {{html clean='false'}}
 &lt;form&gt;

@@ -39,7 +39,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="ReleaseNotes.Code.ChangesVelocityMacros"/}}
+
+{{velocity}}
 #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 $!xwiki.jsx.use("${topSpace}.Code.HomeExistingReleaseNotes")
 #if ($hasAdmin)
@@ -49,8 +51,9 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeExistingReleaseNotes")
   #if ($request.action == 'add')
     #set ($product = $!request.product)
     #set ($version = $!request.version)
+    #getShortVersion($version $shortVersion)
     ## Create page if it doesn't exist
-    #set ($rnPageReference = $services.model.createDocumentReference('', ["$topSpace", 'Data', $product, $version], 'WebHome'))
+    #set ($rnPageReference = $services.model.createDocumentReference('', ["$topSpace", 'Data', $product, $shortVersion], 'WebHome'))
     #set ($rnDoc = $xwiki.getDocument($rnPageReference))
     #if ($rnDoc.isNew())
       #set ($rnObject = $rnDoc.newObject("${topSpace}.Code.ReleaseNoteClass"))
@@ -81,7 +84,7 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeExistingReleaseNotes")
     &lt;form&gt;
       &lt;input type="hidden" name="action" value="add"/&gt;
       &lt;input id="product" type="text" name="product" value="$defaultProduct" size="32"/&gt;
-      &lt;input id="version" type="text" name="version" value="Short version e.g. 8.3M1..." size="32" class="withTip"/&gt;
+      &lt;input id="version" type="text" name="version" value="Version e.g. 8.3-milestone-1..." size="32" class="withTip"/&gt;
       &lt;span class="buttonwrapper"&gt;
         &lt;input class="button" type="submit" value="Add Release Note"/&gt;
       &lt;/span&gt;

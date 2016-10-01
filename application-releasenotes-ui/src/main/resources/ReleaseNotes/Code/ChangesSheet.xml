@@ -49,6 +49,9 @@
   #if ("$!request.version" != '')
     #set ($discard = $changesObject.set('version', $!request.version))
   #end
+  #if ("$!request.audience" != '')
+    #set ($discard = $changesObject.set('audience', $!request.audience))
+  #end
   Conventions:
   * Screenshots should not be filled for Developer audience
   * For entering Miscellaneous changes for Users, don't set any screenshots
