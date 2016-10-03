@@ -41,7 +41,7 @@
   <hidden>true</hidden>
   <content>releasenotes.changes.livetable.version=Version
 releasenotes.changes.livetable.category=Category
-releasenotes.changes.livetable.audience=Target
+releasenotes.changes.livetable.audience=Audience
 releasenotes.changes.livetable.summary=Summary
 releasenotes.changes.livetable.doc.creationDate=Created
 releasenotes.changes.livetable.title=Title
