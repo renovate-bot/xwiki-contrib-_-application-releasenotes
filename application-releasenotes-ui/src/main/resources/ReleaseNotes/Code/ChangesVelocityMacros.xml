@@ -58,9 +58,15 @@
     #set ($versionSpaceReference = $services.model.createDocumentReference('', ["$topSpace", 'Data', "$product", "$shortVersion"], 'WebHome').parent)
     #set ($versionSpaceReferenceString = $services.model.serialize($versionSpaceReference))
     ## Make sure we have existing entries, otherwise start at 1
-    #set ($query = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space like :space").bindValue('space', "${versionSpaceReferenceString}.%"))
+    ## Handle the case of MySQL which uses "\" as an escape character and we need to handle that
+    ## since that character is present in space references when there are dots in space names.
+    #set ($query = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space LIKE :space escape '!'"))
+    #set ($spaceLike = $versionSpaceReferenceString.replaceAll('([%_!])', '!$1').concat('.%'))
+    #set ($query = $query.bindValue('space', $spaceLike))
     #if ($query.count() &gt; 0)
-      #set ($highest = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space like '${versionSpaceReferenceString}.%' order by doc.space desc").setLimit(1).execute())
+      #set ($highestQuery = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space like :space escape '!' order by doc.space desc"))
+      #set ($query = $query.bindValue('space', $spaceLike))
+      #set ($highest = $query.setLimit(1).execute())
       #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).parent.name.substring(6)).intValue())
       #set ($nextUniqueNumber = $numbertool.format('000', $mathtool.add($currentNumber, 1)))
     #else
