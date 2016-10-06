@@ -60,6 +60,9 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeExistingReleaseNotes")
       #set ($discard = $rnObject.set('product', $product))
       #set ($discard = $rnObject.set('version', $version))
       #set ($discard = $rnObject.set('released', '0'))
+      ## We set an empty release date so that the LiveTable can see entries. For some reasons, otherwise, it won't
+      ## display entries that have no date set (this is related to the fact that we're sorting the LT by dates).
+      #set ($discard = $rnObject.set('date', ''))
       ## Copy the template content + title
       #set ($templateDoc = $xwiki.getDocument($defaultTemplateReferenceString))
       ## Run Velocity on the template to evaluate the velocity code in the template
