@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib.releasenotes</groupId>
     <artifactId>application-releasenotes</artifactId>
-    <version>1.3</version>
+    <version>1.4-SNAPSHOT</version>
   </parent>
   <artifactId>application-releasenotes-demo</artifactId>
   <name>Release Notes Application - Demo Content</name>
@@ -42,7 +42,7 @@
       <groupId>org.xwiki.contrib.releasenotes</groupId>
       <artifactId>application-releasenotes-ui</artifactId>
       <!-- Minimal version that will work for the content -->
-      <version>1.3</version>
+      <version>1.4-SNAPSHOT</version>
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
