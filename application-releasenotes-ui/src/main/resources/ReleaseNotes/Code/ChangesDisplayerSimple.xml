@@ -45,16 +45,13 @@
 ## Inputs:
 ## - $changeItems
 ## - $displayEditLink
-## - $isUserOrAdmin
 #foreach ($item in $changeItems)
   #set ($changesDoc = $xwiki.getDocument($item))
   #generateDisplayEditLink($changesDoc)
   === $changesDoc.getValue('title')${displayEditLinkMarkup}=== 
   $changesDoc.getValue('summary')
 
-  #if ($isUserOrAdmin)
-    #displayScreenshot($changesDoc, false)
-  #end
+  #displayScreenshots($changesDoc, false, false)
 
   #set ($description = $changesDoc.getValue('description'))
   #if ("$!description" != '')

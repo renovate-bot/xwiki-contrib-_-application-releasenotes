@@ -81,16 +81,14 @@
 #else
   #set ($discard = $doc.use("${topSpace}.Code.ChangesClass"))
   #set ($audience = $doc.getValue('audience'))
-  #if ($audience.toLowerCase().contains('user') || $audience.toLowerCase().contains('administrator'))
-    #set ($screenshotReferences = $doc.getValue('screenshots'))
-    #if ("$!screenshotReferences" != '')
-      {{gallery}}
-        #foreach($screenshotReference in $screenshotReferences.split(','))
-          #set ($screenshotReference = $screenshotReference.trim())
-          image:$screenshotReference
-        #end
-      {{/gallery}}
-    #end
+  #set ($screenshotReferences = $doc.getValue('screenshots'))
+  #if ("$!screenshotReferences" != '')
+    {{gallery}}
+      #foreach($screenshotReference in $screenshotReferences.split(','))
+        #set ($screenshotReference = $screenshotReference.trim())
+        image:$screenshotReference
+      #end
+    {{/gallery}}
   #else
     #set ($example = $doc.getValue('example'))
     #if ("$!example" != '')

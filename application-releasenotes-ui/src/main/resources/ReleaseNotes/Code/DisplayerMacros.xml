@@ -49,38 +49,35 @@
     #set ($displayEditLinkMarkup = '')
   #end
 #end
-#macro(displayScreenshot $changesDoc $useGallery)
+#macro(displayScreenshots $changesDoc $useGallery $alwaysDisplayScreenshots)
   #set ($screenshotReferences = $changesDoc.getValue('screenshots'))
-  #if ("$!screenshotReferences" == '')
+  #if ("$!screenshotReferences" == '' &amp;&amp; $alwaysDisplayScreenshots)
     #set ($screenshotReferences = "${xcontext.macro.doc.documentReference}@no_image_thumb.png")
   #end
-  #if ($useGallery)
+  #if ("$!screenshotReferences" != '')
+    #if ($useGallery)
     {{gallery width="420px" height="315px"}}
-  #end
-  ## Make sure we have an absolute reference
-  #foreach($screenshotReference in $screenshotReferences.split(','))
-    #set ($screenshotReference = $screenshotReference.trim())
-    #if (!$screenshotReference.contains('@'))
-      ## HACK: fix me
-      #set ($screenshotReference = "${changesDoc.documentReference}@$screenshotReference")
+    #end
+    ## Make sure we have an absolute reference
+    #foreach($screenshotReference in $screenshotReferences.split(','))
+      #set ($screenshotReference = $screenshotReference.trim())
+      #if (!$screenshotReference.contains('@'))
+        ## HACK: fix me
+        #set ($screenshotReference = "${changesDoc.documentReference}@$screenshotReference")
+      #end
+      #if ($useGallery)
+        image:$screenshotReference
+      #else
+        #if ($velocityCount &gt; 1)
+
+        #end
+        [[image:$screenshotReference||style="border:1px solid silver;"]]
+      #end
     #end
     #if ($useGallery)
-      image:$screenshotReference
-    #else
-      #if ($velocityCount &gt; 1)
-
-      #end
-      [[image:$screenshotReference||style="border:1px solid silver;"]]
+      {{/gallery}}
     #end
   #end
-  #if ($useGallery)
-    {{/gallery}}
-  #end
-#end
-#if ($audience.toLowerCase().contains('user') || $audience.toLowerCase().contains('administrator'))
-  #set ($isUserOrAdmin = true)
-#else
-  #set ($isUserOrAdmin = false)
 #end
 {{/velocity}}</content>
 </xwikidoc>

@@ -45,23 +45,14 @@
 ## Inputs:
 ## - $changeItems
 ## - $audience (e.g. "User,Administrator,Developer")
-## - $isUserOrAdmin
-#if ($isUserOrAdmin)
-  (% class='container col-xs-12' %)(((
-#end
+(% class='container col-xs-12' %)(((
 #foreach ($item in $changeItems)
-  #if ($isUserOrAdmin)
-    (% class='row' %)(((
-    (% class='col-xs-6' %)(((
-  #end
+  (% class='row' %)(((
+  (% class='col-xs-6' %)(((
   #set ($changesDoc = $xwiki.getDocument($item))
-  #if ($isUserOrAdmin)
-    #displayScreenshot($changesDoc, true)
-  #end
-  #if ($isUserOrAdmin)
-    )))
-    (% class="col-xs-6" %)(((
-  #end
+  #displayScreenshots($changesDoc, true, false)
+  )))
+  (% class="col-xs-6" %)(((
   #generateDisplayEditLink($changesDoc)
   === $changesDoc.getValue('title')${displayEditLinkMarkup}===
 
@@ -70,15 +61,11 @@
   #if ("$!description" != '')
     [[More details&gt;&gt;doc:$changesDoc.documentReference]]
   #end
-  #if ($isUserOrAdmin)
-    )))
-    )))
-  #end
-  
+  )))
+  )))
+
 
 #end
-#if ($isUserOrAdmin)
-  )))
-#end
+)))
 {{/velocity}}</content>
 </xwikidoc>

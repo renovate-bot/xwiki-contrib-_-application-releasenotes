@@ -46,23 +46,16 @@
 ## - $changeItems
 ## - $audience (e.g. "User,Administrator,Developer")
 ## - $columns
-## - $isUserOrAdmin
-#if ($isUserOrAdmin)
-  (% class='container col-xs-12' %)(((
-#end
+(% class='container col-xs-12' %)(((
 #foreach ($item in $changeItems)
   ## Decide when to display a new row
-  #if ($isUserOrAdmin)
-    #if ($mathtool.sub($velocityCount, 1) % $columns == 0)
-      (% class='row' %)(((
-    #end
-    (% class="col-xs-$mathtool.div(12, $columns)" %)(((
+  #if ($mathtool.sub($velocityCount, 1) % $columns == 0)
+    (% class='row' %)(((
   #end
+  (% class="col-xs-$mathtool.div(12, $columns)" %)(((
   #set ($changesDoc = $xwiki.getDocument($item))
   #set ($screenshotReferences = $changesDoc.getValue('screenshots'))
-  #if ($isUserOrAdmin)
-    #displayScreenshot($changesDoc, true)
-  #end
+  #displayScreenshots($changesDoc, true, true)
   #generateDisplayEditLink($changesDoc)
   === $changesDoc.getValue('title')${displayEditLinkMarkup}===
 
@@ -72,15 +65,11 @@
     [[More details&gt;&gt;doc:$changesDoc.documentReference]]
   #end
 
-  #if ($isUserOrAdmin)
+  )))
+  #if ($velocityCount % $columns == 0)
     )))
-    #if ($velocityCount % $columns == 0)
-      )))
-    #end
   #end
 #end
-#if ($isUserOrAdmin)
-  )))
-#end
+)))
 {{/velocity}}</content>
 </xwikidoc>
