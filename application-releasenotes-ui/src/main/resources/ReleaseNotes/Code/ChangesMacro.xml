@@ -174,14 +174,14 @@
       <code>{{velocity}}
   #macro (addClause $name $listAsString $topSpace $xwql)
     #set ($clauses = [])
-    #foreach ($item in $stringtool.split($listAsString, ' ,'))
+    #foreach ($item in $stringtool.split($listAsString, ','))
       #set ($discard = $clauses.add("changes.${name} like :${name}${velocityCount}"))
     #end
     #set ($xwql = "$xwql (${stringtool.join($clauses, ' or ')})")
   #end
   #macro (addBinding $name $listAsString $query)
-    #foreach ($item in $stringtool.split($listAsString, ' ,'))
-      #set ($query = $query.bindValue("${name}${velocityCount}", $item))
+    #foreach ($item in $stringtool.split($listAsString, ','))
+      #set ($query = $query.bindValue("${name}${velocityCount}", $item.trim()))
     #end
   #end
   #set ($displayer = $xcontext.macro.params.displayer)
