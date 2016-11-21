@@ -176,7 +176,7 @@
     #set ($suffix = $shortVersion.substring($mathtool.add($position, 2)))
     #set ($versionsParameter = "${prefix}-rc-${suffix}")
   #else
-    #set ($versionsParameter =  "${shortVersion}%")
+    #set ($versionsParameter =  "${shortVersion},${shortVersion}-milestone%,${shortVersion}-rc%")
   #end
 #end
 ## Extract product + version + released info from xobject
