@@ -203,11 +203,11 @@
 {{/html}}
 #end
 
-{{changes displayer="simple" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="user" containsScreenshots="true"/}}
+{{changes displayer="simple" displayEditLink="true" products="$product" versions="$versionsParameter" audience="user" containsScreenshots="true"/}}
 
 === Miscellaneous ===
 
-{{changes displayer="list" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="user" containsScreenshots="false"/}}
+{{changes displayer="list" displayEditLink="true" products="$product" versions="$versionsParameter" audience="user" containsScreenshots="false"/}}
 
 == For Admins ==
 #if ("$!request.action" == 'adminadd')
@@ -228,11 +228,11 @@
 {{/html}}
 #end
 
-{{changes displayer="simple" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="administrator" containsScreenshots="true"/}}
+{{changes displayer="simple" displayEditLink="true" products="$product" versions="$versionsParameter" audience="administrator" containsScreenshots="true"/}}
 
 === Miscellaneous ===
 
-{{changes displayer="list" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="administrator" containsScreenshots="false"/}}
+{{changes displayer="list" displayEditLink="true" products="$product" versions="$versionsParameter" audience="administrator" containsScreenshots="false"/}}
 
 == For Developers ==
 #if ("$!request.action" == 'devadd')
@@ -253,11 +253,11 @@
 {{/html}}
 #end
 
-{{changes displayer="simple" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="developer" importance="Medium,High"/}}
+{{changes displayer="simple" displayEditLink="true" products="$product" versions="$versionsParameter" audience="developer" importance="Medium,High"/}}
 
 === Miscellaneous ===
 
-{{changes displayer="list" displayEditLink="true" products="XWiki" versions="$versionsParameter" audience="Developer,developer" importance="Low"/}}
+{{changes displayer="list" displayEditLink="true" products="$product" versions="$versionsParameter" audience="Developer,developer" importance="Low"/}}
 {{/velocity}}</code>
     </property>
     <property>
