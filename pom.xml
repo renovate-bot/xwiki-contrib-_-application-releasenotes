@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.xwiki.contrib</groupId>
     <artifactId>parent-platform</artifactId>
-    <version>7.4-8</version>
+    <version>7.4-13</version>
   </parent>
   <groupId>org.xwiki.contrib.releasenotes</groupId>
   <artifactId>application-releasenotes</artifactId>
@@ -42,10 +42,9 @@
     <tag>HEAD</tag>
   </scm>
   <url>http://extensions.xwiki.org/xwiki/bin/view/Extension/Release Notes Application</url>
-  <issueManagement>
-    <system>jira</system>
-    <url>http://jira.xwiki.org/browse/RN</url>
-  </issueManagement>
+  <properties>
+    <xwiki.issueManagement.jira.id>RN</xwiki.issueManagement.jira.id>
+  </properties>
   <developers>
     <developer>
       <id>vmassol</id>
