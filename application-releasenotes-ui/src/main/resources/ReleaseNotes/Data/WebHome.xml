@@ -31,68 +31,34 @@
   <parent>ReleaseNotes.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1475249105000</date>
-  <contentUpdateDate>1475249083000</contentUpdateDate>
+  <date>1492292544000</date>
+  <contentUpdateDate>1492292544000</contentUpdateDate>
   <version>1.1</version>
-  <title>Release Notes Changes</title>
+  <title>Data</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>= Generate Report =
+  <content>= Release Notes =
+
+{{include reference="ReleaseNotes.Code.HomeReleaseNotes"/}}
+
+= Release Changes =
+
+A Release Note is made of several Changes. You'll find below all the Release Changes.
+
+{{include reference="ReleaseNotes.Code.HomeReleaseChanges"/}}
+
+== Custom Reports ==
+
+You can generate some custom reports from Release Changes.
+
+{{include reference="ReleaseNotes.Code.HomeCustomReport"/}}
 
 Notes:
 * Lists are allowed by using commas (e.g. "High,Medium")
 * Wildcards are allowed (e.g. "8.3%")
-
-{{include reference="ReleaseNotes.Code.HomeGenerateReleaseNotes"/}}
-
-= Existing Changes =
-
-{{include reference="ReleaseNotes.Code.ChangesVelocityMacros"/}}
-
-{{velocity}}
-  #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
-  #set ($product = $request.product)
-  #if ("$!product" == '')
-    #set ($configDoc = $xwiki.getDocument("${topSpace}.Code.ReleaseNotesConfig"))
-    #set ($product = $configDoc.getValue('product'))
-  #end
-  ## Add new change
-  #if ($request.action == 'add')
-    #handleAddAction($product, $!request.version, $!request.queryString)
-  #end
-{{html clean='false'}}
-&lt;form&gt;
-  &lt;input type="hidden" name="action" value="add"/&gt;
-  &lt;input type="hidden" name="template" value="${topSpace}.Code.ChangesTemplate"/&gt;
-  &lt;input id="product" type="text" name="product" value="XWiki" size="16"/&gt;
-  &lt;input id="version" type="text" name="version" value="Product version..." size="16" class="withTip"/&gt;
-  &lt;span class="buttonwrapper"&gt;
-    &lt;input class="button" type="submit" value="Add Change"/&gt;
-  &lt;/span&gt;
-&lt;/form&gt;
-{{/html}}
-
-#set($columns = ['doc.creationDate', 'product', 'version', 'category', 'audience', 'title', 'importance', 'summary' ])
-#set($columnsProperties = {
-  'doc.creationDate' : { 'type' : 'date', 'link' : true  },
-  'product' : { 'type' : 'text', 'match': 'partial' },
-  'version' : { 'type' : 'text', 'match': 'partial' },
-  'category' : { 'type' : 'text', 'match': 'partial' },
-  'audience' : { 'type' : 'text', 'match': 'partial' },
-  'title' : { 'type' : 'text', 'sortable' : false },
-  'importance' : { 'type' : 'text'},
-  'summary' : { 'type' : 'text', 'html' : 'true', 'sortable' : false }
-})
-#set($options = { 
-   "className" : "${topSpace}.Code.ChangesClass",
-   "translationPrefix" : "releasenotes.changes.livetable.",
-   "tagCloud" : true,
-   "rowCount": 15
-})
-#livetable("releasenoteschanges" $columns $columnsProperties $options)
-{{/velocity}}</content>
+</content>
   <object>
     <name>ReleaseNotes.Data.WebHome</name>
     <number>0</number>
@@ -124,9 +90,7 @@ Notes:
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </cache>
       <code>
-        <contenttype>PureText</contenttype>
         <disabled>0</disabled>
-        <editor>PureText</editor>
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>

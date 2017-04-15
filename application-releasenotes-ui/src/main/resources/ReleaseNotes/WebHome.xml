@@ -26,28 +26,19 @@
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>Main.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474376758000</creationDate>
+  <parent>Main.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1474910465000</date>
-  <contentUpdateDate>1474910465000</contentUpdateDate>
+  <date>1492292620000</date>
+  <contentUpdateDate>1492292620000</contentUpdateDate>
   <version>1.1</version>
   <title>Release Notes</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>= Existing Release Notes =
-
-{{include reference="ReleaseNotes.Code.HomeExistingReleaseNotes"/}}
-
-= Custom Release Notes =
-
-Notes:
-* Lists are allowed by using commas (e.g. "High,Medium")
-* Wildcards are allowed (e.g. "8.3%")
-
-{{include reference="ReleaseNotes.Code.HomeGenerateReleaseNotes"/}}</content>
+  <content>{{include reference="ReleaseNotes.Data.WebHome"/}}
+</content>
 </xwikidoc>
