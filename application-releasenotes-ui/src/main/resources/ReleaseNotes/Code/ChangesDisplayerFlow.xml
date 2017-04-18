@@ -44,7 +44,6 @@
 {{velocity}}
 ## Inputs:
 ## - $changeItems
-## - $audience (e.g. "User,Administrator,Developer")
 (% class='container col-xs-12' %)(((
 #foreach ($item in $changeItems)
   (% class='row' %)(((

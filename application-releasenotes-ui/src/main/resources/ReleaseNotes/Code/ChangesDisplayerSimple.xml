@@ -47,7 +47,7 @@
 ## - $displayEditLink
 #foreach ($item in $changeItems)
   #set ($changesDoc = $xwiki.getDocument($item))
-  #generateDisplayEditLink($changesDoc)
+  #generateDisplayEditLink($$displayEditLink, $changesDoc)
   === $changesDoc.getValue('title')${displayEditLinkMarkup}=== 
   $changesDoc.getValue('summary')
 

@@ -40,7 +40,7 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
-#macro(generateDisplayEditLink $changesDoc)
+#macro(generateDisplayEditLink $displayEditLink $changesDoc)
   #if ("$!displayEditLink" == 'true')
     #set ($xredirect = "$doc.getURL('view')")
     #set ($hrefAttribute = "$changesDoc.getURL('edit', ""xredirect=$xredirect"")")

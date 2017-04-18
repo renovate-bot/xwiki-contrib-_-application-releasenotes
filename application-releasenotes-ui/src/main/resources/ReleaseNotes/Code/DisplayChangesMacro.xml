@@ -20,32 +20,38 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Code.ChangesMacro" locale="">
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.DisplayChangesMacro" locale="">
   <web>ReleaseNotes.Code</web>
-  <name>ChangesMacro</name>
+  <name>DisplayChangesMacro</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>ReleaseNotes.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474376756000</creationDate>
+  <parent>ReleaseNotes.Code.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1474656749000</date>
-  <contentUpdateDate>1474649441000</contentUpdateDate>
+  <date>1492502986000</date>
+  <contentUpdateDate>1492331795000</contentUpdateDate>
   <version>1.1</version>
-  <title>Changes Macro</title>
+  <title>Display Changes Macro</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>= Example usage =
 
-##{{{{{changes products="XWiki" versions="8.3%" audience="User"/}}}}}##
+##{{{
+{{getChanges products="XWiki" versions="8.3%" audience="User" contextVariable="changeDocs"/}}
+
+{{displayChanges contextVariable="changeDocs"/}}
+}}}##
 
 = Result =
 
-{{changes products="XWiki" versions="8.3%" audience="user"/}}
+{{getChanges products="XWiki" versions="8.3%" audience="User" contextVariable="changeDocs"/}}
+
+{{displayChanges contextVariable="changeDocs"/}}
 </content>
   <attachment>
     <filename>no_image_thumb.png</filename>
@@ -57,10 +63,10 @@
     <filesize>12731</filesize>
   </attachment>
   <object>
-    <name>ReleaseNotes.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.DisplayChangesMacro</name>
     <number>0</number>
     <className>XWiki.WikiMacroClass</className>
-    <guid>577c8aa4-fde3-4929-8a3c-a95d396d4b33</guid>
+    <guid>791981b0-f8d9-4a9b-862c-e38c8f9a6e22</guid>
     <class>
       <name>XWiki.WikiMacroClass</name>
       <customClass/>
@@ -172,54 +178,11 @@
     </class>
     <property>
       <code>{{velocity}}
-  #macro (addClause $name $listAsString $topSpace $xwql)
-    #set ($clauses = [])
-    #foreach ($item in $stringtool.split($listAsString, ','))
-      #set ($discard = $clauses.add("changes.${name} like :${name}${velocityCount}"))
-    #end
-    #set ($xwql = "$xwql (${stringtool.join($clauses, ' or ')})")
-  #end
-  #macro (addBinding $name $listAsString $query)
-    #foreach ($item in $stringtool.split($listAsString, ','))
-      #set ($query = $query.bindValue("${name}${velocityCount}", $item.trim()))
-    #end
-  #end
+  #set ($xvariable = $xcontext.macro.params.contextVariable)
   #set ($displayer = $xcontext.macro.params.displayer)
   #set ($columns = $numbertool.toNumber($xcontext.macro.params.columns))
-  #set ($audience = $xcontext.macro.params.audience)
-  ## Since audience is saved as "user", "developer", "administrator" in the DB and to make it simple for users we support uppercase
-  #set ($audience = $audience.toLowerCase())
-  #set ($products = $xcontext.macro.params.products)
-  #set ($versions = $xcontext.macro.params.versions)
-  #set ($categories = $xcontext.macro.params.categories)
-  #set ($importance = $xcontext.macro.params.importance)
-  ## Since importance is saved as 0, 1, 2 in the DB and to make it simple for users, we support High, Medium, low too. We also support uppercase.
-  #set ($importance = $importance.toLowerCase())
-  #set ($importance = $importance.replaceAll('high', 2))
-  #set ($importance = $importance.replaceAll('medium', 1))
-  #set ($importance = $importance.replaceAll('low', 0))
-  #set ($containsScreenshots = $xcontext.macro.params.containsScreenshots)
   #set ($displayEditLink = $xcontext.macro.params.displayEditLink)
-  ## Find all Release Notes Changes matching the passed parameters
-  #set ($topSpace = $xcontext.macro.doc.documentReference.extractFirstReference('SPACE').getName())
-  #set ($xwql = "from doc.object(${topSpace}.Code.ChangesClass) as changes where ")
-  #addClause("product", $products, $topSpace, $xwql)
-  #addClause("audience", $audience, $topSpace, "$xwql and ")
-  #addClause("version", $versions, $topSpace, "$xwql and ")
-  #addClause("category", $categories, $topSpace, "$xwql and ")
-  #addClause("importance", $importance, $topSpace, "$xwql and ")
-  #if ("$!containsScreenshots" == 'true')
-    #set ($xwql = "$xwql and (changes.screenshots &lt;&gt; '' or (changes.screenshots is not null and '' is null))")
-  #elseif ("$!containsScreenshots" == 'false')
-    #set ($xwql = "$xwql and not (changes.screenshots &lt;&gt; '' or (changes.screenshots is not null and '' is null))")
-  #end
-  #set ($query = $services.query.xwql("$xwql order by changes.importance desc"))
-  #addBinding("product", $products, $query)
-  #addBinding("audience", $audience, $query)
-  #addBinding("version", $versions, $query)
-  #addBinding("category", $categories, $query)
-  #addBinding("importance", $importance, $query)
-  #set ($changeItems = $query.execute())
+  #set ($changeItems = $xcontext.get('vcontext').get($xvariable))
   #if (!$changeItems.isEmpty())
     {{include reference="${topSpace}.Code.ChangesDisplayer${stringtool.capitalize($displayer)}"/}}
   #else
@@ -238,13 +201,13 @@
       <defaultCategory>content</defaultCategory>
     </property>
     <property>
-      <description/>
+      <description>Display Release Changes</description>
     </property>
     <property>
-      <id>changes</id>
+      <id>displayChanges</id>
     </property>
     <property>
-      <name>Changes</name>
+      <name>Display Changes</name>
     </property>
     <property>
       <supportsInlineMode>0</supportsInlineMode>
@@ -254,10 +217,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.DisplayChangesMacro</name>
     <number>0</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>70a02371-3284-45ea-ad76-2fc10c898fa6</guid>
+    <guid>cd8613ec-7823-419f-ba68-68280ac02adb</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -320,76 +283,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.ChangesMacro</name>
-    <number>1</number>
-    <className>XWiki.WikiMacroParameterClass</className>
-    <guid>73de0991-3236-42dc-a259-1000f4f02ee8</guid>
-    <class>
-      <name>XWiki.WikiMacroParameterClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <defaultValue>
-        <disabled>0</disabled>
-        <name>defaultValue</name>
-        <number>4</number>
-        <prettyName>Parameter default value</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </defaultValue>
-      <description>
-        <disabled>0</disabled>
-        <name>description</name>
-        <number>2</number>
-        <prettyName>Parameter description</prettyName>
-        <rows>5</rows>
-        <size>40</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </description>
-      <mandatory>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>mandatory</name>
-        <number>3</number>
-        <prettyName>Parameter mandatory</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </mandatory>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Parameter name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-    </class>
-    <property>
-      <defaultValue>User,user,Administrator,Developer,developer,administrator</defaultValue>
-    </property>
-    <property>
-      <description/>
-    </property>
-    <property>
-      <mandatory>0</mandatory>
-    </property>
-    <property>
-      <name>audience</name>
-    </property>
-  </object>
-  <object>
-    <name>ReleaseNotes.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.DisplayChangesMacro</name>
     <number>2</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>c3a70fc0-57cc-4947-bbc7-47791e366f51</guid>
+    <guid>f88a7b27-f302-4cd9-8461-d4c248bac89c</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -452,340 +349,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.ChangesMacro</name>
-    <number>3</number>
-    <className>XWiki.WikiMacroParameterClass</className>
-    <guid>b4eaac28-627c-4031-a930-5a3c36ec6e10</guid>
-    <class>
-      <name>XWiki.WikiMacroParameterClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <defaultValue>
-        <disabled>0</disabled>
-        <name>defaultValue</name>
-        <number>4</number>
-        <prettyName>Parameter default value</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </defaultValue>
-      <description>
-        <disabled>0</disabled>
-        <name>description</name>
-        <number>2</number>
-        <prettyName>Parameter description</prettyName>
-        <rows>5</rows>
-        <size>40</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </description>
-      <mandatory>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>mandatory</name>
-        <number>3</number>
-        <prettyName>Parameter mandatory</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </mandatory>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Parameter name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-    </class>
-    <property>
-      <defaultValue>XWiki</defaultValue>
-    </property>
-    <property>
-      <description/>
-    </property>
-    <property>
-      <mandatory>0</mandatory>
-    </property>
-    <property>
-      <name>products</name>
-    </property>
-  </object>
-  <object>
-    <name>ReleaseNotes.Code.ChangesMacro</name>
-    <number>4</number>
-    <className>XWiki.WikiMacroParameterClass</className>
-    <guid>b7a20d85-1ee7-4f10-a15f-d083a7ee0f0b</guid>
-    <class>
-      <name>XWiki.WikiMacroParameterClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <defaultValue>
-        <disabled>0</disabled>
-        <name>defaultValue</name>
-        <number>4</number>
-        <prettyName>Parameter default value</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </defaultValue>
-      <description>
-        <disabled>0</disabled>
-        <name>description</name>
-        <number>2</number>
-        <prettyName>Parameter description</prettyName>
-        <rows>5</rows>
-        <size>40</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </description>
-      <mandatory>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>mandatory</name>
-        <number>3</number>
-        <prettyName>Parameter mandatory</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </mandatory>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Parameter name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-    </class>
-    <property>
-      <defaultValue>%</defaultValue>
-    </property>
-    <property>
-      <description/>
-    </property>
-    <property>
-      <mandatory>0</mandatory>
-    </property>
-    <property>
-      <name>versions</name>
-    </property>
-  </object>
-  <object>
-    <name>ReleaseNotes.Code.ChangesMacro</name>
-    <number>5</number>
-    <className>XWiki.WikiMacroParameterClass</className>
-    <guid>0a0dc37d-b1c2-40ca-94f5-f3872e3d613f</guid>
-    <class>
-      <name>XWiki.WikiMacroParameterClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <defaultValue>
-        <disabled>0</disabled>
-        <name>defaultValue</name>
-        <number>4</number>
-        <prettyName>Parameter default value</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </defaultValue>
-      <description>
-        <disabled>0</disabled>
-        <name>description</name>
-        <number>2</number>
-        <prettyName>Parameter description</prettyName>
-        <rows>5</rows>
-        <size>40</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </description>
-      <mandatory>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>mandatory</name>
-        <number>3</number>
-        <prettyName>Parameter mandatory</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </mandatory>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Parameter name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-    </class>
-    <property>
-      <defaultValue>%</defaultValue>
-    </property>
-    <property>
-      <description/>
-    </property>
-    <property>
-      <mandatory>0</mandatory>
-    </property>
-    <property>
-      <name>categories</name>
-    </property>
-  </object>
-  <object>
-    <name>ReleaseNotes.Code.ChangesMacro</name>
-    <number>6</number>
-    <className>XWiki.WikiMacroParameterClass</className>
-    <guid>4e3691ae-d782-4429-bef1-ed0c8b7cac05</guid>
-    <class>
-      <name>XWiki.WikiMacroParameterClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <defaultValue>
-        <disabled>0</disabled>
-        <name>defaultValue</name>
-        <number>4</number>
-        <prettyName>Parameter default value</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </defaultValue>
-      <description>
-        <disabled>0</disabled>
-        <name>description</name>
-        <number>2</number>
-        <prettyName>Parameter description</prettyName>
-        <rows>5</rows>
-        <size>40</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </description>
-      <mandatory>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>mandatory</name>
-        <number>3</number>
-        <prettyName>Parameter mandatory</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </mandatory>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Parameter name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-    </class>
-    <property>
-      <defaultValue>0,1,2</defaultValue>
-    </property>
-    <property>
-      <description/>
-    </property>
-    <property>
-      <mandatory>0</mandatory>
-    </property>
-    <property>
-      <name>importance</name>
-    </property>
-  </object>
-  <object>
-    <name>ReleaseNotes.Code.ChangesMacro</name>
-    <number>7</number>
-    <className>XWiki.WikiMacroParameterClass</className>
-    <guid>71e1deef-8295-4c8e-ab4c-ce836dcaebbe</guid>
-    <class>
-      <name>XWiki.WikiMacroParameterClass</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <defaultValue>
-        <disabled>0</disabled>
-        <name>defaultValue</name>
-        <number>4</number>
-        <prettyName>Parameter default value</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </defaultValue>
-      <description>
-        <disabled>0</disabled>
-        <name>description</name>
-        <number>2</number>
-        <prettyName>Parameter description</prettyName>
-        <rows>5</rows>
-        <size>40</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
-      </description>
-      <mandatory>
-        <disabled>0</disabled>
-        <displayFormType>select</displayFormType>
-        <displayType>yesno</displayType>
-        <name>mandatory</name>
-        <number>3</number>
-        <prettyName>Parameter mandatory</prettyName>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
-      </mandatory>
-      <name>
-        <disabled>0</disabled>
-        <name>name</name>
-        <number>1</number>
-        <prettyName>Parameter name</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </name>
-    </class>
-    <property>
-      <defaultValue/>
-    </property>
-    <property>
-      <description/>
-    </property>
-    <property>
-      <mandatory>0</mandatory>
-    </property>
-    <property>
-      <name>containsScreenshots</name>
-    </property>
-  </object>
-  <object>
-    <name>ReleaseNotes.Code.ChangesMacro</name>
+    <name>ReleaseNotes.Code.DisplayChangesMacro</name>
     <number>8</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>79d487f7-1b63-4f34-bd45-5d044d615a09</guid>
+    <guid>e0583483-e4d3-4c9e-8fdb-d5ebffe651bf</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -845,6 +412,72 @@
     </property>
     <property>
       <name>displayEditLink</name>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Code.DisplayChangesMacro</name>
+    <number>9</number>
+    <className>XWiki.WikiMacroParameterClass</className>
+    <guid>2c8dbe72-0511-4834-b59e-f3ccdcd1ec69</guid>
+    <class>
+      <name>XWiki.WikiMacroParameterClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <defaultValue>
+        <disabled>0</disabled>
+        <name>defaultValue</name>
+        <number>4</number>
+        <prettyName>Parameter default value</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </defaultValue>
+      <description>
+        <disabled>0</disabled>
+        <name>description</name>
+        <number>2</number>
+        <prettyName>Parameter description</prettyName>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </description>
+      <mandatory>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>mandatory</name>
+        <number>3</number>
+        <prettyName>Parameter mandatory</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </mandatory>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Parameter name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+    </class>
+    <property>
+      <defaultValue/>
+    </property>
+    <property>
+      <description/>
+    </property>
+    <property>
+      <mandatory>1</mandatory>
+    </property>
+    <property>
+      <name>contextVariable</name>
     </property>
   </object>
 </xwikidoc>
