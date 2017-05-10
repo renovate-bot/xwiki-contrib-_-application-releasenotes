@@ -51,7 +51,7 @@
   === $changesDoc.getValue('title')${displayEditLinkMarkup}=== 
   $changesDoc.getValue('summary')
 
-  #displayScreenshots($changesDoc, false, false)
+  #displayScreenshots($changesDoc, true, false)
 
   #set ($description = $changesDoc.getValue('description'))
   #if ("$!description" != '')
