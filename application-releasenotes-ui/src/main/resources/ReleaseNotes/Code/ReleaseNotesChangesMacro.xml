@@ -185,7 +185,7 @@
 #if ("$!request.action" == 'useradd')
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
 #end
-#if ($hasAdmin &amp;&amp;$ $released != '1')
+#if ($hasEdit &amp;&amp;$ $released != '1')
 {{html clean='false'}}
 &lt;form&gt;
   &lt;input type="hidden" name="action" value="useradd"/&gt;
@@ -222,7 +222,7 @@
 #if ("$!request.action" == 'adminadd')
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
 #end
-#if ($hasAdmin &amp;&amp;$ $released != '1')
+#if ($hasEdit &amp;&amp;$ $released != '1')
 {{html clean='false'}}
 &lt;form&gt;
   &lt;input type="hidden" name="action" value="adminadd"/&gt;
@@ -259,7 +259,7 @@
 #if ("$!request.action" == 'devadd')
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
 #end
-#if ($hasAdmin &amp;&amp;$ $released != '1')
+#if ($hasEdit &amp;&amp;$ $released != '1')
 {{html clean='false'}}
 &lt;form&gt;
   &lt;input type="hidden" name="action" value="devadd"/&gt;

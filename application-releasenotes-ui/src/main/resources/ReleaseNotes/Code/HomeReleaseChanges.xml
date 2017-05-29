@@ -43,7 +43,7 @@
 
 {{velocity}}
 #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
-#if ($hasAdmin)
+#if ($hasEdit)
   ## Add new change
   #if ($request.action == 'addChange')
     #set ($product = $request.product)

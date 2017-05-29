@@ -44,7 +44,7 @@
 {{velocity}}
 #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 $!xwiki.jsx.use("${topSpace}.Code.HomeReleaseNotes")
-#if ($hasAdmin)
+#if ($hasEdit)
   #set ($configDoc = $xwiki.getDocument("${topSpace}.Code.ReleaseNotesConfig"))
   #set ($defaultProduct = $configDoc.getValue('product'))
   #set ($defaultTemplateReferenceString = $configDoc.getValue('template'))
