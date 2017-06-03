@@ -66,14 +66,8 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeReleaseNotes")
       ## Copy the template content + title
       #set ($templateDoc = $xwiki.getDocument($defaultTemplateReferenceString))
       ## Run Velocity on the template to evaluate the velocity code in the template
-      #define($evaluatedContent)
-        #evaluate($templateDoc.content)
-      #end
-      #set ($discard = $rnDoc.setContent($evaluatedContent))
-      #define($evaluatedTitle)
-        #evaluate($templateDoc.title)
-      #end
-      #set ($discard = $rnDoc.setTitle($evaluatedTitle))
+      #set ($discard = $rnDoc.setContent($templateDoc.content))
+      #set ($discard = $rnDoc.setTitle($templateDoc.title))
       #set ($discard = $rnDoc.save('New Release note'))
       ## Redirect in edit mode to edit the RN
       $response.sendRedirect($xwiki.getURL($services.model.serialize($rnPageReference)))
