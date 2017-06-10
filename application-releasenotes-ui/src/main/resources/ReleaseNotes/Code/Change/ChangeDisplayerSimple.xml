@@ -20,55 +20,45 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Code.ChangesDisplayerGrid" locale="">
-  <web>ReleaseNotes.Code</web>
-  <name>ChangesDisplayerGrid</name>
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.Change.ChangeDisplayerSimple" locale="">
+  <web>ReleaseNotes.Code.Change</web>
+  <name>ChangeDisplayerSimple</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
-  <parent>ReleaseNotes.Code.WebHome</parent>
   <creator>xwiki:XWiki.Admin</creator>
-  <creationDate>1474376756000</creationDate>
+  <creationDate>1474552453000</creationDate>
+  <parent>ReleaseNotes.Code.Change.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1474656749000</date>
-  <contentUpdateDate>1474656749000</contentUpdateDate>
+  <date>1497099038000</date>
+  <contentUpdateDate>1497099038000</contentUpdateDate>
   <version>1.1</version>
-  <title/>
+  <title>ChangeDisplayerSimple</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="ReleaseNotes.Code.DisplayerMacros"/}}
+  <content>{{include reference="ReleaseNotes.Code.Change.ChangeDisplayerVelocityMacros"/}}
 
 {{velocity}}
 ## Inputs:
 ## - $changeItems
-## - $columns
-(% class='container col-xs-12' %)(((
+## - $displayEditLink
+#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 #foreach ($item in $changeItems)
-  ## Decide when to display a new row
-  #if ($mathtool.sub($velocityCount, 1) % $columns == 0)
-    (% class='row' %)(((
-  #end
-  (% class="col-xs-$mathtool.div(12, $columns)" %)(((
-  #set ($changesDoc = $xwiki.getDocument($item))
-  #set ($screenshotReferences = $changesDoc.getValue('screenshots'))
-  #displayScreenshots($changesDoc, true, true)
-  #generateDisplayEditLink($changesDoc)
-  === $changesDoc.getValue('title')${displayEditLinkMarkup}===
+  #set ($changeDoc = $xwiki.getDocument($item))
+  #set ($changeObject = $changeDoc.getObject("${topSpace}.Code.Change.ChangeClass"))
+  #generateDisplayEditLink($$displayEditLink, $changeDoc)
+  === $changeObject.getValue('title')${displayEditLinkMarkup}=== 
+  $changeObject.getValue('summary')
 
-  $changesDoc.getValue('summary')
-  #set ($description = $changesDoc.getValue('description'))
+  #displayScreenshots($changeObject, true, false)
+
+  #set ($description = $changeObject.getValue('description'))
   #if ("$!description" != '')
-    [[More details&gt;&gt;doc:$changesDoc.documentReference]]
-  #end
-
-  )))
-  #if ($velocityCount % $columns == 0)
-    )))
+    [[More details&gt;&gt;doc:$changeDoc.documentReference]]
   #end
 #end
-)))
 {{/velocity}}</content>
 </xwikidoc>

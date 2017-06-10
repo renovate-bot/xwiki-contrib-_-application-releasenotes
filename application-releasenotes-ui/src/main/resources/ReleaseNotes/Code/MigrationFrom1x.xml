@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.MigrationFrom1x" locale="">
+  <web>ReleaseNotes.Code</web>
+  <name>MigrationFrom1x</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1497105409000</creationDate>
+  <parent>ReleaseNotes.Code.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1497111535000</date>
+  <contentUpdateDate>1497111535000</contentUpdateDate>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>false</hidden>
+  <content>{{velocity}}
+## Find all pages having a v1.x ReleaseNotes.Code.ChangesClass
+#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
+#set ($xwql = "from doc.object(${topSpace}.Code.ChangesClass) as changes")
+#if ($request.confirm != '1')
+  The following pages need to be migrated:
+#else
+  The following pages have been migrated:
+#end
+#foreach ($item in $services.query.xwql($xwql).execute())
+  #if ($request.confirm == '1')
+    #set ($itemDoc = $xwiki.getDocument($item))
+    ## Add a ReleaseNotes.Code.EntryClass
+    #set ($newEntryObject = $itemDoc.newObject("${topSpace}.Code.EntryClass"))
+    ## Add a ReleaseNotes.Code.Change.ChangeClass
+    #set ($newChangeObject = $itemDoc.newObject("${topSpace}.Code.Change.ChangeClass"))
+    ## Copy data from ReleaseNotes.Code.ChangesClass into the 2 new objects
+    #set ($oldChangeObject = $itemDoc.getObject("${topSpace}.Code.ChangesClass"))
+    #set ($discard = $newEntryObject.set('version', $oldChangeObject.getValue('version')))
+    #set ($discard = $newEntryObject.set('product', $oldChangeObject.getValue('product')))
+    #set ($discard = $newEntryObject.set('type', 'Change'))
+    #set ($discard = $newChangeObject.set('summary', $oldChangeObject.getValue('summary')))
+    #set ($discard = $newChangeObject.set('audience', $oldChangeObject.getValue('audience')))
+    #set ($discard = $newChangeObject.set('importance', $oldChangeObject.getValue('importance')))
+    #set ($discard = $newChangeObject.set('description', $oldChangeObject.getValue('description')))
+    #set ($discard = $newChangeObject.set('category', $oldChangeObject.getValue('category')))
+    #set ($discard = $newChangeObject.set('title', $oldChangeObject.getValue('title')))
+    #set ($discard = $newChangeObject.set('screenshots', $oldChangeObject.getValue('screenshots')))
+    ## Remove the old ReleaseNotes.Code.ChangesClass xobject
+    #set ($discard = $itemDoc.removeObject($oldChangeObject))
+    ## Save the changes
+    #set ($discard = $itemDoc.save('Migrated from v1.x format', true))
+    * [[$item&gt;&gt;$item]]
+  #else
+    * [[$item&gt;&gt;$item]]
+  #end
+#end
+
+#if ($request.confirm != '1')
+[[Start Migration&gt;&gt;||queryString='confirm=1']]
+#end
+{{/velocity}}</content>
+</xwikidoc>

@@ -20,19 +20,19 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Code.DisplayChangesMacro" locale="">
-  <web>ReleaseNotes.Code</web>
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.Change.DisplayChangesMacro" locale="">
+  <web>ReleaseNotes.Code.Change</web>
   <name>DisplayChangesMacro</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474376756000</creationDate>
-  <parent>ReleaseNotes.Code.WebHome</parent>
+  <parent>ReleaseNotes.Code.Change.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1492502986000</date>
-  <contentUpdateDate>1492331795000</contentUpdateDate>
+  <date>1497098913000</date>
+  <contentUpdateDate>1497098913000</contentUpdateDate>
   <version>1.1</version>
   <title>Display Changes Macro</title>
   <comment/>
@@ -63,10 +63,10 @@
     <filesize>12731</filesize>
   </attachment>
   <object>
-    <name>ReleaseNotes.Code.DisplayChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.DisplayChangesMacro</name>
     <number>0</number>
     <className>XWiki.WikiMacroClass</className>
-    <guid>791981b0-f8d9-4a9b-862c-e38c8f9a6e22</guid>
+    <guid>91e1e60b-b30a-44ac-a80e-48dd307cd6dc</guid>
     <class>
       <name>XWiki.WikiMacroClass</name>
       <customClass/>
@@ -184,7 +184,7 @@
   #set ($displayEditLink = $xcontext.macro.params.displayEditLink)
   #set ($changeItems = $xcontext.get('vcontext').get($xvariable))
   #if (!$changeItems.isEmpty())
-    {{include reference="${topSpace}.Code.ChangesDisplayer${stringtool.capitalize($displayer)}"/}}
+    {{include reference="${topSpace}.Code.Change.ChangeDisplayer${stringtool.capitalize($displayer)}"/}}
   #else
     No changes!
   #end
@@ -217,10 +217,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.DisplayChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.DisplayChangesMacro</name>
     <number>0</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>cd8613ec-7823-419f-ba68-68280ac02adb</guid>
+    <guid>fe758052-c9dc-4033-88f8-84ce1e07c05c</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -283,10 +283,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.DisplayChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.DisplayChangesMacro</name>
     <number>2</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>f88a7b27-f302-4cd9-8461-d4c248bac89c</guid>
+    <guid>c73a20e1-574d-4f6a-b5a0-57bb6e1613ab</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -349,10 +349,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.DisplayChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.DisplayChangesMacro</name>
     <number>8</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>e0583483-e4d3-4c9e-8fdb-d5ebffe651bf</guid>
+    <guid>2b303b28-2678-495b-b6c6-da80bc42b28b</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -415,10 +415,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.DisplayChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.DisplayChangesMacro</name>
     <number>9</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>2c8dbe72-0511-4834-b59e-f3ccdcd1ec69</guid>
+    <guid>f28c0745-60a4-4617-be71-7e10350f7bad</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>

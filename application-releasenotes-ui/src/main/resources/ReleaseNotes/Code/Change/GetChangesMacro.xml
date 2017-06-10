@@ -20,19 +20,19 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Code.GetChangesMacro" locale="">
-  <web>ReleaseNotes.Code</web>
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.Change.GetChangesMacro" locale="">
+  <web>ReleaseNotes.Code.Change</web>
   <name>GetChangesMacro</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1474376756000</creationDate>
-  <parent>ReleaseNotes.Code.WebHome</parent>
+  <parent>ReleaseNotes.Code.Change.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1492502973000</date>
-  <contentUpdateDate>1492334118000</contentUpdateDate>
+  <date>1497099321000</date>
+  <contentUpdateDate>1497094727000</contentUpdateDate>
   <version>1.1</version>
   <title>Get Changes Macro</title>
   <comment/>
@@ -71,10 +71,10 @@
     <filesize>12731</filesize>
   </attachment>
   <object>
-    <name>ReleaseNotes.Code.GetChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.GetChangesMacro</name>
     <number>0</number>
     <className>XWiki.WikiMacroClass</className>
-    <guid>6e61ecf6-b86b-4739-a1a1-79d75353ef07</guid>
+    <guid>d50b9dff-88b0-41cc-b8cc-3c414376aff0</guid>
     <class>
       <name>XWiki.WikiMacroClass</name>
       <customClass/>
@@ -186,10 +186,10 @@
     </class>
     <property>
       <code>{{velocity}}
-  #macro (addClause $name $listAsString $topSpace $xwql)
+  #macro (addClause $name $class $listAsString $topSpace $xwql)
     #set ($clauses = [])
     #foreach ($item in $stringtool.split($listAsString, ','))
-      #set ($discard = $clauses.add("changes.${name} like :${name}${velocityCount}"))
+      #set ($discard = $clauses.add("${class}.${name} like :${name}${velocityCount}"))
     #end
     #set ($xwql = "$xwql (${stringtool.join($clauses, ' or ')})")
   #end
@@ -214,12 +214,12 @@
   #set ($containsScreenshots = $xcontext.macro.params.containsScreenshots)
   ## Find all Release Notes Changes matching the passed parameters
   #set ($topSpace = $xcontext.macro.doc.documentReference.extractFirstReference('SPACE').getName())
-  #set ($xwql = "from doc.object(${topSpace}.Code.ChangesClass) as changes where ")
-  #addClause("product", $products, $topSpace, $xwql)
-  #addClause("audience", $audience, $topSpace, "$xwql and ")
-  #addClause("version", $versions, $topSpace, "$xwql and ")
-  #addClause("category", $categories, $topSpace, "$xwql and ")
-  #addClause("importance", $importance, $topSpace, "$xwql and ")
+  #set ($xwql = "from doc.object(${topSpace}.Code.EntryClass) as entries, doc.object(${topSpace}.Code.Change.ChangeClass) as changes where ")
+  #addClause("product", "entries", $products, $topSpace, $xwql)
+  #addClause("audience", "changes", $audience, $topSpace, "$xwql and ")
+  #addClause("version", "entries", $versions, $topSpace, "$xwql and ")
+  #addClause("category", "changes", $categories, $topSpace, "$xwql and ")
+  #addClause("importance", "changes", $importance, $topSpace, "$xwql and ")
   #if ("$!containsScreenshots" == 'true')
     #set ($xwql = "$xwql and (changes.screenshots &lt;&gt; '' or (changes.screenshots is not null and '' is null))")
   #elseif ("$!containsScreenshots" == 'false')
@@ -262,10 +262,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.GetChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.GetChangesMacro</name>
     <number>1</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>133240a3-262a-44bf-8659-b7a883d2dd1d</guid>
+    <guid>495ee2c3-87bd-45bc-84b3-146c5497037e</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -328,10 +328,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.GetChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.GetChangesMacro</name>
     <number>3</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>16dfb545-00b7-4b56-8e0c-e92d9ddaa8e1</guid>
+    <guid>263ddbce-42e0-4053-9cd4-fffa7bfdc70e</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -394,10 +394,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.GetChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.GetChangesMacro</name>
     <number>4</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>9cbade14-fd89-45c1-9eeb-e020d131a4f9</guid>
+    <guid>07a13930-ded0-47f9-9e5f-232bbf1e480d</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -460,10 +460,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.GetChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.GetChangesMacro</name>
     <number>5</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>83453c58-7406-4626-a5ad-dfb9c297cf06</guid>
+    <guid>f4bdc6f4-102f-4bfb-a3c9-596ef3500bfd</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -526,10 +526,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.GetChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.GetChangesMacro</name>
     <number>6</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>2879c820-6873-44e9-a338-6ed4c87b7fbe</guid>
+    <guid>f83dc9ad-6515-4235-8e05-d06a27392e95</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -592,10 +592,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.GetChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.GetChangesMacro</name>
     <number>7</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>f8f8e266-1c46-479d-9dd0-56444a0e904d</guid>
+    <guid>c98a3bd5-b602-4e36-8e80-a44a658dc914</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -658,10 +658,10 @@
     </property>
   </object>
   <object>
-    <name>ReleaseNotes.Code.GetChangesMacro</name>
+    <name>ReleaseNotes.Code.Change.GetChangesMacro</name>
     <number>8</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>8dd32960-ef73-478b-9589-f1214c841c03</guid>
+    <guid>a53c4665-ee86-4dbf-8d6a-4cbfe8419842</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>

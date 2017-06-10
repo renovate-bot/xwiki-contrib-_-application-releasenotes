@@ -31,15 +31,15 @@
   <parent>ReleaseNotes.Code.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1492291440000</date>
-  <contentUpdateDate>1492291440000</contentUpdateDate>
+  <date>1497102800000</date>
+  <contentUpdateDate>1497102800000</contentUpdateDate>
   <version>1.1</version>
   <title>HomeReleaseChanges</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="ReleaseNotes.Code.ChangesVelocityMacros"/}}
+  <content>{{include reference="ReleaseNotes.Code.EntryVelocityMacros"/}}
 
 {{velocity}}
 #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
@@ -56,7 +56,8 @@
   {{html clean='false'}}
     &lt;form&gt;
       &lt;input type="hidden" name="action" value="addChange"/&gt;
-      &lt;input type="hidden" name="template" value="${topSpace}.Code.ChangesTemplate"/&gt;
+      &lt;input type="hidden" name="template" value="${topSpace}.Code.Change.ChangeTemplate"/&gt;
+      &lt;input type="hidden" name="type" value="Change"/&gt;
       &lt;input id="product" type="text" name="product" value="XWiki" size="16"/&gt;
       &lt;input id="version" type="text" name="version" value="Product version..." size="16" class="withTip"/&gt;
       &lt;span class="buttonwrapper"&gt;
@@ -78,10 +79,11 @@
   'summary' : { 'type' : 'text', 'html' : 'true', 'sortable' : false }
 })
 #set($options = { 
-   "className" : "${topSpace}.Code.ChangesClass",
+   "className" : "${topSpace}.Code.Change.ChangeClass",
    "translationPrefix" : "releasenotes.changes.livetable.",
    "tagCloud" : true,
-   "rowCount": 15
+   "rowCount": 15,
+   "extraParams" : "&amp;product_class=${topSpace}.Code.EntryClass&amp;version_class=${topSpace}.Code.EntryClass"
 })
 #livetable("releasenoteschanges" $columns $columnsProperties $options)
 {{/velocity}}</content>

@@ -20,19 +20,19 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Code.ChangesVelocityMacros" locale="">
+<xwikidoc version="1.2" reference="ReleaseNotes.Code.EntryVelocityMacros" locale="">
   <web>ReleaseNotes.Code</web>
-  <name>ChangesVelocityMacros</name>
+  <name>EntryVelocityMacros</name>
   <language/>
   <defaultLanguage/>
-  <parent>ReleaseNotes.Code.WebHome</parent>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
   <creationDate>1475334714000</creationDate>
+  <parent>ReleaseNotes.Code.WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
-  <date>1475337069000</date>
-  <contentUpdateDate>1475337069000</contentUpdateDate>
+  <date>1497098772000</date>
+  <contentUpdateDate>1497098772000</contentUpdateDate>
   <version>1.1</version>
   <title/>
   <comment/>
@@ -49,10 +49,10 @@
 #end
 #macro (handleAddAction $product $version $queryString)
   #if ("$!version" == '')
-    {{error}}Version must be set for creating a new Release Note change!{{/error}}
+    {{error}}Version must be set for creating a new Release Note entry!{{/error}}
 
   #else
-    ## Compute automatically a new page name, using the format "Change###" where ### is a zero-padded number.
+    ## Compute automatically a new page name, using the format "Entry###" where ### is a zero-padded number.
     #getShortVersion($version $shortVersion)
     #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
     #set ($versionSpaceReference = $services.model.createDocumentReference('', ["$topSpace", 'Data', "$product", "$shortVersion"], 'WebHome').parent)
@@ -60,19 +60,19 @@
     ## Make sure we have existing entries, otherwise start at 1
     ## Handle the case of MySQL which uses "\" as an escape character and we need to handle that
     ## since that character is present in space references when there are dots in space names.
-    #set ($query = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space LIKE :space escape '!'"))
+    #set ($query = $services.query.xwql("from doc.object(${topSpace}.Code.EntryClass) as entries where doc.space LIKE :space escape '!'"))
     #set ($spaceLike = $versionSpaceReferenceString.replaceAll('([%_!])', '!$1').concat('.%'))
     #set ($query = $query.bindValue('space', $spaceLike))
     #if ($query.count() &gt; 0)
-      #set ($highestQuery = $services.query.xwql("from doc.object(${topSpace}.Code.ChangesClass) as changes where doc.space like :space escape '!' order by doc.space desc"))
+      #set ($highestQuery = $services.query.xwql("from doc.object(${topSpace}.Code.EntryClass) as changes where doc.space like :space escape '!' order by doc.space desc"))
       #set ($highestQuery = $highestQuery.bindValue('space', $spaceLike))
       #set ($highest = $highestQuery.setLimit(1).execute())
-      #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).parent.name.substring(6)).intValue())
+      #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).parent.name.substring(5)).intValue())
       #set ($nextUniqueNumber = $numbertool.format('000', $mathtool.add($currentNumber, 1)))
     #else
       #set ($nextUniqueNumber = '001')
     #end
-    #set ($versionPageReference = "${versionSpaceReferenceString}.Change${nextUniqueNumber}.WebHome")
+    #set ($versionPageReference = "${versionSpaceReferenceString}.Entry${nextUniqueNumber}.WebHome")
     $response.sendRedirect($xwiki.getURL($versionPageReference.toString(), 'inline', "$!{queryString}&amp;shortVersion=${escapetool.url($shortVersion)}"))
   #end
 #end</content>
