@@ -294,7 +294,7 @@
 {{/velocity}}
 
 {{velocity}}
-{{getChanges products="$product" versions="$versionsParameter" audience="Developer,developer" importance="Low" contextVariable="devMiscChanges"/}}
+{{getChanges products="$product" versions="$versionsParameter" audience="developer" importance="Low" contextVariable="devMiscChanges"/}}
 {{/velocity}}
 
 {{velocity}}
