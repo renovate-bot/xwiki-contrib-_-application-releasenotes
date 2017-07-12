@@ -52,9 +52,11 @@
   #generateDisplayEditLink($$displayEditLink, $changeDoc)
   === $changeObject.getValue('title')${displayEditLinkMarkup}=== 
   $changeObject.getValue('summary')
+  #if ("$changeObject.getValue('screenshots')" != '')
 
-  #displayScreenshots($changeObject, true, false)
+    #displayScreenshots($changeObject, true, false)
 
+  #end
   #set ($description = $changeObject.getValue('description'))
   #if ("$!description" != '')
     [[More details&gt;&gt;doc:$changeDoc.documentReference]]
