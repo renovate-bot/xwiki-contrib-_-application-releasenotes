@@ -189,11 +189,11 @@
   #macro (addClause $name $class $listAsString $topSpace $xwql)
     #set ($clauses = [])
     #foreach ($item in $stringtool.split($listAsString, ','))
-      ## If the version string starts with ">" or "&lt;" then use a matching HQL
-      #if ($item.startsWith('>'))
-        #set ($discard = $clauses.add("${class}.${name} > :${name}${velocityCount}"))
-      #elseif ($item.startsWith('>='))
-        #set ($discard = $clauses.add("${class}.${name} >= :${name}${velocityCount}"))
+      ## If the version string starts with "&gt;" or "&lt;" then use a matching HQL
+      #if ($item.startsWith('&gt;'))
+        #set ($discard = $clauses.add("${class}.${name} &gt; :${name}${velocityCount}"))
+      #elseif ($item.startsWith('&gt;='))
+        #set ($discard = $clauses.add("${class}.${name} &gt;= :${name}${velocityCount}"))
       #elseif ($item.startsWith('&lt;'))
         #set ($discard = $clauses.add("${class}.${name} &lt; :${name}${velocityCount}"))
       #elseif ($item.startsWith('&lt;='))
@@ -206,9 +206,9 @@
   #end
   #macro (addBinding $name $listAsString $query)
     #foreach ($item in $stringtool.split($listAsString, ','))
-      #if ($item.startsWith('>=') || $item.startsWith('&lt;='))
+      #if ($item.startsWith('&gt;=') || $item.startsWith('&lt;='))
         #set ($query = $query.bindValue("${name}${velocityCount}", $item.substring(2).trim()))
-      #elseif ($item.startsWith('>') || $item.startsWith('&lt;'))
+      #elseif ($item.startsWith('&gt;') || $item.startsWith('&lt;'))
         #set ($query = $query.bindValue("${name}${velocityCount}", $item.substring(1).trim()))
       #else
         #set ($query = $query.bindValue("${name}${velocityCount}", $item.trim()))
