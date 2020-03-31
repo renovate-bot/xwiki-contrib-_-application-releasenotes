@@ -86,7 +86,7 @@
     {{gallery}}
       #foreach($screenshotReference in $screenshotReferences.split(','))
         #set ($screenshotReference = $screenshotReference.trim())
-        image:$screenshotReference
+        [[image:$screenshotReference]]
       #end
     {{/gallery}}
   #else

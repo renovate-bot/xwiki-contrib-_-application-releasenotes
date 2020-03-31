@@ -49,7 +49,7 @@
 #macro(displayScreenshots $changeObject $useGallery $alwaysDisplayScreenshots)
   #set ($screenshotReferences = $changeObject.getValue('screenshots'))
   #if ("$!screenshotReferences" == '' &amp;&amp; $alwaysDisplayScreenshots)
-    #set ($screenshotReferences = "${xcontext.macro.doc.documentReference}@no_image_thumb.png")
+    #set ($screenshotReferences = $services.model.serialize($services.model.resolveAttachment('no_image_thumb.png', ${xcontext.macro.doc.documentReference})))
   #end
   #if ("$!screenshotReferences" != '')
     #if ($useGallery)
@@ -59,11 +59,10 @@
     #foreach($screenshotReference in $screenshotReferences.split(','))
       #set ($screenshotReference = $screenshotReference.trim())
       #if (!$screenshotReference.contains('@'))
-        ## HACK: fix me
-        #set ($screenshotReference = "${changeObject.reference.extractReference('DOCUMENT')}@$screenshotReference")
+        #set ($screenshotReference = $services.model.serialize($services.model.resolveAttachment($screenshotReference, $changeObject.reference)))
       #end
       #if ($useGallery)
-        image:$screenshotReference
+        [[image:$screenshotReference]]
       #else
         #if ($velocityCount &gt; 1)
 
