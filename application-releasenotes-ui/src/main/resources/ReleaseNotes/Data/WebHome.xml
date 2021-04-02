@@ -36,7 +36,17 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>= Release Notes =
+  <content>{{velocity}}
+#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
+#set ($xwql = "from doc.object(${topSpace}.Code.ChangesClass) as changes")
+#if ($services.query.xwql($xwql).count() > 0)
+  {{error}}
+    There are release changes using the old 1.x format and which need to be [[migrated to the 2.0 format>>${topSpace}.Code.MigrationFrom1x]]. Until you perform this migration, all releases notes using these changes will display empty.
+  {{/error}}
+
+#end
+{{/velocity}}
+= Release Notes =
 
 {{include reference="ReleaseNotes.Code.HomeReleaseNotes"/}}
 

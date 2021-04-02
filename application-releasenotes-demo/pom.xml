@@ -81,6 +81,7 @@
         <artifactId>xwiki-commons-tool-xar-plugin</artifactId>
         <version>${commons.version}</version>
         <configuration>
+          <defaultEntryType>demo</defaultEntryType>
           <contentPages>
             <contentPage>.*/8\.3/.*\.xml</contentPage>
             <contentPage>.*/8\.3M1/.*\.xml</contentPage>
