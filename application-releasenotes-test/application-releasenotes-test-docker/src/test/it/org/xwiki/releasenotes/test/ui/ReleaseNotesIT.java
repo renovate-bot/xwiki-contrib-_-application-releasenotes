@@ -19,20 +19,19 @@
  */
 package org.xwiki.releasenotes.test.ui;
 
-import org.junit.Test;
-import org.xwiki.test.ui.AbstractTest;
-
-import org.junit.Assert;
+import org.junit.jupiter.api.Test;
+import org.xwiki.test.docker.junit5.UITest;
 
 /**
  * UI tests for the Release Notes Application.
  *
  * @version $Id$
  */
-public class ReleaseNotesTest extends AbstractTest
+@UITest
+class ReleaseNotesIT
 {
     @Test
-    public void verifyFeatures()
+    void verifyFeatures()
     {
     }
 }
