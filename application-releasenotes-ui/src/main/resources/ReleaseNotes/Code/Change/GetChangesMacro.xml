@@ -188,15 +188,15 @@
     #foreach ($item in $stringtool.split($listAsString, ','))
       ## If the version string starts with "&gt;" or "&lt;" then use a matching HQL
       #if ($item.startsWith('&gt;'))
-        #set ($discard = $clauses.add("${class}.${name} &gt; :${name}${velocityCount}"))
+        #set ($discard = $clauses.add("${class}.${name} &gt; :${name}${foreach.count}"))
       #elseif ($item.startsWith('&gt;='))
-        #set ($discard = $clauses.add("${class}.${name} &gt;= :${name}${velocityCount}"))
+        #set ($discard = $clauses.add("${class}.${name} &gt;= :${name}${foreach.count}"))
       #elseif ($item.startsWith('&lt;'))
-        #set ($discard = $clauses.add("${class}.${name} &lt; :${name}${velocityCount}"))
+        #set ($discard = $clauses.add("${class}.${name} &lt; :${name}${foreach.count}"))
       #elseif ($item.startsWith('&lt;='))
-        #set ($discard = $clauses.add("${class}.${name} &lt;= :${name}${velocityCount}"))
+        #set ($discard = $clauses.add("${class}.${name} &lt;= :${name}${foreach.count}"))
       #else
-        #set ($discard = $clauses.add("${class}.${name} like :${name}${velocityCount}"))
+        #set ($discard = $clauses.add("${class}.${name} like :${name}${foreach.count}"))
       #end
     #end
     #set ($xwql = "$xwql (${stringtool.join($clauses, ' or ')})")
@@ -204,11 +204,11 @@
   #macro (addBinding $name $listAsString $query)
     #foreach ($item in $stringtool.split($listAsString, ','))
       #if ($item.startsWith('&gt;=') || $item.startsWith('&lt;='))
-        #set ($query = $query.bindValue("${name}${velocityCount}", $item.substring(2).trim()))
+        #set ($query = $query.bindValue("${name}${foreach.count}", $item.substring(2).trim()))
       #elseif ($item.startsWith('&gt;') || $item.startsWith('&lt;'))
-        #set ($query = $query.bindValue("${name}${velocityCount}", $item.substring(1).trim()))
+        #set ($query = $query.bindValue("${name}${foreach.count}", $item.substring(1).trim()))
       #else
-        #set ($query = $query.bindValue("${name}${velocityCount}", $item.trim()))
+        #set ($query = $query.bindValue("${name}${foreach.count}", $item.trim()))
       #end
     #end
   #end
