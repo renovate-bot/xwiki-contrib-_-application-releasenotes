@@ -67,7 +67,7 @@
     ## Remove the old ReleaseNotes.Code.ChangesClass xobject
     #set ($discard = $itemDoc.removeObject($oldChangeObject))
     ## Save the changes
-    #set ($discard = $itemDoc.save('Migrated from v1.x format', true))
+    #set ($discard = $itemDoc.save('Migrated from v1.x format to v2.0', true))
     * [[$item&gt;&gt;$item]]
   #else
     * [[$item&gt;&gt;$item]]

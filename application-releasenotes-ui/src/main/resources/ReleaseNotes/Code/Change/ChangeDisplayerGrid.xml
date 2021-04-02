@@ -46,7 +46,7 @@
 (% class='container col-xs-12' %)(((
 #foreach ($item in $changeItems)
   ## Decide when to display a new row
-  #if ($mathtool.sub($velocityCount, 1) % $columns == 0)
+  #if ($mathtool.sub($foreach.count, 1) % $columns == 0)
     (% class='row' %)(((
   #end
   (% class="col-xs-$mathtool.div(12, $columns)" %)(((
@@ -64,7 +64,7 @@
   #end
 
   )))
-  #if ($velocityCount % $columns == 0)
+  #if ($foreach.count % $columns == 0)
     )))
   #end
 #end

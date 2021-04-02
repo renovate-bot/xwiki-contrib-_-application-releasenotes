@@ -40,7 +40,7 @@
   <dependencies>
     <dependency>
       <groupId>org.xwiki.contrib.releasenotes</groupId>
-      <artifactId>application-releasenotes-ui</artifactId>
+      <artifactId>application-releasenotes-demo</artifactId>
       <version>${project.version}</version>
       <type>xar</type>
       <scope>runtime</scope>

@@ -64,7 +64,7 @@
       #if ($useGallery)
         [[image:$screenshotReference]]
       #else
-        #if ($velocityCount &gt; 1)
+        #if ($foreach.count &gt; 1)
 
         #end
         [[image:$screenshotReference||style="border:1px solid silver;"]]
