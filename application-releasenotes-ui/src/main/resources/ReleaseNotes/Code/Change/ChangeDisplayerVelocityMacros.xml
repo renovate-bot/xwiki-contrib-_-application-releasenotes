@@ -41,7 +41,9 @@
   #if ("$!displayEditLink" == 'true')
     #set ($xredirect = "$doc.getURL('view')")
     #set ($hrefAttribute = "$changeDoc.getURL('edit', ""xredirect=$xredirect"")")
-    #set ($displayEditLinkMarkup = "{{html clean='false'}}&lt;span class='edit_section'&gt;&lt;a href='$hrefAttribute' style='text-decoration: none;'&gt;&lt;/a&gt;&lt;/span&gt;{{/html}}")
+    #set ($editText = $services.localization.render('edit'))
+    #set ($iconHTML = $services.icon.renderHTML('pencil'))
+    #set ($displayEditLinkMarkup = "{{html clean='false'}}&lt;a class='edit_section' role='button' title='$editText' href='$hrefAttribute'&gt;${iconHTML}&lt;span class='sr-only'&gt;$editText&lt;/span&gt;&lt;/a&gt;{{/html}}")
   #else
     #set ($displayEditLinkMarkup = '')
   #end

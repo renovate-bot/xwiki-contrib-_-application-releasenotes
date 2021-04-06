@@ -42,6 +42,7 @@
 ## Inputs:
 ## - $changeItems
 ## - $columns
+## - $displayEditLink
 #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 (% class='container col-xs-12' %)(((
 #foreach ($item in $changeItems)
@@ -54,7 +55,7 @@
   #set ($changeObject = $changeDoc.getObject("${topSpace}.Code.Change.ChangeClass"))
   #set ($screenshotReferences = $changeObject.getValue('screenshots'))
   #displayScreenshots($changeObject, true, true)
-  #generateDisplayEditLink($changeDoc)
+  #generateDisplayEditLink($displayEditLink, $changeDoc)
   === $changeObject.getValue('title')${displayEditLinkMarkup}===
 
   $changeObject.getValue('summary')

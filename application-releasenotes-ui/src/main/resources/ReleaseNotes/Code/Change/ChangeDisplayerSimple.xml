@@ -46,7 +46,7 @@
 #foreach ($item in $changeItems)
   #set ($changeDoc = $xwiki.getDocument($item))
   #set ($changeObject = $changeDoc.getObject("${topSpace}.Code.Change.ChangeClass"))
-  #generateDisplayEditLink($$displayEditLink, $changeDoc)
+  #generateDisplayEditLink($displayEditLink, $changeDoc)
   === $changeObject.getValue('title')${displayEditLinkMarkup}=== 
   $changeObject.getValue('summary')
   #if ("$changeObject.getValue('screenshots')" != '')

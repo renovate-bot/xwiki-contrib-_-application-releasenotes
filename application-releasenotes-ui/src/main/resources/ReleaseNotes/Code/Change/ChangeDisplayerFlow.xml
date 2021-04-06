@@ -41,6 +41,7 @@
 {{velocity}}
 ## Inputs:
 ## - $changeItems
+## - $displayEditLink
 #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 (% class='container col-xs-12' %)(((
 #foreach ($item in $changeItems)
@@ -51,7 +52,7 @@
   #displayScreenshots($changeObject, true, false)
   )))
   (% class="col-xs-6" %)(((
-  #generateDisplayEditLink($changeDoc)
+  #generateDisplayEditLink($displayEditLink, $changeDoc)
   === $changeObject.getValue('title')${displayEditLinkMarkup}===
 
   $changeObject.getValue('summary')
