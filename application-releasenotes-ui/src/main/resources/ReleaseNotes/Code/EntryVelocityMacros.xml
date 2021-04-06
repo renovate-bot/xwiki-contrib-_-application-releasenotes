@@ -64,7 +64,7 @@
       #set ($highestQuery = $services.query.xwql("from doc.object(${topSpace}.Code.EntryClass) as changes where doc.space like :space escape '!' order by doc.space desc"))
       #set ($highestQuery = $highestQuery.bindValue('space', $spaceLike))
       #set ($highest = $highestQuery.setLimit(1).execute())
-      #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).parent.name.substring(5)).intValue())
+      #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).parent.name.replaceFirst("^.*\D", "")).intValue())
       #set ($nextUniqueNumber = $numbertool.format('000', $mathtool.add($currentNumber, 1)))
     #else
       #set ($nextUniqueNumber = '001')
