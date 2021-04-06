@@ -83,12 +83,16 @@
   #set ($audience = $changeObject.getValue('audience'))
   #set ($screenshotReferences = $changeObject.getValue('screenshots'))
   #if ("$!screenshotReferences" != '')
-    {{gallery}}
-      #foreach($screenshotReference in $screenshotReferences.split(','))
-        #set ($screenshotReference = $screenshotReference.trim())
-        [[image:$screenshotReference]]
-      #end
-    {{/gallery}}
+    #set ($screenshotReferences = $screenshotReferences.split('\s*,\s*'))
+    #if ($screenshotReferences.size() == 1 &amp;&amp; $screenshotReferences.get(0).endsWith('.webm'))
+      {{html5video attachment="$screenshotReferences.get(0)" width="420" /}}
+    #else
+      {{gallery}}
+        #foreach($screenshotReference in $screenshotReferences)
+          image:$screenshotReference
+        #end
+      {{/gallery}}
+    #end
   #else
     #set ($example = $changeObject.getValue('example'))
     #if ("$!example" != '')
