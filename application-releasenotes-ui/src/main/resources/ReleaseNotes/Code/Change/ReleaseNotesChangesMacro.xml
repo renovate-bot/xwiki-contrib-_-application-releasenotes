@@ -178,6 +178,9 @@
 #set ($product = $!doc.getValue('product'))
 #set ($version = $!doc.getValue('version'))
 #set ($released = $!doc.getValue('released'))
+## Decide whether or not display edit links for changes: only display them when the current user has edit rights on
+## the current page
+#set ($displayEditLink = $hasEdit)
 == For Users ==
 #if ("$!request.action" == 'useradd')
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
@@ -211,15 +214,15 @@
   #if ($userMiscChanges.size() == 0)
     No changes!
   #else
-    {{displayChanges displayer="list" displayEditLink="true" contextVariable="userMiscChanges"/}}
+    {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="userMiscChanges"/}}
   #end
 #else
-  {{displayChanges displayer="simple" displayEditLink="true" contextVariable="userChanges"/}}
+  {{displayChanges displayer="simple" displayEditLink="$displayEditLink" contextVariable="userChanges"/}}
 
   #if ($userMiscChanges.size() &gt; 0)
     === Miscellaneous ===
 
-    {{displayChanges displayer="list" displayEditLink="true" contextVariable="userMiscChanges"/}}
+    {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="userMiscChanges"/}}
   #end
 #end
 == For Admins ==
@@ -255,15 +258,15 @@
   #if ($adminMiscChanges.size() == 0)
     No changes!
   #else
-    {{displayChanges displayer="list" displayEditLink="true" contextVariable="adminMiscChanges"/}}
+    {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="adminMiscChanges"/}}
   #end
 #else
-  {{displayChanges displayer="simple" displayEditLink="true" contextVariable="adminChanges"/}}
+  {{displayChanges displayer="simple" displayEditLink="$displayEditLink" contextVariable="adminChanges"/}}
 
   #if ($adminMiscChanges.size() &gt; 0)
     === Miscellaneous ===
 
-    {{displayChanges displayer="list" displayEditLink="true" contextVariable="adminMiscChanges"/}}
+    {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="adminMiscChanges"/}}
   #end
 #end
 == For Developers ==
@@ -299,15 +302,15 @@
   #if ($devMiscChanges.size() == 0)
     No changes!
   #else
-    {{displayChanges displayer="list" displayEditLink="true" contextVariable="devMiscChanges"/}}
+    {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="devMiscChanges"/}}
   #end
 #else
-  {{displayChanges displayer="simple" displayEditLink="true" contextVariable="devChanges"/}}
+  {{displayChanges displayer="simple" displayEditLink="$displayEditLink" contextVariable="devChanges"/}}
 
   #if ($devMiscChanges.size() &gt; 0)
     === Miscellaneous ===
 
-    {{displayChanges displayer="list" displayEditLink="true" contextVariable="devMiscChanges"/}}
+    {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="devMiscChanges"/}}
   #end
 #end</code>
     </property>
