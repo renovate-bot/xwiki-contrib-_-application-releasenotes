@@ -48,7 +48,7 @@
   #set ($changeObject = $changeDoc.getObject("${topSpace}.Code.Change.ChangeClass"))
   #generateDisplayEditLink($displayEditLink, $changeDoc)##
   * (((
-#if ("$!changeObject.getValue('title')" != '')$changeObject.getValue('title'): #end$changeObject.getValue('summary')
+#if ("$!changeObject.getValue('title')" != '')$changeObject.getValue('title')~: #end$changeObject.getValue('summary')
 )))${displayEditLinkMarkup}
 #end
 {{/velocity}}</content>
