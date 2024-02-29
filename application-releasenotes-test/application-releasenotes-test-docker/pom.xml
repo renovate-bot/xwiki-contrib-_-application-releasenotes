@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.xwiki.contrib.releasenotes</groupId>
     <artifactId>application-releasenotes-test</artifactId>
-    <version>2.1</version>
+    <version>2.2-SNAPSHOT</version>
   </parent>
   <artifactId>application-releasenotes-test-docker</artifactId>
   <name>Release Notes Application - Tests - Functional Tests</name>
