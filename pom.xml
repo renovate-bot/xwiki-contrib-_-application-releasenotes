@@ -43,6 +43,7 @@
   <url>http://extensions.xwiki.org/xwiki/bin/view/Extension/Release Notes Application</url>
   <properties>
     <xwiki.issueManagement.jira.id>RN</xwiki.issueManagement.jira.id>
+    <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
   </properties>
   <developers>
     <developer>
