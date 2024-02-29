@@ -7,7 +7,7 @@ Manages Release Notes for software products (creation, reports).
 * [Issue Tracker](https://jira.xwiki.org/browse/RN)
 * Communication: [Forum](https://dev.xwiki.org/xwiki/bin/view/Community/Discuss), [Chat](https://dev.xwiki.org/xwiki/bin/view/Community/Chat)
 * [Development Practices](https://dev.xwiki.org)
-* Minimal XWiki version supported: XWiki 13.10
+* Minimal XWiki version supported: XWiki 14.10
 * License: LGPL 2.1
 * Translations: N/A
 * Sonar Dashboard: [![Status](https://sonarcloud.io/api/project_badges/measure?project=org.xwiki.contrib.latex:latex&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.xwiki.contrib.releasenotes:application-releasenotes)
