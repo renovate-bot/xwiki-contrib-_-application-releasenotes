@@ -51,7 +51,7 @@
 #macro(displayScreenshots $changeObject $useGallery $alwaysDisplayScreenshots)
   #set ($mediaReferences = $changeObject.getValue('screenshots'))
   #if ("$!mediaReferences" == '' &amp;&amp; $alwaysDisplayScreenshots)
-    #set ($mediaReferences = $services.model.serialize($services.model.resolveAttachment('no_image_thumb.png', ${xcontext.macro.doc.documentReference})))
+    #set ($mediaReferences = $services.model.serialize($services.model.resolveAttachment('no_image_thumb.png', ${xcontext.macro.doc.documentReference}), 'default'))
   #end
   #if ("$!mediaReferences" != '')
     #set ($videoFormats = ['webm', 'mp4'])
