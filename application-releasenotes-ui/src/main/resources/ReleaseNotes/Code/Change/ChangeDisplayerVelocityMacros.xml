@@ -93,6 +93,9 @@
 
       #end
       #foreach($videoReference in $videoReferences)
+        #if ($foreach.count &gt; 1)
+
+        #end
         {{html5video attachment="$videoReference" width="420" /}}
       #end
     #end
