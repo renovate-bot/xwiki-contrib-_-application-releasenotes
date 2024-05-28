@@ -36,7 +36,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="ReleaseNotes.Code.Change.ChangeDisplayerVelocityMacros"/}}
+
+{{velocity}}
 #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 #set ($entryObject = $doc.getObject("${topSpace}.Code.EntryClass"))
 #set ($changeObject = $doc.getObject("${topSpace}.Code.Change.ChangeClass"))
@@ -80,26 +82,7 @@
   : $doc.display('description', 'edit', $changeObject)
   )))
 #else
-  #set ($audience = $changeObject.getValue('audience'))
-  #set ($screenshotReferences = $changeObject.getValue('screenshots'))
-  #if ("$!screenshotReferences" != '')
-    #set ($screenshotReferences = $screenshotReferences.split('\s*,\s*'))
-    #if ($screenshotReferences.size() == 1 &amp;&amp; $screenshotReferences.get(0).endsWith('.webm'))
-      {{html5video attachment="$screenshotReferences.get(0)" width="420" /}}
-    #else
-      {{gallery}}
-        #foreach($screenshotReference in $screenshotReferences)
-          image:$screenshotReference
-        #end
-      {{/gallery}}
-    #end
-  #else
-    #set ($example = $changeObject.getValue('example'))
-    #if ("$!example" != '')
-      $example
-    #end
-  #end
-
+  #displayScreenshots($changeObject, true, false)
   $changeObject.getValue('summary')
   #set ($description = $changeObject.getValue('description'))
   #if ("$!description" != '')
