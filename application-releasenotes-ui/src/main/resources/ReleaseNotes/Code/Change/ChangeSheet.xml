@@ -83,6 +83,7 @@
   )))
 #else
   #displayScreenshots($changeObject, true, false)
+
   $changeObject.getValue('summary')
   #set ($description = $changeObject.getValue('description'))
   #if ("$!description" != '')
