@@ -49,35 +49,52 @@
   #end
 #end
 #macro(displayScreenshots $changeObject $useGallery $alwaysDisplayScreenshots)
-  #set ($screenshotReferences = $changeObject.getValue('screenshots'))
-  #if ("$!screenshotReferences" == '' &amp;&amp; $alwaysDisplayScreenshots)
-    #set ($screenshotReferences = $services.model.serialize($services.model.resolveAttachment('no_image_thumb.png', ${xcontext.macro.doc.documentReference})))
+  #set ($mediaReferences = $changeObject.getValue('screenshots'))
+  #if ("$!mediaReferences" == '' &amp;&amp; $alwaysDisplayScreenshots)
+    #set ($mediaReferences = $services.model.serialize($services.model.resolveAttachment('no_image_thumb.png', ${xcontext.macro.doc.documentReference})))
   #end
-  #if ("$!screenshotReferences" != '')
-    #set ($useGallery = $useGallery &amp;&amp; !$screenshotReferences.contains('.webm'))
-    #if ($useGallery)
-    {{gallery width="420px" height="315px"}}
-    #end
-    ## Make sure we have an absolute reference
-    #foreach($screenshotReference in $screenshotReferences.split('\s*,\s*'))
-      #if (!$screenshotReference.contains('@'))
-        #set ($screenshotReference = $services.model.serialize($services.model.resolveAttachment($screenshotReference, $changeObject.reference)))
+  #if ("$!mediaReferences" != '')
+    #set ($videoFormats = ['webm', 'mp4'])
+    #set ($screenshotReferences = [])
+    #set ($videoReferences = [])
+    #foreach($mediaReference in $mediaReferences.split('\s*,\s*'))
+      ## Make sure we have an absolute reference
+      #if (!$mediaReference.contains('@'))
+        #set ($mediaReference = $services.model.serialize($services.model.resolveAttachment($mediaReference, $changeObject.reference)))
       #end
+      #if ($videoFormats.contains($stringtool.substringAfterLast($mediaReference, '.')))
+        #set ($discard = $videoReferences.add($mediaReference))
+      #else
+        #set ($discard = $screenshotReferences.add($mediaReference))
+      #end
+    #end
+    ## Handle screenshots
+    #set ($useGallery = $useGallery &amp;&amp; $screenshotReferences.size() > 0)
+    #if ($useGallery)
+      {{gallery width="420px" height="315px"}}
+    #end
+    #foreach($screenshotReference in $screenshotReferences)
       #if ($useGallery)
         [[image:$screenshotReference]]
       #else
         #if ($foreach.count &gt; 1)
 
         #end
-        #if ($screenshotReference.endsWith('.webm'))
-          {{html5video attachment="$screenshotReference" width="420" /}}
-        #else
-          [[image:$screenshotReference||style="border:1px solid silver;"]]
-        #end
+        [[image:$screenshotReference||style="border:1px solid silver;"]]
       #end
     #end
     #if ($useGallery)
       {{/gallery}}
+    #end
+    ## Handle videos. Don't display videos if $alwaysDisplayScreenshots is set
+    #if (!$alwaysDisplayScreenshots)
+      #if ($screenshotReferences.size() > 0)
+
+
+      #end
+      #foreach($videoReference in $videoReferences)
+        {{html5video attachment="$videoReference" width="420" /}}
+      #end
     #end
   #end
 #end
