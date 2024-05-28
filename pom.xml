@@ -30,7 +30,7 @@
   </parent>
   <groupId>org.xwiki.contrib.releasenotes</groupId>
   <artifactId>application-releasenotes</artifactId>
-  <version>2.2</version>
+  <version>2.3-SNAPSHOT</version>
   <name>Release Notes Application - Parent POM</name>
   <packaging>pom</packaging>
   <description>Release Notes Application - Parent POM</description>
@@ -38,7 +38,7 @@
     <connection>scm:git:git://github.com/xwiki-contrib/application-releasenotes.git</connection>
     <developerConnection>scm:git:git@github.com:xwiki-contrib/application-releasenotes.git</developerConnection>
     <url>https://github.com/xwiki-contrib/application-releasenotes/tree/master</url>
-    <tag>application-releasenotes-2.2</tag>
+    <tag>HEAD</tag>
   </scm>
   <url>http://extensions.xwiki.org/xwiki/bin/view/Extension/Release Notes Application</url>
   <properties>
