@@ -86,14 +86,21 @@
     #if ($useGallery)
       {{/gallery}}
     #end
-    ## Handle videos. Don't display videos if $alwaysDisplayScreenshots is set
-    #if (!$alwaysDisplayScreenshots)
+    ## Handle videos.
+    ## When $alwaysDisplayScreenshots is true, display a video only if there are no screenshots to display, and only
+    ## display the 1st video if there are more than one.
+    #if (!$alwaysDisplayScreenshots || ($alwaysDisplayScreenshots &amp;&amp; $screenshotReferences.size() == 0))
       #if ($screenshotReferences.size() > 0)
 
 
       #end
-      #foreach($videoReference in $videoReferences)
-        #if ($foreach.count &gt; 1)
+      #if ($alwaysDisplayScreenshot &amp;&amp; $videoReferences.size() > 0)
+        #set ($computedVideoReferences = [$videoReferences.get(0)])
+      #else
+        #set ($computedVideoReferences = $videoReferences)
+      #end
+      #foreach($videoReference in $computedVideoReferences)
+        #if ($foreach.count > 1)
 
         #end
         {{html5video attachment="$videoReference" width="420" /}}
