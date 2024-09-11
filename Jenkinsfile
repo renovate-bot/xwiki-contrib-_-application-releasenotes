@@ -26,9 +26,17 @@
 
 node('docker') {
     xwikiBuild {
-        xvnc = false
-        goals = 'clean deploy jacoco:report sonar:sonar'
-        profiles = 'quality,integration-tests,docker'
-        sonar = true
+        name = 'Quality Step 1'
+        goals = 'clean deploy'
+        profiles = 'quality,coverage,integration-tests,docker'
+        properties = '-Dxwiki.jacoco.itDestFile=`pwd`/target/jacoco-it.exec'
+    }
+    // Second build step so that the jacoco coverage file is generated for all modules before we generate the
+    // Jacoco report (to get integration tests adding coverage for all the modules they test).
+    xwikiBuild {
+        name = 'Quality Step 2'
+        goals = 'jacoco:report sonar:sonar'
+        profiles = 'quality,coverage'
+        properties = '-Dxwiki.jacoco.itDestFile=`pwd`/target/jacoco-it.exec'
     }
 }
