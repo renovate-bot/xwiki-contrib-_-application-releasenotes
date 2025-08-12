@@ -40,7 +40,6 @@
     <url>https://github.com/xwiki-contrib/application-releasenotes/tree/master</url>
     <tag>HEAD</tag>
   </scm>
-  <url>http://extensions.xwiki.org/xwiki/bin/view/Extension/Release Notes Application</url>
   <properties>
     <xwiki.issueManagement.jira.id>RN</xwiki.issueManagement.jira.id>
     <xwiki.release.jira.skip>false</xwiki.release.jira.skip>
