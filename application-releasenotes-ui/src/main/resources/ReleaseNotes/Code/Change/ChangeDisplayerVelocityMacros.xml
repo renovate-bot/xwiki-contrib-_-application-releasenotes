@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.1" encoding="UTF-8"?>
 
 <!--
  * See the NOTICE file distributed with this work for additional
@@ -69,7 +69,7 @@
       #end
     #end
     ## Handle screenshots
-    #set ($useGallery = $useGallery &amp;&amp; $screenshotReferences.size() > 0)
+    #set ($useGallery = $useGallery &amp;&amp; $screenshotReferences.size() &gt; 0)
     #if ($useGallery)
       {{gallery width="420px" height="315px"}}
     #end
@@ -90,17 +90,17 @@
     ## When $alwaysDisplayScreenshots is true, display a video only if there are no screenshots to display, and only
     ## display the 1st video if there are more than one.
     #if (!$alwaysDisplayScreenshots || ($alwaysDisplayScreenshots &amp;&amp; $screenshotReferences.size() == 0))
-      #if ($screenshotReferences.size() > 0)
+      #if ($screenshotReferences.size() &gt; 0)
 
 
       #end
-      #if ($alwaysDisplayScreenshot &amp;&amp; $videoReferences.size() > 0)
+      #if ($alwaysDisplayScreenshot &amp;&amp; $videoReferences.size() &gt; 0)
         #set ($computedVideoReferences = [$videoReferences.get(0)])
       #else
         #set ($computedVideoReferences = $videoReferences)
       #end
       #foreach($videoReference in $computedVideoReferences)
-        #if ($foreach.count > 1)
+        #if ($foreach.count &gt; 1)
 
         #end
         {{html5video attachment="$videoReference" width="420" /}}
