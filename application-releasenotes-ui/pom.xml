@@ -112,6 +112,12 @@
               <document>ReleaseNotes.WebHome</document>
               <type>customizable</type>
             </entry>
+            <!-- Administrators are meant to edit this page to set the instance-level defaults, and its content must
+                 never be overwritten by an upgrade. -->
+            <entry>
+              <document>ReleaseNotes.Code.ReleaseNotesConfig</document>
+              <type>configuration</type>
+            </entry>
           </entries>
         </configuration>
       </plugin>
