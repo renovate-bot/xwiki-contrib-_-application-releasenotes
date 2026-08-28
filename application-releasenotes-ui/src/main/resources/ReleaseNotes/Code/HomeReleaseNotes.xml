@@ -64,6 +64,13 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeReleaseNotes")
       #set ($templateDoc = $xwiki.getDocument($defaultTemplateReferenceString))
       #set ($discard = $rnDoc.setContent($templateDoc.content))
       #set ($discard = $rnDoc.setTitle($templateDoc.title))
+      ## Also copy the required rights of the template: a template whose content needs script right must lead to a
+      ## release note declaring and enforcing that right, otherwise the copied content won't execute.
+      #foreach ($templateRightObject in $templateDoc.getObjects('XWiki.RequiredRightClass'))
+        #set ($rnRightObject = $rnDoc.newObject('XWiki.RequiredRightClass'))
+        #set ($discard = $rnRightObject.set('level', $templateRightObject.getValue('level')))
+      #end
+      #set ($discard = $rnDoc.setEnforceRequiredRights($templateDoc.isEnforceRequiredRights()))
       #set ($discard = $rnDoc.save('New Release note'))
       ## Redirect in edit mode to edit the RN
       $response.sendRedirect($xwiki.getURL($services.model.serialize($rnPageReference)))

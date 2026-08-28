@@ -26,7 +26,10 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.ObjectPropertyReference;
+import org.xwiki.model.reference.ObjectReference;
 import org.xwiki.rest.model.jaxb.Page;
+import org.xwiki.rest.model.jaxb.Property;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.ViewPage;
@@ -296,5 +299,66 @@ class ReleaseNotesIT
         assertTrue(configureLink.getAttribute("href").contains("section=releasenotes"),
             "The home page link must point to the administration section, got: "
                 + configureLink.getAttribute("href"));
+    }
+
+    /**
+     * Creates a release note through the home page form and checks that the configured template is applied: its title,
+     * its content and its required rights are copied over to the newly created page.
+     */
+    @Test
+    @Order(7)
+    void createReleaseNoteFromTemplate(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+
+        DocumentReference releaseNote =
+            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", "TplProduct", "9.0"), "WebHome");
+        setup.rest().delete(releaseNote);
+
+        // Make the template require and enforce script right, the way a template holding scripts does.
+        DocumentReference template =
+            new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "ReleaseNoteTemplate");
+        ObjectReference templateRight = new ObjectReference("XWiki.RequiredRightClass[0]", template);
+        setup.addObject(template, "XWiki.RequiredRightClass", "level", "script");
+        setEnforceRequiredRights(setup, template, true);
+
+        try {
+            // The creation form is a GET form passing the product and the version to the application home page.
+            setup.gotoPage("ReleaseNotes", "WebHome", "view", "action=addReleaseNotes&product=TplProduct&version=9.0");
+
+            ViewPage createdPage = setup.gotoPage(releaseNote);
+            assertTrue(createdPage.getContent().contains("New and Noteworthy"),
+                "The content of the template must have been copied to the created release note.");
+
+            // The title of the template uses the version of the release note xobject, so it only renders this way if
+            // that xobject has been added to the created page.
+            assertEquals("Release Notes for TplProduct 9.0", createdPage.getDocumentTitle(),
+                "The title of the template must have been copied and evaluated on the created release note.");
+
+            Page createdRestPage = setup.rest().get(releaseNote);
+            assertEquals(Boolean.TRUE, createdRestPage.isEnforceRequiredRights(),
+                "The created release note must enforce required rights, like the template does.");
+            Property level = setup.rest().get(new ObjectPropertyReference("level",
+                new ObjectReference("XWiki.RequiredRightClass[0]", releaseNote)));
+            assertEquals("script", level.getValue(),
+                "The required right of the template must have been copied to the created release note.");
+        } finally {
+            // Leave the template as the application ships it for the other tests.
+            setup.rest().delete(releaseNote);
+            setup.rest().delete(templateRight);
+            setEnforceRequiredRights(setup, template, false);
+        }
+    }
+
+    /**
+     * Turns the enforcement of required rights on or off for the passed page, which the REST API exposes as a page
+     * field rather than as an xobject property.
+     */
+    private void setEnforceRequiredRights(TestUtils setup, DocumentReference reference, boolean enforce)
+        throws Exception
+    {
+        Page page = setup.rest().get(reference);
+        page.setEnforceRequiredRights(enforce);
+        setup.rest().save(page);
     }
 }
