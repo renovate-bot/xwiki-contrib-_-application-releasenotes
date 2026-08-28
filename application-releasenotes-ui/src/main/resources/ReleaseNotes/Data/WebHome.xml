@@ -45,6 +45,15 @@
   {{/error}}
 
 #end
+#if ($services.security.authorization.hasAccess('admin', $doc.documentReference.wikiReference))
+#set ($wikiPreferencesReference = $services.model.createDocumentReference('', 'XWiki', 'XWikiPreferences'))
+#set ($configureURL = $xwiki.getURL($wikiPreferencesReference, 'admin', 'section=releasenotes'))
+(% class="text-right" %)
+(((
+[[{{translation key="releasenotes.configure"/}}&gt;&gt;path:$configureURL]]
+)))
+
+#end
 {{/velocity}}
 = Release Notes =
 

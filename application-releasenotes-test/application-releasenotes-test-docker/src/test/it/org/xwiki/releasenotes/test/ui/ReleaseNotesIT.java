@@ -31,6 +31,7 @@ import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.ViewPage;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -267,5 +268,33 @@ class ReleaseNotesIT
                 + "\n\n{{displayChanges contextVariable=\"changeDocs\" displayer=\"simple\"/}}", versions),
             pageName);
         return setup.gotoPage(reportPage).getContent();
+    }
+
+    /**
+     * Checks that the configuration is reachable from the wiki Administration (thanks to the ConfigurableClass
+     * xobject) and that the application home page offers a shortcut to that administration section.
+     */
+    @Test
+    @Order(6)
+    void configureFromAdministration(TestUtils setup)
+    {
+        setup.loginAsSuperAdmin();
+
+        // The section displays the fields of the configuration xobject, bound to the configuration page.
+        setup.gotoPage("XWiki", "XWikiPreferences", "admin", "section=releasenotes");
+        WebElement product =
+            setup.getDriver().findElement(By.name("ReleaseNotes.Code.ReleaseNotesConfigClass_0_product"));
+        assertEquals("XWiki", product.getAttribute("value"), "Expected the default product name to be displayed.");
+        WebElement template =
+            setup.getDriver().findElement(By.name("ReleaseNotes.Code.ReleaseNotesConfigClass_0_template"));
+        assertEquals("ReleaseNotes.Code.ReleaseNoteTemplate", template.getAttribute("value"),
+            "Expected the default template reference to be displayed.");
+
+        setup.gotoPage("ReleaseNotes", "WebHome");
+        WebElement configureLink =
+            setup.getDriver().findElement(By.linkText("Configure the Release Notes Application"));
+        assertTrue(configureLink.getAttribute("href").contains("section=releasenotes"),
+            "The home page link must point to the administration section, got: "
+                + configureLink.getAttribute("href"));
     }
 }

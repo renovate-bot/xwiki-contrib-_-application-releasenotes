@@ -36,7 +36,10 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>releasenotes.changes.livetable.version=Version
+  <content>admin.releasenotes=Release Notes
+admin.releasenotes.description=Set the defaults used when creating a new release note.
+releasenotes.configure=Configure the Release Notes Application
+releasenotes.changes.livetable.version=Version
 releasenotes.changes.livetable.category=Category
 releasenotes.changes.livetable.audience=Audience
 releasenotes.changes.livetable.summary=Summary
