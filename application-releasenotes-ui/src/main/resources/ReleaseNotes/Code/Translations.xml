@@ -53,7 +53,10 @@ releasenotes.releases.livetable.product=Product
 releasenotes.releases.livetable.version=Version
 releasenotes.releases.livetable.released=Released?
 releasenotes.releases.livetable.date=Release Date
-releasenotes.releases.livetable.emptyvalue=</content>
+releasenotes.releases.livetable.emptyvalue=
+releasenotes.report.screenshots.any=With and Without Screenshots
+releasenotes.report.screenshots.with=With Screenshots
+releasenotes.report.screenshots.without=Without Screenshots</content>
   <object>
     <name>ReleaseNotes.Code.Translations</name>
     <number>0</number>

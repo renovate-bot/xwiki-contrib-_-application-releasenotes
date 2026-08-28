@@ -39,6 +39,9 @@
   <content>{{velocity}}
 #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 $!xwiki.jsx.use("${topSpace}.Code.HomeCustomReport")
+#set ($anyScreenshots = $services.localization.render('releasenotes.report.screenshots.any'))
+#set ($withScreenshots = $services.localization.render('releasenotes.report.screenshots.with'))
+#set ($withoutScreenshots = $services.localization.render('releasenotes.report.screenshots.without'))
 {{html clean="false"}}
 &lt;form action="$xwiki.getURL("${topSpace}.Code.Report")"&gt;
   &lt;input type="hidden" name="action" value="report"/&gt;
@@ -54,8 +57,9 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeCustomReport")
   &lt;input id="report-audience" type="text" name="audience" value="Audience..." size="30" class="withTip"/&gt;
   &lt;input id="report-importance" type="text" name="importance" value="Importance..." size="30" class="withTip"/&gt;
   &lt;br/&gt;
-  &lt;input type="radio" name="containsScreenshots" value="true"&gt; With Screenshots
-  &lt;input type="radio" name="containsScreenshots" value="false"&gt; Without Screenshots
+  &lt;label&gt;&lt;input type="radio" name="containsScreenshots" value="" checked="checked"/&gt; $escapetool.xml($anyScreenshots)&lt;/label&gt;
+  &lt;label&gt;&lt;input type="radio" name="containsScreenshots" value="true"/&gt; $escapetool.xml($withScreenshots)&lt;/label&gt;
+  &lt;label&gt;&lt;input type="radio" name="containsScreenshots" value="false"/&gt; $escapetool.xml($withoutScreenshots)&lt;/label&gt;
   &lt;br/&gt;
   &lt;span class="buttonwrapper"&gt;
     &lt;input class="button" type="submit" value="Generate Report"/&gt;
