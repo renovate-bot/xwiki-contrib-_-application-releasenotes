@@ -186,15 +186,16 @@
   #macro (addClause $name $class $listAsString $topSpace $xwql)
     #set ($clauses = [])
     #foreach ($item in $stringtool.split($listAsString, ','))
-      ## If the version string starts with "&gt;" or "&lt;" then use a matching HQL
-      #if ($item.startsWith('&gt;'))
-        #set ($discard = $clauses.add("${class}.${name} &gt; :${name}${foreach.count}"))
-      #elseif ($item.startsWith('&gt;='))
+      ## If the item starts with a comparison prefix then use a matching HQL operator. The two-character prefixes
+      ## are tested first since "&gt;=" and "&lt;=" also start with "&gt;" and "&lt;".
+      #if ($item.startsWith('&gt;='))
         #set ($discard = $clauses.add("${class}.${name} &gt;= :${name}${foreach.count}"))
-      #elseif ($item.startsWith('&lt;'))
-        #set ($discard = $clauses.add("${class}.${name} &lt; :${name}${foreach.count}"))
       #elseif ($item.startsWith('&lt;='))
         #set ($discard = $clauses.add("${class}.${name} &lt;= :${name}${foreach.count}"))
+      #elseif ($item.startsWith('&gt;'))
+        #set ($discard = $clauses.add("${class}.${name} &gt; :${name}${foreach.count}"))
+      #elseif ($item.startsWith('&lt;'))
+        #set ($discard = $clauses.add("${class}.${name} &lt; :${name}${foreach.count}"))
       #else
         #set ($discard = $clauses.add("${class}.${name} like :${name}${foreach.count}"))
       #end
