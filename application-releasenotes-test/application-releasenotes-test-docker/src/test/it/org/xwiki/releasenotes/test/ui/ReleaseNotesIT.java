@@ -291,11 +291,28 @@ class ReleaseNotesIT
         setup.gotoPage("XWiki", "XWikiPreferences", "admin", "section=releasenotes");
         WebElement product =
             setup.getDriver().findElement(By.name("ReleaseNotes.Code.ReleaseNotesConfigClass_0_product"));
-        assertEquals("XWiki", product.getAttribute("value"), "Expected the default product name to be displayed.");
+        assertEquals("", product.getAttribute("value"),
+            "No product name must be shipped: the administrator has to choose one.");
         WebElement template =
             setup.getDriver().findElement(By.name("ReleaseNotes.Code.ReleaseNotesConfigClass_0_template"));
         assertEquals("ReleaseNotes.Code.ReleaseNoteTemplate", template.getAttribute("value"),
             "Expected the default template reference to be displayed.");
+
+        // Both fields explain what they are for.
+        List<String> hints = setup.getDriver().findElementsWithoutWaiting(
+                By.cssSelector("#admin-page-content .xHint")).stream()
+            .map(WebElement::getText)
+            .toList();
+        assertEquals(2, hints.size(), "Expected a hint under each of the two configuration fields, got: " + hints);
+        assertTrue(hints.stream().anyMatch(hint -> hint.startsWith("The product name pre-filled")),
+            "Missing the hint for the product field, got: " + hints);
+        assertTrue(hints.stream().anyMatch(hint -> hint.startsWith("The page whose title and content are copied")),
+            "Missing the hint for the template field, got: " + hints);
+
+        // The application is not bundled with XWiki Standard and thus its section belongs to the "Other" category.
+        assertFalse(setup.getDriver()
+            .findElementsWithoutWaiting(By.cssSelector("#panel-body-other a[data-id='releasenotes']")).isEmpty(),
+            "The administration section must be registered in the \"Other\" category.");
 
         setup.gotoPage("ReleaseNotes", "WebHome");
         WebElement configureLink =

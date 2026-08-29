@@ -41,12 +41,13 @@
 {{velocity}}
 #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 #if ($hasEdit)
+  #set ($configDoc = $xwiki.getDocument("${topSpace}.Code.ReleaseNotesConfig"))
+  #set ($defaultProduct = $configDoc.getValue('product'))
   ## Add new change
   #if ($request.action == 'addChange')
     #set ($product = $request.product)
     #if ("$!product" == '')
-      #set ($configDoc = $xwiki.getDocument("${topSpace}.Code.ReleaseNotesConfig"))
-      #set ($product = $configDoc.getValue('product'))
+      #set ($product = $defaultProduct)
     #end
     #handleAddAction($product, $!request.version, $!request.queryString)
   #end
@@ -55,7 +56,7 @@
       &lt;input type="hidden" name="action" value="addChange"/&gt;
       &lt;input type="hidden" name="template" value="${topSpace}.Code.Change.ChangeTemplate"/&gt;
       &lt;input type="hidden" name="type" value="Change"/&gt;
-      &lt;input id="product" type="text" name="product" value="XWiki" size="16"/&gt;
+      &lt;input id="product" type="text" name="product" value="$!escapetool.xml($defaultProduct)" size="16"/&gt;
       &lt;input id="version" type="text" name="version" value="Product version..." size="16" class="withTip"/&gt;
       &lt;span class="buttonwrapper"&gt;
         &lt;input class="button" type="submit" value="Add Release Change"/&gt;
