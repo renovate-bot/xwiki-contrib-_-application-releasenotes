@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.xwiki.livedata.test.po.LiveDataElement;
+import org.xwiki.livedata.test.po.TableLayoutElement;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.ObjectPropertyReference;
 import org.xwiki.model.reference.ObjectReference;
@@ -348,6 +350,55 @@ class ReleaseNotesIT
             setup.rest().delete(templateRight);
             setEnforceRequiredRights(setup, template, false);
         }
+    }
+
+    /**
+     * Checks that the two Live Data instances of the application home page list their entries: the release notes one,
+     * whose properties all come from ReleaseNoteClass, and the release changes one, whose product and version columns
+     * are read from EntryClass instead of from ChangeClass.
+     */
+    @Test
+    @Order(8)
+    void homeListsReleaseNotesAndChanges(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+
+        DocumentReference releaseNote =
+            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", "ListProduct", "3.0"), "WebHome");
+        setup.rest().delete(releaseNote);
+        setup.createPage(releaseNote, "", "RN 3.0");
+        setup.addObject(releaseNote, "ReleaseNotes.Code.ReleaseNoteClass",
+            "product", "ListProduct", "version", "3.0", "released", "1", "date", "");
+
+        DocumentReference change = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", "ListProduct", "3.0", "Entry001"), "WebHome");
+        setup.rest().delete(change);
+        setup.createPage(change, "", "Listed Change");
+        setup.addObject(change, "ReleaseNotes.Code.EntryClass",
+            "product", "ListProduct", "type", "Change", "version", "3.0");
+        setup.addObject(change, "ReleaseNotes.Code.Change.ChangeClass",
+            "title", "Listed Change", "summary", "Listed change summary", "audience", "user", "importance", "2",
+            "category", "development");
+
+        setup.gotoPage(new DocumentReference("xwiki", List.of("ReleaseNotes", "Data"), "WebHome"));
+
+        // The release notes list resolves its columns from ReleaseNoteClass.
+        TableLayoutElement releaseNotes = new LiveDataElement("releasenotes").getTableLayout();
+        releaseNotes.waitUntilReady();
+        releaseNotes.filterColumn("Version", "3.0");
+        releaseNotes.waitUntilRowCountEqualsTo(1);
+        releaseNotes.assertRow("Product", "ListProduct");
+        releaseNotes.assertRow("Version", "3.0");
+
+        // The changes list reads product and version from EntryClass, which only works if the product_class and
+        // version_class source parameters reach the results page.
+        TableLayoutElement changes = new LiveDataElement("releasenoteschanges").getTableLayout();
+        changes.waitUntilReady();
+        changes.filterColumn("Title", "Listed Change");
+        changes.waitUntilRowCountEqualsTo(1);
+        changes.assertRow("Product", "ListProduct");
+        changes.assertRow("Version", "3.0");
+        changes.assertRow("Summary", "Listed change summary");
     }
 
     /**

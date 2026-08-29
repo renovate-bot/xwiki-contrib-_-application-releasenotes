@@ -57,8 +57,8 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeReleaseNotes")
       #set ($discard = $rnObject.set('product', $product))
       #set ($discard = $rnObject.set('version', $version))
       #set ($discard = $rnObject.set('released', '0'))
-      ## We set an empty release date so that the LiveTable can see entries. For some reasons, otherwise, it won't
-      ## display entries that have no date set (this is related to the fact that we're sorting the LT by dates).
+      ## We set an empty release date so that the Live Data can see entries. For some reasons, otherwise, it won't
+      ## display entries that have no date set (this is related to the fact that we're sorting on the date).
       #set ($discard = $rnObject.set('date', ''))
       ## Copy the template content + title
       #set ($templateDoc = $xwiki.getDocument($defaultTemplateReferenceString))
@@ -94,21 +94,22 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeReleaseNotes")
 {{/velocity}}
 
 {{velocity}}
-#set($columns = ['product', 'version', 'released', 'date'])
-#set($columnsProperties = {
-  'product' : { 'type' : 'text' },
-  'version' : { 'type' : 'text', 'link' : true },
-  'released' : { 'type' : 'boolean' },
-  'date' : { 'type' : 'date' }
-})
-#set($options = { 
-   'className' : "${topSpace}.Code.ReleaseNoteClass",
-   'selectedColumn' : 'date',
-   'defaultOrder' : 'desc',
-   'translationPrefix' : 'releasenotes.releases.livetable.',
-   'rowCount' : 15
-})
-#livetable('releasenotes' $columns $columnsProperties $options)
+{{liveData
+  id="releasenotes"
+  properties="product,version,released,date"
+  source="liveTable"
+  sourceParameters="className=${topSpace}.Code.ReleaseNoteClass&amp;translationPrefix=releasenotes.releases.livedata."
+  sort="date:desc"
+  limit="15"
+}}
+{
+  "meta": {
+    "propertyDescriptors": [
+      {"id": "version", "displayer": {"id": "link", "propertyHref": "doc.url"}}
+    ]
+  }
+}
+{{/liveData}}
 {{/velocity}}</content>
   <object>
     <name>ReleaseNotes.Code.HomeReleaseNotes</name>

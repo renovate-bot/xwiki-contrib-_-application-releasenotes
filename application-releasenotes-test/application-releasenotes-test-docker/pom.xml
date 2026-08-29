@@ -54,6 +54,13 @@
       <version>${platform.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- Page objects for the Live Data instances listing the release notes and the release changes. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-livedata-test-pageobjects</artifactId>
+      <version>${platform.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <testSourceDirectory>src/test/it</testSourceDirectory>

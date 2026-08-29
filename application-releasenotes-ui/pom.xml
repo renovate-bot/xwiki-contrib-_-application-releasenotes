@@ -58,6 +58,21 @@
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
+    <!-- The {{liveData}} macro, used to list the release notes and the release changes. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-livedata-macro</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- The "liveTable" Live Data source used by those two Live Data instances. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-livedata-livetable</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- Provides XWiki.LiveTableResults, the page that the "liveTable" Live Data source renders to get its data. -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-livetable-ui</artifactId>
