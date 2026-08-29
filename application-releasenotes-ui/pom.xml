@@ -134,12 +134,12 @@
               <document>ReleaseNotes.WebHome</document>
               <type>customizable</type>
             </entry>
-            <!-- Administrators are meant to edit this page to set the instance-level defaults, and its content must
-                 never be overwritten by an upgrade. -->
-            <entry>
-              <document>ReleaseNotes.Code.ReleaseNotesConfig</document>
-              <type>configuration</type>
-            </entry>
+            <!-- ReleaseNotes.Code.ReleaseNotesConfig is deliberately not declared here. Besides the configuration
+                 values set by the administrator, it carries the XWiki.ConfigurableClass xobject that registers the
+                 application in the Administration, and that xobject has to be on that page since ConfigurableClass
+                 looks the configuration xobject up on its own document. It therefore needs the default entry type,
+                 whose 3-way merge brings such structural changes to already installed wikis while keeping the values
+                 the administrator changed. An entry type that skips the upgrade would freeze the page instead. -->
           </entries>
         </configuration>
       </plugin>
