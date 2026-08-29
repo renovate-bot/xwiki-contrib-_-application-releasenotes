@@ -37,10 +37,17 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity}}
+## The report form submits one request parameter per filter. Forward those by name rather than whatever the
+## request happens to carry, so that the string built here is always a list of known macro parameters, and strip
+## from each value the characters that would end the parameter it sits in.
+#set ($reportParameters = ['products', 'versions', 'audience', 'categories', 'importance', 'containsScreenshots',
+  'displayer'])
 #set ($parameters = "")
-#foreach ($parameterName in $request.getParameterNames())
-  #if ("$!request.get($parameterName)" != '')
-    #set ($parameters = "$parameters $parameterName='$request.get($parameterName)' ")
+#foreach ($parameterName in $reportParameters)
+  #set ($parameterValue = $stringtool.normalizeSpace("$!request.get($parameterName)"))
+  #set ($parameterValue = $stringtool.remove($stringtool.remove($parameterValue, "'"), '"'))
+  #if ($parameterValue != '')
+    #set ($parameters = "$parameters $parameterName='$parameterValue' ")
   #end
 #end
 {{getChanges $parameters contextVariable='reportChanges'/}}

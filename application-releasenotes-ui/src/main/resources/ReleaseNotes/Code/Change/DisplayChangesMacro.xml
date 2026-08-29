@@ -188,6 +188,13 @@
     #evaluate("${escapetool.h}set(${escapetool.d}changeItems = ${escapetool.d}${xvariable})")
   #end
   #set ($topSpace = $xcontext.macro.doc.documentReference.extractFirstReference('SPACE').getName())
+  ## The displayer name becomes part of the page name below, so accept only a plain name and fall back to the
+  ## default displayer otherwise. This keeps the lookup inside the Code.Change space, which is where the
+  ## displayer pages documented for this macro live.
+  #set ($displayerName = "$!displayer")
+  #if (!$displayerName.matches('[a-zA-Z0-9_-]+'))
+    #set ($displayer = 'grid')
+  #end
   #if ($changeItems &amp;&amp; !$changeItems.isEmpty())
     {{include reference="${topSpace}.Code.Change.ChangeDisplayer${stringtool.capitalize($displayer)}"/}}
   #else

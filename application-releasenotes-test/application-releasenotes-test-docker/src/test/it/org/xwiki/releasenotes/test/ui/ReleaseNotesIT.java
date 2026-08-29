@@ -19,7 +19,9 @@
  */
 package org.xwiki.releasenotes.test.ui;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -399,6 +401,84 @@ class ReleaseNotesIT
         changes.assertRow("Product", "ListProduct");
         changes.assertRow("Version", "3.0");
         changes.assertRow("Summary", "Listed change summary");
+    }
+
+    /**
+     * The displayer name is turned into the name of the page that renders the changes, so only a plain name selects
+     * a displayer; anything else falls back to the default one instead of taking part in the page name.
+     */
+    @Test
+    @Order(9)
+    void unknownDisplayerNameFallsBackToTheDefaultDisplayer(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+
+        String product = "DisplayerProduct";
+        DocumentReference entry = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", product, "1.0", "Entry001"), "WebHome");
+        setup.rest().delete(entry);
+        setup.createPage(entry, "", "A displayed change");
+        setup.addObject(entry, "ReleaseNotes.Code.EntryClass",
+            "product", product, "type", "Change", "version", "1.0");
+        setup.addObject(entry, "ReleaseNotes.Code.Change.ChangeClass",
+            "title", "A displayed change", "summary", "A displayed change summary", "audience", "user",
+            "importance", "1", "category", "development");
+
+        // A name that is not a plain name: were it used as-is it would resolve outside the Code.Change space,
+        // where the displayer pages of this macro live.
+        String notAName = "Foo.Bar";
+        DocumentReference page = new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", product), "WebHome");
+        setup.rest().delete(page);
+        setup.createPage(page,
+            String.format("{{getChanges products=\"%s\" versions=\"1.0\" contextVariable=\"changeDocs\"/}}%n%n"
+                + "{{displayChanges contextVariable=\"changeDocs\" displayer=\"%s\"/}}", product, notAName),
+            "Displayer page");
+
+        ViewPage viewPage = setup.gotoPage(page);
+        assertTrue(viewPage.getContent().contains("A displayed change"),
+            "The changes must still be rendered, by the default displayer.");
+        assertFalse(viewPage.getContent().contains("ChangeDisplayerFoo"),
+            "The displayer name must not contribute anything to the rendered page.");
+    }
+
+    /**
+     * The report page forwards the filter parameters it knows about to the macros that build the report, and each
+     * value stays inside the macro parameter it is given to.
+     */
+    @Test
+    @Order(10)
+    void reportForwardsOnlyItsOwnFilterParameters(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+
+        String product = "ReportProduct";
+        DocumentReference entry = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", product, "1.0", "Entry001"), "WebHome");
+        setup.rest().delete(entry);
+        setup.createPage(entry, "", "A reported change");
+        setup.addObject(entry, "ReleaseNotes.Code.EntryClass",
+            "product", product, "type", "Change", "version", "1.0");
+        setup.addObject(entry, "ReleaseNotes.Code.Change.ChangeClass",
+            "title", "A reported change", "summary", "A reported change summary", "audience", "user",
+            "importance", "1", "category", "development");
+
+        // "columns" is a displayChanges parameter, but not one the report form submits. It must not reach the
+        // macros just because the request happens to carry it: the changes must keep the default layout.
+        Map<String, String> queryParameters = new LinkedHashMap<>();
+        queryParameters.put("action", "report");
+        queryParameters.put("products", product);
+        queryParameters.put("versions", "1.0");
+        queryParameters.put("columns", "1");
+        setup.gotoPage(new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "Report"), "view",
+            queryParameters);
+
+        ViewPage reportPage = new ViewPage();
+        assertTrue(reportPage.getContent().contains("A reported change"),
+            "The report must render the change, otherwise the layout below proves nothing.");
+        // The grid displayer sizes each change with col-xs-(12 / columns), so the default of 2 columns gives
+        // col-xs-6 and the value carried by the request would have given col-xs-12.
+        assertFalse(setup.getDriver().findElementsWithoutWaiting(By.cssSelector(".col-xs-6")).isEmpty(),
+            "The changes must keep the default column layout of the displayer.");
     }
 
     /**
