@@ -38,9 +38,5 @@ node('docker') {
         goals = 'jacoco:report sonar:sonar'
         profiles = 'quality,coverage'
         properties = '-Dxwiki.jacoco.itDestFile=`pwd`/target/jacoco-it.exec'
-        // Build with Java 17 since SonarCloud now requires it ("Starting from the 15th of November 2023,
-        // SonarCloud will no longer accept scans executed using Java 11"). To be removed once we build commons on
-        // Java 17.
-        javaTool = 'java17'
     }
 }
