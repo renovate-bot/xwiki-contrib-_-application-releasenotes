@@ -94,7 +94,7 @@
 
 
       #end
-      #if ($alwaysDisplayScreenshot &amp;&amp; $videoReferences.size() &gt; 0)
+      #if ($alwaysDisplayScreenshots &amp;&amp; $videoReferences.size() &gt; 0)
         #set ($computedVideoReferences = [$videoReferences.get(0)])
       #else
         #set ($computedVideoReferences = $videoReferences)

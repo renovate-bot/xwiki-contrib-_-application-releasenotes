@@ -19,6 +19,7 @@
  */
 package org.xwiki.releasenotes.test.ui;
 
+import java.io.ByteArrayInputStream;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -512,26 +513,42 @@ class ReleaseNotesIT
     }
 
     /**
-     * A change is rendered by the grid displayer as one card holding its title, then its media, then its summary, so
-     * that a screenshot can only be read as illustrating the change it is enclosed with.
+     * The grid displayer renders each change as one card holding its title, then its media, then its summary, so that
+     * a screenshot can only be read as illustrating the change it is enclosed with. A card holds a single medium, so
+     * a change carrying several videos and no screenshot is displayed with its first video only: referencing more
+     * videos cannot make one card taller than the card beside it.
      */
     @Test
     @Order(11)
-    void gridDisplayerShowsTheScreenshotAfterTheTitle(TestUtils setup) throws Exception
+    void gridDisplayerRendersEachChangeAsACard(TestUtils setup) throws Exception
     {
         setup.loginAsSuperAdmin();
 
         String product = "GridProduct";
-        DocumentReference entry = new DocumentReference("xwiki",
+        DocumentReference screenshotChange = new DocumentReference("xwiki",
             List.of("ReleaseNotes", "Data", product, "1.0", "Entry001"), "WebHome");
-        setup.rest().delete(entry);
-        setup.createPage(entry, "", "A grid change");
-        setup.attachFile(entry, "screenshot.png", getClass().getResourceAsStream("/screenshot.png"), false);
-        setup.addObject(entry, "ReleaseNotes.Code.EntryClass",
+        setup.rest().delete(screenshotChange);
+        setup.createPage(screenshotChange, "", "A grid change");
+        setup.attachFile(screenshotChange, "screenshot.png", getClass().getResourceAsStream("/screenshot.png"), false);
+        setup.addObject(screenshotChange, "ReleaseNotes.Code.EntryClass",
             "product", product, "type", "Change", "version", "1.0");
-        setup.addObject(entry, "ReleaseNotes.Code.Change.ChangeClass",
+        setup.addObject(screenshotChange, "ReleaseNotes.Code.Change.ChangeClass",
             "title", "A grid change", "summary", "A grid change summary", "audience", "user", "importance", "1",
             "category", "development", "screenshots", "screenshot.png");
+
+        // A second change, carrying two videos and no screenshot, so that the same grid holds both a card whose
+        // medium is a gallery and a card whose medium is a video.
+        DocumentReference videoChange = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", product, "1.0", "Entry002"), "WebHome");
+        setup.rest().delete(videoChange);
+        setup.createPage(videoChange, "", "A videos change");
+        setup.attachFile(videoChange, "video1.mp4", new ByteArrayInputStream(new byte[] {1}), false);
+        setup.attachFile(videoChange, "video2.mp4", new ByteArrayInputStream(new byte[] {2}), false);
+        setup.addObject(videoChange, "ReleaseNotes.Code.EntryClass",
+            "product", product, "type", "Change", "version", "1.0");
+        setup.addObject(videoChange, "ReleaseNotes.Code.Change.ChangeClass",
+            "title", "A videos change", "summary", "A videos change summary", "audience", "user", "importance", "1",
+            "category", "development", "screenshots", "video1.mp4,video2.mp4");
 
         DocumentReference page = new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", product), "WebHome");
         setup.rest().delete(page);
@@ -541,13 +558,26 @@ class ReleaseNotesIT
             "Grid page");
         setup.gotoPage(page);
 
-        // The card is the enclosure: the title and the media belong to the same change because they are inside it.
-        WebElement card = setup.getDriver().findElementWithoutWaiting(By.cssSelector(".rn-change-card"));
-        WebElement title = setup.getDriver().findElementWithoutWaiting(card, By.cssSelector(".rn-change-title"));
-        WebElement media = setup.getDriver().findElementWithoutWaiting(card, By.cssSelector(".rn-change-media"));
-        assertEquals("A grid change", title.getText());
-        assertTrue(title.getLocation().getY() < media.getLocation().getY(),
-            "The screenshot must be displayed after the change title.");
+        List<WebElement> cards = setup.getDriver().findElementsWithoutWaiting(By.cssSelector(".rn-change-card"));
+        assertEquals(2, cards.size(), "Each change must be rendered as its own card.");
+
+        // The card is the enclosure: a title and a medium belong to the same change because they are inside it, so
+        // every card carries the title of its own change, above its own media.
+        for (WebElement card : cards) {
+            WebElement title = setup.getDriver().findElementWithoutWaiting(card, By.cssSelector(".rn-change-title"));
+            WebElement media = setup.getDriver().findElementWithoutWaiting(card, By.cssSelector(".rn-change-media"));
+            assertTrue(List.of("A grid change", "A videos change").contains(title.getText()),
+                "A card must be titled after the change it displays, got: " + title.getText());
+            assertTrue(title.getLocation().getY() < media.getLocation().getY(),
+                "The media must be displayed after the title, in the card of: " + title.getText());
+        }
+
+        // Only one of the two changes carries videos, and its card displays the first of them alone.
+        List<WebElement> videos =
+            setup.getDriver().findElementsWithoutWaiting(By.cssSelector(".rn-change-media video"));
+        assertEquals(1, videos.size(), "Only the first video of a change must be displayed.");
+        assertTrue(videos.get(0).getAttribute("src").contains("video1.mp4"),
+            "The displayed video must be the first one, got: " + videos.get(0).getAttribute("src"));
     }
 
     /**
