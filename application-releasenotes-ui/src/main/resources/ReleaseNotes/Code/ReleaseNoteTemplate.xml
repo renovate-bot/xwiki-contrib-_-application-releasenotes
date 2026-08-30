@@ -31,7 +31,7 @@
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>Release Notes for $doc.getValue('product') $doc.getValue('version')</title>
+  <title>#if ("$!doc.getValue('product')" != '')Release Notes for $doc.getValue('product') $doc.getValue('version')#{else}Release Note Template#end</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
