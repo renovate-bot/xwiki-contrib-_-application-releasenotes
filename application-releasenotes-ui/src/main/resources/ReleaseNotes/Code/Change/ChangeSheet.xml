@@ -55,6 +55,14 @@
   #if ("$!request.audience" != '')
     #set ($discard = $changeObject.set('audience', $!request.audience))
   #end
+  #if (!$doc.isNew())
+    ## Give the author a way out of the form towards the change page itself, which is otherwise only
+    ## reachable from the release note.
+    #set ($viewText = $escapetool.xml($services.localization.render('releasenotes.change.view')))
+    #set ($viewURL = $doc.getURL('view'))
+    {{html clean='false'}}&lt;a class='releasenotes-view-change' title='$viewText' href='$viewURL'&gt;$services.icon.renderHTML('eye')&lt;span class='sr-only'&gt;$viewText&lt;/span&gt;&lt;/a&gt;{{/html}}
+
+  #end
   Conventions:
   * Screenshots should not be filled for Developer audience
   * For entering Miscellaneous changes for Users, don't set any screenshots

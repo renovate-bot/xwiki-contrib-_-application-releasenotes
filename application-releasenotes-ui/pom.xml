@@ -112,6 +112,14 @@
       <version>${platform.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- Provides templates/macros.vm, whose macros XWiki injects as global Velocity macros. The Screenshots custom
+         display calls #attachmentPicker from there, and the page test would otherwise render that call verbatim. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-web-templates</artifactId>
+      <version>${platform.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

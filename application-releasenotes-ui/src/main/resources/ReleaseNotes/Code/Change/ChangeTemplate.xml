@@ -133,7 +133,52 @@
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </importance>
       <screenshots>
-        <customDisplay/>
+        <customDisplay>{{velocity}}
+#set ($fieldName = "${prefix}${name}")
+#if ($type == 'edit' || $type == 'search')
+  #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
+  ## The value is a comma separated list of media references, with optional spaces around the commas.
+  ## See #displayScreenshots in ChangeDisplayerVelocityMacros for how it is read back.
+  #set ($selectedValues = [])
+  #foreach ($mediaReference in $stringtool.split("$!value", ','))
+    #if ($mediaReference.trim() != '')
+      #set ($discard = $selectedValues.add($mediaReference.trim()))
+    #end
+  #end
+  ## The picker submits one request parameter per selected attachment, but this is a String property,
+  ## for which XWiki only keeps the first submitted value. The picker is thus named apart and the
+  ## property value is carried by the hidden input below, which the JavaScript extension of this
+  ## document keeps in sync with the picker.
+  ## data-accept restricts both the suggestions and the upload to the media #displayScreenshots knows
+  ## how to render: images, and mp4 or webm videos.
+  #set ($pickerParameters = {
+    'id': "${fieldName}_picker",
+    'name': "${fieldName}_picker",
+    'multiple': 'multiple',
+    'value': $selectedValues,
+    'class': 'releasenotes-screenshots-picker',
+    'data-upload-allowed': 'true',
+    'data-accept': 'image/,.mp4,.webm',
+    'placeholder': $services.localization.render('releasenotes.change.screenshots.placeholder')
+  })
+  $xwiki.jsx.use("${topSpace}.Code.Change.ChangeClass")
+  {{html clean="false"}}
+    &lt;span class="releasenotes-screenshots"&gt;
+      #attachmentPicker($pickerParameters)
+      &lt;input type="hidden" class="releasenotes-screenshots-value" name="$escapetool.xml($fieldName)"
+        value="$!escapetool.xml($value)" /&gt;
+    &lt;/span&gt;
+  {{/html}}
+#elseif ($type == 'hidden')
+  {{html clean="false"}}&lt;input type="hidden" name="$escapetool.xml($fieldName)" value="$!escapetool.xml($value)" /&gt;{{/html}}
+#else
+  ## View and rendered modes display the plain value, like the default String displayer does. The value
+  ## goes through the html macro rather than being written as wiki syntax so that it stays inline
+  ## instead of being wrapped in a paragraph. A custom displayer that evaluates to nothing is ignored
+  ## by XWiki, so this branch must always output something, whatever the display mode is.
+  {{html clean="false"}}$!escapetool.xml($value){{/html}}
+#end
+{{/velocity}}</customDisplay>
         <disabled>0</disabled>
         <name>screenshots</name>
         <number>6</number>

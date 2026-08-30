@@ -37,6 +37,8 @@ import org.xwiki.rest.model.jaxb.Page;
 import org.xwiki.rest.model.jaxb.Property;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
+import org.xwiki.test.ui.po.InlinePage;
+import org.xwiki.test.ui.po.SuggestInputElement;
 import org.xwiki.test.ui.po.ViewPage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -502,6 +504,78 @@ class ReleaseNotesIT
             "category", "development", "screenshots", "video1.mp4,video2.mp4");
 
         sharedChangesCreated = true;
+    }
+
+    /**
+     * The Screenshots field used to be a plain text input in which the author had to type, by hand, the exact name of
+     * an attachment uploaded beforehand from the Attachments tab. It is now an attachment picker: it suggests the
+     * media attached to the change, accepts several of them, and can upload new ones without leaving the form. Since
+     * the picker is a multiple SELECT while the property is a String (of which XWiki only keeps the first submitted
+     * value), what actually gets saved is a hidden input that the application keeps in sync with the picker. This test
+     * covers that round trip, plus the link out to the change page that the form now offers.
+     */
+    @Test
+    @Order(9)
+    void screenshotsAreEditedThroughAnAttachmentPicker(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+
+        String product = "PickerProduct";
+        DocumentReference entry = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", product, "1.0", "Entry001"), "WebHome");
+        setup.rest().delete(entry);
+        setup.createPage(entry, "", "An illustrated change");
+        setup.addObject(entry, "ReleaseNotes.Code.EntryClass",
+            "product", product, "type", "Change", "version", "1.0");
+        setup.addObject(entry, "ReleaseNotes.Code.Change.ChangeClass",
+            "title", "An illustrated change", "summary", "An illustrated change summary", "audience", "user",
+            "importance", "1", "category", "development", "screenshots", "first.png");
+        setup.attachFile(entry, "first.png", getClass().getResourceAsStream("/screenshot.png"), false);
+        setup.attachFile(entry, "second.png", getClass().getResourceAsStream("/screenshot.png"), false);
+
+        // "edit" with the inline editor, rather than the "inline" action the application still redirects to: that
+        // action only exists in the legacy module, which this test's wiki does not have.
+        setup.gotoPage(entry, "edit", "editor=inline");
+
+        // The form is reached from the release note and used to be a dead end towards the change's own page.
+        assertFalse(setup.getDriver()
+            .findElementsWithoutWaiting(By.cssSelector("a.releasenotes-view-change")).isEmpty(),
+            "The edit form must offer a link to view the change page.");
+
+        SuggestInputElement picker = new SuggestInputElement(setup.getDriver().findElementWithoutWaiting(
+            By.cssSelector("select.releasenotes-screenshots-picker")));
+        assertEquals(List.of("first.png"), picker.getValues(),
+            "The media already stored must be preselected in the picker.");
+
+        // The widget is clicked through Selenium actions, which need it inside the viewport. The picker itself is
+        // hidden behind the widget, so scroll to the block holding both.
+        setup.getDriver().scrollTo(setup.getDriver().findElementWithoutWaiting(
+            By.cssSelector("span.releasenotes-screenshots")));
+        // The attachments of the change are the suggestions offered without typing anything.
+        picker.click().waitForNonTypedSuggestions().selectByValue("second.png");
+        picker.hideSuggestions();
+
+        // Save through the page object, which waits for the asynchronous save to complete: reading the saved value
+        // straight after a click on the button races it, and reads back the value from before the save.
+        new InlinePage().clickSaveAndView();
+
+        Property screenshots = setup.rest().get(new ObjectPropertyReference("screenshots",
+            new ObjectReference("ReleaseNotes.Code.Change.ChangeClass[0]", entry)));
+        assertEquals("first.png,second.png", screenshots.getValue(),
+            "The picker must save the comma separated list the release note displayers read back, not just its "
+                + "first value.");
+
+        // Reopening the form must show both media, which is what closes the loop: the value the picker saved is a
+        // value the picker itself reads back.
+        setup.gotoPage(entry, "edit", "editor=inline");
+        SuggestInputElement reopened = new SuggestInputElement(setup.getDriver().findElementWithoutWaiting(
+            By.cssSelector("select.releasenotes-screenshots-picker")));
+        assertEquals(List.of("first.png", "second.png"), reopened.getValues());
+
+        // The saved value must also still be understood by the displayers, which render the media of a change.
+        setup.gotoPage(entry);
+        assertFalse(setup.getDriver().findElementsWithoutWaiting(By.cssSelector("img[src*='first.png']")).isEmpty(),
+            "The change page must display the screenshots the picker saved.");
     }
 
     /**

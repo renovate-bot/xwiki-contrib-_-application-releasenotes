@@ -128,7 +128,52 @@
       <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
     </importance>
     <screenshots>
-      <customDisplay/>
+      <customDisplay>{{velocity}}
+#set ($fieldName = "${prefix}${name}")
+#if ($type == 'edit' || $type == 'search')
+  #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
+  ## The value is a comma separated list of media references, with optional spaces around the commas.
+  ## See #displayScreenshots in ChangeDisplayerVelocityMacros for how it is read back.
+  #set ($selectedValues = [])
+  #foreach ($mediaReference in $stringtool.split("$!value", ','))
+    #if ($mediaReference.trim() != '')
+      #set ($discard = $selectedValues.add($mediaReference.trim()))
+    #end
+  #end
+  ## The picker submits one request parameter per selected attachment, but this is a String property,
+  ## for which XWiki only keeps the first submitted value. The picker is thus named apart and the
+  ## property value is carried by the hidden input below, which the JavaScript extension of this
+  ## document keeps in sync with the picker.
+  ## data-accept restricts both the suggestions and the upload to the media #displayScreenshots knows
+  ## how to render: images, and mp4 or webm videos.
+  #set ($pickerParameters = {
+    'id': "${fieldName}_picker",
+    'name': "${fieldName}_picker",
+    'multiple': 'multiple',
+    'value': $selectedValues,
+    'class': 'releasenotes-screenshots-picker',
+    'data-upload-allowed': 'true',
+    'data-accept': 'image/,.mp4,.webm',
+    'placeholder': $services.localization.render('releasenotes.change.screenshots.placeholder')
+  })
+  $xwiki.jsx.use("${topSpace}.Code.Change.ChangeClass")
+  {{html clean="false"}}
+    &lt;span class="releasenotes-screenshots"&gt;
+      #attachmentPicker($pickerParameters)
+      &lt;input type="hidden" class="releasenotes-screenshots-value" name="$escapetool.xml($fieldName)"
+        value="$!escapetool.xml($value)" /&gt;
+    &lt;/span&gt;
+  {{/html}}
+#elseif ($type == 'hidden')
+  {{html clean="false"}}&lt;input type="hidden" name="$escapetool.xml($fieldName)" value="$!escapetool.xml($value)" /&gt;{{/html}}
+#else
+  ## View and rendered modes display the plain value, like the default String displayer does. The value
+  ## goes through the html macro rather than being written as wiki syntax so that it stays inline
+  ## instead of being wrapped in a paragraph. A custom displayer that evaluates to nothing is ignored
+  ## by XWiki, so this branch must always output something, whatever the display mode is.
+  {{html clean="false"}}$!escapetool.xml($value){{/html}}
+#end
+{{/velocity}}</customDisplay>
       <disabled>0</disabled>
       <name>screenshots</name>
       <number>6</number>
@@ -199,6 +244,131 @@
     </class>
     <property>
       <sheet>ReleaseNotes.Code.Change.ChangeSheet</sheet>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Code.Change.ChangeClass</name>
+    <number>0</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>fad5ca89-b950-4dae-9487-b7e6ffb22100</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>require(['jquery', 'xwiki-events-bridge'], function($) {
+  // The Screenshots picker is a multiple SELECT, but 'screenshots' is a String property, for which
+  // XWiki only keeps the first submitted value. The comma separated list expected by the release
+  // note displayers is therefore carried by a hidden input, kept in sync with the picker here.
+  var syncPicker = function(picker) {
+    var $picker = $(picker);
+    $picker.closest('.releasenotes-screenshots').find('input.releasenotes-screenshots-value')
+      .val(($picker.val() || []).join(','));
+  };
+  var syncAllPickers = function($container) {
+    $container.find('select.releasenotes-screenshots-picker').each(function() {
+      syncPicker(this);
+    });
+  };
+  var init = function(event, data) {
+    $((data &amp;&amp; data.elements) || document).find('select.releasenotes-screenshots-picker')
+      .each(function() {
+        syncPicker(this);
+        $(this).on('change', function() {
+          syncPicker(this);
+        });
+      });
+  };
+  $(document).on('xwiki:dom:updated', init);
+  // Sync once more right before the value is sent, so that a change event missed by the widget
+  // cannot silently drop a screenshot. Covers both the standard submit and the AJAX save.
+  $(document).on('submit', 'form', function() {
+    syncAllPickers($(this));
+  });
+  $(document).on('xwiki:actions:beforeSave', function() {
+    syncAllPickers($(document));
+  });
+  $(init);
+});</code>
+    </property>
+    <property>
+      <name>Screenshots picker</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
     </property>
   </object>
 </xwikidoc>
