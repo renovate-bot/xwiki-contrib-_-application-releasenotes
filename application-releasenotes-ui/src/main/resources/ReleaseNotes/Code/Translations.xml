@@ -38,7 +38,6 @@
   <hidden>true</hidden>
   <content>admin.releasenotes=Release Notes
 admin.releasenotes.description=Set the defaults used when creating a new release note.
-releasenotes.configure=Configure the Release Notes Application
 ReleaseNotes.Code.ReleaseNotesConfigClass_product.hint=The product name pre-filled in the release note creation form. Leave it empty when the wiki holds release notes for several products.
 ReleaseNotes.Code.ReleaseNotesConfigClass_template.hint=The page whose title and content are copied into each newly created release note. Existing release notes are not affected.
 releasenotes.changes.livedata.version=Version
