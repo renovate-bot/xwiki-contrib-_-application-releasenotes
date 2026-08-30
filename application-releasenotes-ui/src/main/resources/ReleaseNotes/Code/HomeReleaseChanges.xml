@@ -67,9 +67,15 @@
 ## The product and version columns are read from EntryClass rather than from ChangeClass, which the results page is
 ## told about with the product_class and version_class source parameters. Their descriptors are declared explicitly
 ## below because Live Data only derives descriptors from the class named by the className parameter.
+##
+## Only the columns that fit the width of a standard page are listed below. The Live Data table has no column width
+## of its own: it lays the columns out from their content and, when the total exceeds the page, it scrolls sideways
+## with nothing indicating that a column is out of view, while the leftmost columns shrink to their 4rem minimum and
+## break their text mid-word. The creation date and the free text summary are therefore left out of the default set;
+## readers who want them add them back from the Live Data column selector, which lists every ChangeClass property.
 {{liveData
   id="releasenoteschanges"
-  properties="doc.creationDate,product,version,category,audience,title,importance,summary"
+  properties="title,product,version,category,audience,importance"
   source="liveTable"
   sourceParameters="className=${topSpace}.Code.Change.ChangeClass&amp;translationPrefix=releasenotes.changes.livedata.&amp;product_class=${topSpace}.Code.EntryClass&amp;version_class=${topSpace}.Code.EntryClass"
   limit="15"
@@ -77,11 +83,9 @@
 {
   "meta": {
     "propertyDescriptors": [
-      {"id": "doc.creationDate", "displayer": {"id": "link", "propertyHref": "doc.url"}},
+      {"id": "title", "sortable": false, "displayer": {"id": "link", "propertyHref": "doc.url"}},
       {"id": "product", "type": "String"},
-      {"id": "version", "type": "String"},
-      {"id": "title", "sortable": false},
-      {"id": "summary", "sortable": false}
+      {"id": "version", "type": "String"}
     ]
   }
 }

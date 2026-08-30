@@ -400,7 +400,21 @@ class ReleaseNotesIT
         changes.waitUntilRowCountEqualsTo(1);
         changes.assertRow("Product", "ListProduct");
         changes.assertRow("Version", "3.0");
-        changes.assertRow("Summary", "Listed change summary");
+        // The title is the column that links to the change, and it keeps that link now that the creation date, which
+        // used to carry it, is not displayed. The link of a non terminal page is the URL of its space.
+        changes.assertCellWithLink("Title", "Listed Change", setup.getURL(change.getLastSpaceReference()));
+
+        // The default columns are only the ones that fit the width of a page: the creation date and the free text
+        // summary are left out, since together they make the table wider than the content area of a standard page.
+        assertFalse(changes.hasColumn("Summary"), "Summary must not be one of the default columns.");
+        assertFalse(changes.hasColumn("Created"), "Created must not be one of the default columns.");
+
+        // The Live Data table layout scrolls sideways when its columns do not fit their container, and nothing
+        // indicates it, so a column past the right edge is simply invisible. The default columns must fit.
+        Long overflow = (Long) setup.getDriver().executeJavascript(
+            "const wrapper = document.querySelector('#releasenoteschanges .layout-table-wrapper');"
+                + "return wrapper.scrollWidth - wrapper.clientWidth;");
+        assertEquals(0L, overflow, "The changes table must fit the width of the page.");
     }
 
     /**
