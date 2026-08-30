@@ -504,10 +504,50 @@ class ReleaseNotesIT
         ViewPage reportPage = new ViewPage();
         assertTrue(reportPage.getContent().contains("A reported change"),
             "The report must render the change, otherwise the layout below proves nothing.");
-        // The grid displayer sizes each change with col-xs-(12 / columns), so the default of 2 columns gives
-        // col-xs-6 and the value carried by the request would have given col-xs-12.
-        assertFalse(setup.getDriver().findElementsWithoutWaiting(By.cssSelector(".col-xs-6")).isEmpty(),
-            "The changes must keep the default column layout of the displayer.");
+        // The grid displayer publishes its column count to its stylesheet as a custom property, so the default of
+        // 2 columns is what must be found there rather than the 1 carried by the request.
+        WebElement grid = setup.getDriver().findElementWithoutWaiting(By.cssSelector(".rn-changes-grid"));
+        assertTrue(grid.getAttribute("style").contains("--rn-changes-grid-columns: 2"),
+            "The changes must keep the default column layout of the displayer, got: " + grid.getAttribute("style"));
+    }
+
+    /**
+     * A change is rendered by the grid displayer as one card holding its title, then its media, then its summary, so
+     * that a screenshot can only be read as illustrating the change it is enclosed with.
+     */
+    @Test
+    @Order(11)
+    void gridDisplayerShowsTheScreenshotAfterTheTitle(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+
+        String product = "GridProduct";
+        DocumentReference entry = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", product, "1.0", "Entry001"), "WebHome");
+        setup.rest().delete(entry);
+        setup.createPage(entry, "", "A grid change");
+        setup.attachFile(entry, "screenshot.png", getClass().getResourceAsStream("/screenshot.png"), false);
+        setup.addObject(entry, "ReleaseNotes.Code.EntryClass",
+            "product", product, "type", "Change", "version", "1.0");
+        setup.addObject(entry, "ReleaseNotes.Code.Change.ChangeClass",
+            "title", "A grid change", "summary", "A grid change summary", "audience", "user", "importance", "1",
+            "category", "development", "screenshots", "screenshot.png");
+
+        DocumentReference page = new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", product), "WebHome");
+        setup.rest().delete(page);
+        setup.createPage(page,
+            String.format("{{getChanges products=\"%s\" versions=\"1.0\" contextVariable=\"changeDocs\"/}}%n%n"
+                + "{{displayChanges contextVariable=\"changeDocs\" displayer=\"grid\"/}}", product),
+            "Grid page");
+        setup.gotoPage(page);
+
+        // The card is the enclosure: the title and the media belong to the same change because they are inside it.
+        WebElement card = setup.getDriver().findElementWithoutWaiting(By.cssSelector(".rn-change-card"));
+        WebElement title = setup.getDriver().findElementWithoutWaiting(card, By.cssSelector(".rn-change-title"));
+        WebElement media = setup.getDriver().findElementWithoutWaiting(card, By.cssSelector(".rn-change-media"));
+        assertEquals("A grid change", title.getText());
+        assertTrue(title.getLocation().getY() < media.getLocation().getY(),
+            "The screenshot must be displayed after the change title.");
     }
 
     /**

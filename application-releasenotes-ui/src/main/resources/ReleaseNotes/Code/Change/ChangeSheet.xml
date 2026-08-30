@@ -82,13 +82,16 @@
   : $doc.display('description', 'edit', $changeObject)
   )))
 #else
-  #displayScreenshots($changeObject, true, false)
-
+  ## The page title is the change title, so the text comes first and the media closes the page: a reader arriving
+  ## here already knows which change they are looking at, and wants to read what it is before seeing it.
   $changeObject.getValue('summary')
   #set ($description = $changeObject.getValue('description'))
   #if ("$!description" != '')
+
     $description
   #end
+
+  #displayScreenshots($changeObject, true, false)
 #end
 {{/velocity}}</content>
 </xwikidoc>
