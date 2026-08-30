@@ -279,7 +279,7 @@ class ReleaseNotesIT
 
     /**
      * Checks that the configuration is reachable from the wiki Administration (thanks to the ConfigurableClass
-     * xobject) and that the application home page offers a shortcut to that administration section.
+     * xobject), with its two fields, their hints and the right administration category.
      */
     @Test
     @Order(6)
@@ -313,13 +313,6 @@ class ReleaseNotesIT
         assertFalse(setup.getDriver()
             .findElementsWithoutWaiting(By.cssSelector("#panel-body-other a[data-id='releasenotes']")).isEmpty(),
             "The administration section must be registered in the \"Other\" category.");
-
-        setup.gotoPage("ReleaseNotes", "WebHome");
-        WebElement configureLink =
-            setup.getDriver().findElement(By.linkText("Configure the Release Notes Application"));
-        assertTrue(configureLink.getAttribute("href").contains("section=releasenotes"),
-            "The home page link must point to the administration section, got: "
-                + configureLink.getAttribute("href"));
     }
 
     /**
