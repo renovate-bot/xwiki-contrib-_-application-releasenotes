@@ -52,38 +52,62 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ReleaseNotesIT
 {
     /**
-     * Builds a release note page (with the contributors macro) plus, optionally, its Contributors child entry, then
-     * asserts the macro shows a warning when the list is absent and renders the names when it is present.
+     * The product of the two changes shared by the tests that need changes only in order to render them.
+     */
+    private static final String DISPLAY_PRODUCT = "DisplayProduct";
+
+    /**
+     * Whether the changes of {@link #DISPLAY_PRODUCT} have already been created, so that the first of the tests
+     * sharing them builds them and the next ones reuse them.
+     */
+    private static boolean sharedChangesCreated;
+
+    /**
+     * Walks the contributors flow of a release note holding both application macros, the way the pages created from
+     * {@code ReleaseNotes.Code.ReleaseNoteTemplate} do: the macro warns while no list exists and offers an "Add
+     * contributors" button, that button opens the Contributors child page in inline edit mode, and saving there
+     * renders the names back on the release note, sorted ignoring case and with their wiki syntax escaped. Ends with
+     * adding the first change of that version, which must be numbered Entry001 even though the version space already
+     * holds a Contributors entry.
      */
     @Test
     @Order(1)
-    void contributorsList(TestUtils setup) throws Exception
+    void contributorsListAndChangeNumbering(TestUtils setup) throws Exception
     {
         setup.loginAsSuperAdmin();
 
+        String product = "ContribProduct";
         DocumentReference releaseNote =
-            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", "TestProduct", "1.0"), "WebHome");
+            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", product, "1.0"), "WebHome");
         setup.rest().delete(releaseNote);
-        setup.createPage(releaseNote, "= Credits =\n\n{{releasenotecontributors/}}", "RN 1.0");
-        setup.addObject(releaseNote, "ReleaseNotes.Code.ReleaseNoteClass", "product", "TestProduct", "version", "1.0");
+        DocumentReference contributorsEntry = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", product, "1.0", "Contributors"), "WebHome");
+        setup.rest().delete(contributorsEntry);
 
-        // Before any contributors list exists, the macro shows the warning.
+        // Both macros, in the order the shipped release note template holds them.
+        setup.createPage(releaseNote, "= New and Noteworthy =\n\n{{releasenotechanges/}}\n\n= Credits =\n\n"
+            + "{{releasenotecontributors/}}", "RN 1.0");
+        // The changes macro only offers its "Add ... Change" forms on a note that is not released yet.
+        setup.addObject(releaseNote, "ReleaseNotes.Code.ReleaseNoteClass",
+            "product", product, "version", "1.0", "released", "0");
+
+        // Before any contributors list exists, the macro shows the warning and offers the button to an editor.
         ViewPage beforePage = setup.gotoPage(releaseNote);
         assertTrue(beforePage.getContent().contains("The list of contributors has not been generated yet."),
             "Expected the not-generated-yet warning before the contributors list exists.");
+        WebElement addButton = setup.getDriver().findElementWithoutWaiting(
+            By.cssSelector("input.button[value='Add contributors']"));
 
-        // Create the deterministic Contributors child entry with two names.
-        DocumentReference contributorsEntry = new DocumentReference("xwiki",
-            List.of("ReleaseNotes", "Data", "TestProduct", "1.0", "Contributors"), "WebHome");
-        setup.rest().delete(contributorsEntry);
-        setup.createPage(contributorsEntry, "", "Contributors");
-        setup.addObject(contributorsEntry, "ReleaseNotes.Code.EntryClass",
-            "product", "TestProduct", "type", "Contributors", "version", "1.0");
-        // Store the names unsorted and with mixed case to exercise the case-insensitive alphabetical ordering.
-        setup.addObject(contributorsEntry, "ReleaseNotes.Code.ContributorsClass",
-            "contributors", "bob jones\nAlice Smith\nCarol Nguyen");
+        // Click "Add contributors": lands on the Contributors page in inline edit mode. The names are typed unsorted
+        // and with mixed case to exercise the case-insensitive alphabetical ordering, and one of them carries bold
+        // wiki syntax to exercise the escaping.
+        addButton.click();
+        WebElement textarea = setup.getDriver().findElement(By.cssSelector("textarea"));
+        textarea.clear();
+        textarea.sendKeys("bob jones\nAlice Smith\nCarol Nguyen\n**Robert Tables**");
+        setup.getDriver().findElement(By.cssSelector("input[name='action_save']")).click();
 
-        // Now the macro renders the names, sorted alphabetically ignoring case, and drops the warning.
+        // Back on the release note: every name renders, sorted alphabetically ignoring case, and the warning is gone.
         ViewPage afterPage = setup.gotoPage(releaseNote);
         String content = afterPage.getContent();
         assertTrue(content.contains("Alice Smith"), "Expected the first contributor to be rendered.");
@@ -93,119 +117,22 @@ class ReleaseNotesIT
             && content.indexOf("bob jones") < content.indexOf("Carol Nguyen"),
             "Contributors must be sorted alphabetically ignoring case, got: " + content);
         assertFalse(content.contains("has not been generated yet"),
-            "Warning must disappear once the contributors list exists.");
-    }
-
-    /**
-     * Exercises the aligned edit UX: the macro shows an "Add contributors" button when the list is absent, the button
-     * opens the separate Contributors page in inline edit mode, and saving there renders the names back on the release
-     * note and drops the warning.
-     */
-    @Test
-    @Order(2)
-    void contributorsListEditFlow(TestUtils setup) throws Exception
-    {
-        setup.loginAsSuperAdmin();
-
-        DocumentReference releaseNote =
-            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", "EditProduct", "1.0"), "WebHome");
-        setup.rest().delete(releaseNote);
-        DocumentReference contributorsEntry = new DocumentReference("xwiki",
-            List.of("ReleaseNotes", "Data", "EditProduct", "1.0", "Contributors"), "WebHome");
-        setup.rest().delete(contributorsEntry);
-
-        setup.createPage(releaseNote, "= Credits =\n\n{{releasenotecontributors/}}", "RN Edit 1.0");
-        setup.addObject(releaseNote, "ReleaseNotes.Code.ReleaseNoteClass",
-            "product", "EditProduct", "version", "1.0");
-
-        // Absent: warning is shown and the "Add contributors" button is available to an editor.
-        ViewPage beforePage = setup.gotoPage(releaseNote);
-        assertTrue(beforePage.getContent().contains("The list of contributors has not been generated yet."),
-            "Expected the not-generated-yet warning before the contributors list exists.");
-        WebElement addButton = setup.getDriver().findElementWithoutWaiting(
-            By.cssSelector("input.button[value='Add contributors']"));
-
-        // Click "Add contributors": lands on the Contributors page in inline edit mode.
-        addButton.click();
-        WebElement textarea = setup.getDriver().findElement(By.cssSelector("textarea"));
-        textarea.clear();
-        textarea.sendKeys("Alice Smith\nBob Jones");
-        setup.getDriver().findElement(By.cssSelector("input[name='action_save']")).click();
-
-        // Back on the release note: both names render and the warning is gone.
-        ViewPage afterPage = setup.gotoPage(releaseNote);
-        String content = afterPage.getContent();
-        assertTrue(content.contains("Alice Smith"), "Expected the first contributor to be rendered.");
-        assertTrue(content.contains("Bob Jones"), "Expected the second contributor to be rendered.");
-        assertFalse(content.contains("The list of contributors has not been generated yet."),
             "Warning must disappear once the contributors list has been saved.");
+        // A name carrying bold wiki syntax: if escaped, the asterisks survive in the rendered text; if interpreted,
+        // the name would render as bold and the asterisks would be gone.
+        assertTrue(content.contains("**Robert Tables**"),
+            "Wiki syntax in a contributor name must be escaped and rendered literally, got: " + content);
 
         // The Contributors page created from the macro is a technical child page: it must be hidden.
         Page savedEntry = setup.rest().get(contributorsEntry);
         assertTrue(savedEntry.isHidden(), "The Contributors child page must be created as a hidden page.");
-    }
 
-    /**
-     * A contributor name containing wiki syntax must be rendered literally, not interpreted (injection guard for the
-     * $services.rendering.escape call in the macro).
-     */
-    @Test
-    @Order(3)
-    void contributorsListEscapesWikiSyntax(TestUtils setup) throws Exception
-    {
-        setup.loginAsSuperAdmin();
-
-        DocumentReference releaseNote =
-            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", "EscProduct", "1.0"), "WebHome");
-        setup.rest().delete(releaseNote);
-        setup.createPage(releaseNote, "{{releasenotecontributors/}}", "RN Esc 1.0");
-        setup.addObject(releaseNote, "ReleaseNotes.Code.ReleaseNoteClass", "product", "EscProduct", "version", "1.0");
-
-        DocumentReference contributorsEntry = new DocumentReference("xwiki",
-            List.of("ReleaseNotes", "Data", "EscProduct", "1.0", "Contributors"), "WebHome");
-        setup.rest().delete(contributorsEntry);
-        setup.createPage(contributorsEntry, "", "Contributors");
-        setup.addObject(contributorsEntry, "ReleaseNotes.Code.EntryClass",
-            "product", "EscProduct", "type", "Contributors", "version", "1.0");
-        // A name carrying bold wiki syntax: if escaped, the asterisks survive in the rendered text; if interpreted,
-        // the text would render as bold and the asterisks would be gone.
-        setup.addObject(contributorsEntry, "ReleaseNotes.Code.ContributorsClass",
-            "contributors", "**Robert Tables**");
-
-        String content = setup.gotoPage(releaseNote).getContent();
-        assertTrue(content.contains("**Robert Tables**"),
-            "Wiki syntax in a contributor name must be escaped and rendered literally, got: " + content);
-    }
-
-    /**
-     * Adding the first change to a version that already has a Contributors entry must still number the new change
-     * Entry001 (regression guard: the Contributors entry must not be counted by the change-numbering query).
-     */
-    @Test
-    @Order(4)
-    void changeNumberingIgnoresContributors(TestUtils setup) throws Exception
-    {
-        setup.loginAsSuperAdmin();
-
-        DocumentReference releaseNote =
-            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", "NumProduct", "1.0"), "WebHome");
-        setup.rest().delete(releaseNote);
-        setup.createPage(releaseNote, "{{releasenotechanges/}}", "RN Num 1.0");
-        setup.addObject(releaseNote, "ReleaseNotes.Code.ReleaseNoteClass",
-            "product", "NumProduct", "version", "1.0", "released", "0");
-
-        // A Contributors entry exists in the version space, but no change entry does yet.
-        DocumentReference contributorsEntry = new DocumentReference("xwiki",
-            List.of("ReleaseNotes", "Data", "NumProduct", "1.0", "Contributors"), "WebHome");
-        setup.rest().delete(contributorsEntry);
-        setup.createPage(contributorsEntry, "", "Contributors");
-        setup.addObject(contributorsEntry, "ReleaseNotes.Code.EntryClass",
-            "product", "NumProduct", "type", "Contributors", "version", "1.0");
-
-        // Trigger "Add User Change": handleAddAction computes the next Entry name and redirects to its inline editor.
+        // Kept last because it only redirects: a Contributors entry now exists in the version space but no change
+        // entry does, and "Add User Change" must still number the new change Entry001, i.e. the change-numbering
+        // query must not count the Contributors entry.
         setup.gotoPage(releaseNote, "view",
-            "action=useradd&template=ReleaseNotes.Code.Change.ChangeTemplate&product=NumProduct&version=1.0"
-                + "&audience=user");
+            "action=useradd&template=ReleaseNotes.Code.Change.ChangeTemplate&product=" + product
+                + "&version=1.0&audience=user");
         String currentUrl = setup.getDriver().getCurrentUrl();
         assertTrue(currentUrl.contains("Entry001"),
             "The new change must be numbered Entry001 despite the Contributors entry, landed on: " + currentUrl);
@@ -216,7 +143,7 @@ class ReleaseNotesIT
      * unlike their strict {@code >} and {@code <} counterparts.
      */
     @Test
-    @Order(5)
+    @Order(2)
     void getChangesComparisonFiltersIncludeTheBoundaryVersion(TestUtils setup) throws Exception
     {
         setup.loginAsSuperAdmin();
@@ -283,7 +210,7 @@ class ReleaseNotesIT
      * xobject), with its two fields, their hints and the right administration category.
      */
     @Test
-    @Order(6)
+    @Order(3)
     void configureFromAdministration(TestUtils setup)
     {
         setup.loginAsSuperAdmin();
@@ -321,7 +248,7 @@ class ReleaseNotesIT
      * its content and its required rights are copied over to the newly created page.
      */
     @Test
-    @Order(7)
+    @Order(4)
     void createReleaseNoteFromTemplate(TestUtils setup) throws Exception
     {
         setup.loginAsSuperAdmin();
@@ -376,7 +303,7 @@ class ReleaseNotesIT
      * are read from EntryClass instead of from ChangeClass.
      */
     @Test
-    @Order(8)
+    @Order(5)
     void homeListsReleaseNotesAndChanges(TestUtils setup) throws Exception
     {
         setup.loginAsSuperAdmin();
@@ -434,127 +361,24 @@ class ReleaseNotesIT
     }
 
     /**
-     * The displayer name is turned into the name of the page that renders the changes, so only a plain name selects
-     * a displayer; anything else falls back to the default one instead of taking part in the page name.
-     */
-    @Test
-    @Order(9)
-    void unknownDisplayerNameFallsBackToTheDefaultDisplayer(TestUtils setup) throws Exception
-    {
-        setup.loginAsSuperAdmin();
-
-        String product = "DisplayerProduct";
-        DocumentReference entry = new DocumentReference("xwiki",
-            List.of("ReleaseNotes", "Data", product, "1.0", "Entry001"), "WebHome");
-        setup.rest().delete(entry);
-        setup.createPage(entry, "", "A displayed change");
-        setup.addObject(entry, "ReleaseNotes.Code.EntryClass",
-            "product", product, "type", "Change", "version", "1.0");
-        setup.addObject(entry, "ReleaseNotes.Code.Change.ChangeClass",
-            "title", "A displayed change", "summary", "A displayed change summary", "audience", "user",
-            "importance", "1", "category", "development");
-
-        // A name that is not a plain name: were it used as-is it would resolve outside the Code.Change space,
-        // where the displayer pages of this macro live.
-        String notAName = "Foo.Bar";
-        DocumentReference page = new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", product), "WebHome");
-        setup.rest().delete(page);
-        setup.createPage(page,
-            String.format("{{getChanges products=\"%s\" versions=\"1.0\" contextVariable=\"changeDocs\"/}}%n%n"
-                + "{{displayChanges contextVariable=\"changeDocs\" displayer=\"%s\"/}}", product, notAName),
-            "Displayer page");
-
-        ViewPage viewPage = setup.gotoPage(page);
-        assertTrue(viewPage.getContent().contains("A displayed change"),
-            "The changes must still be rendered, by the default displayer.");
-        assertFalse(viewPage.getContent().contains("ChangeDisplayerFoo"),
-            "The displayer name must not contribute anything to the rendered page.");
-    }
-
-    /**
-     * The report page forwards the filter parameters it knows about to the macros that build the report, and each
-     * value stays inside the macro parameter it is given to.
-     */
-    @Test
-    @Order(10)
-    void reportForwardsOnlyItsOwnFilterParameters(TestUtils setup) throws Exception
-    {
-        setup.loginAsSuperAdmin();
-
-        String product = "ReportProduct";
-        DocumentReference entry = new DocumentReference("xwiki",
-            List.of("ReleaseNotes", "Data", product, "1.0", "Entry001"), "WebHome");
-        setup.rest().delete(entry);
-        setup.createPage(entry, "", "A reported change");
-        setup.addObject(entry, "ReleaseNotes.Code.EntryClass",
-            "product", product, "type", "Change", "version", "1.0");
-        setup.addObject(entry, "ReleaseNotes.Code.Change.ChangeClass",
-            "title", "A reported change", "summary", "A reported change summary", "audience", "user",
-            "importance", "1", "category", "development");
-
-        // "columns" is a displayChanges parameter, but not one the report form submits. It must not reach the
-        // macros just because the request happens to carry it: the changes must keep the default layout.
-        Map<String, String> queryParameters = new LinkedHashMap<>();
-        queryParameters.put("action", "report");
-        queryParameters.put("products", product);
-        queryParameters.put("versions", "1.0");
-        queryParameters.put("columns", "1");
-        setup.gotoPage(new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "Report"), "view",
-            queryParameters);
-
-        ViewPage reportPage = new ViewPage();
-        assertTrue(reportPage.getContent().contains("A reported change"),
-            "The report must render the change, otherwise the layout below proves nothing.");
-        // The grid displayer publishes its column count to its stylesheet as a custom property, so the default of
-        // 2 columns is what must be found there rather than the 1 carried by the request.
-        WebElement grid = setup.getDriver().findElementWithoutWaiting(By.cssSelector(".rn-changes-grid"));
-        assertTrue(grid.getAttribute("style").contains("--rn-changes-grid-columns: 2"),
-            "The changes must keep the default column layout of the displayer, got: " + grid.getAttribute("style"));
-    }
-
-    /**
      * The grid displayer renders each change as one card holding its title, then its media, then its summary, so that
      * a screenshot can only be read as illustrating the change it is enclosed with. A card holds a single medium, so
      * a change carrying several videos and no screenshot is displayed with its first video only: referencing more
      * videos cannot make one card taller than the card beside it.
      */
     @Test
-    @Order(11)
+    @Order(6)
     void gridDisplayerRendersEachChangeAsACard(TestUtils setup) throws Exception
     {
         setup.loginAsSuperAdmin();
+        createSharedChanges(setup);
 
-        String product = "GridProduct";
-        DocumentReference screenshotChange = new DocumentReference("xwiki",
-            List.of("ReleaseNotes", "Data", product, "1.0", "Entry001"), "WebHome");
-        setup.rest().delete(screenshotChange);
-        setup.createPage(screenshotChange, "", "A grid change");
-        setup.attachFile(screenshotChange, "screenshot.png", getClass().getResourceAsStream("/screenshot.png"), false);
-        setup.addObject(screenshotChange, "ReleaseNotes.Code.EntryClass",
-            "product", product, "type", "Change", "version", "1.0");
-        setup.addObject(screenshotChange, "ReleaseNotes.Code.Change.ChangeClass",
-            "title", "A grid change", "summary", "A grid change summary", "audience", "user", "importance", "1",
-            "category", "development", "screenshots", "screenshot.png");
-
-        // A second change, carrying two videos and no screenshot, so that the same grid holds both a card whose
-        // medium is a gallery and a card whose medium is a video.
-        DocumentReference videoChange = new DocumentReference("xwiki",
-            List.of("ReleaseNotes", "Data", product, "1.0", "Entry002"), "WebHome");
-        setup.rest().delete(videoChange);
-        setup.createPage(videoChange, "", "A videos change");
-        setup.attachFile(videoChange, "video1.mp4", new ByteArrayInputStream(new byte[] {1}), false);
-        setup.attachFile(videoChange, "video2.mp4", new ByteArrayInputStream(new byte[] {2}), false);
-        setup.addObject(videoChange, "ReleaseNotes.Code.EntryClass",
-            "product", product, "type", "Change", "version", "1.0");
-        setup.addObject(videoChange, "ReleaseNotes.Code.Change.ChangeClass",
-            "title", "A videos change", "summary", "A videos change summary", "audience", "user", "importance", "1",
-            "category", "development", "screenshots", "video1.mp4,video2.mp4");
-
-        DocumentReference page = new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", product), "WebHome");
+        DocumentReference page =
+            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", DISPLAY_PRODUCT), "WebHome");
         setup.rest().delete(page);
         setup.createPage(page,
             String.format("{{getChanges products=\"%s\" versions=\"1.0\" contextVariable=\"changeDocs\"/}}%n%n"
-                + "{{displayChanges contextVariable=\"changeDocs\" displayer=\"grid\"/}}", product),
+                + "{{displayChanges contextVariable=\"changeDocs\" displayer=\"grid\"/}}", DISPLAY_PRODUCT),
             "Grid page");
         setup.gotoPage(page);
 
@@ -578,6 +402,106 @@ class ReleaseNotesIT
         assertEquals(1, videos.size(), "Only the first video of a change must be displayed.");
         assertTrue(videos.get(0).getAttribute("src").contains("video1.mp4"),
             "The displayed video must be the first one, got: " + videos.get(0).getAttribute("src"));
+    }
+
+    /**
+     * The displayer name is turned into the name of the page that renders the changes, so only a plain name selects
+     * a displayer; anything else falls back to the default one instead of taking part in the page name.
+     */
+    @Test
+    @Order(7)
+    void unknownDisplayerNameFallsBackToTheDefaultDisplayer(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+        createSharedChanges(setup);
+
+        // A name that is not a plain name: were it used as-is it would resolve outside the Code.Change space,
+        // where the displayer pages of this macro live.
+        String notAName = "Foo.Bar";
+        DocumentReference page = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", DISPLAY_PRODUCT, "FallbackDisplayer"), "WebHome");
+        setup.rest().delete(page);
+        setup.createPage(page,
+            String.format("{{getChanges products=\"%s\" versions=\"1.0\" contextVariable=\"changeDocs\"/}}%n%n"
+                + "{{displayChanges contextVariable=\"changeDocs\" displayer=\"%s\"/}}", DISPLAY_PRODUCT, notAName),
+            "Displayer page");
+
+        ViewPage viewPage = setup.gotoPage(page);
+        assertTrue(viewPage.getContent().contains("A grid change"),
+            "The changes must still be rendered, by the default displayer.");
+        assertFalse(viewPage.getContent().contains("ChangeDisplayerFoo"),
+            "The displayer name must not contribute anything to the rendered page.");
+    }
+
+    /**
+     * The report page forwards the filter parameters it knows about to the macros that build the report, and each
+     * value stays inside the macro parameter it is given to.
+     */
+    @Test
+    @Order(8)
+    void reportForwardsOnlyItsOwnFilterParameters(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+        // The report takes the product and the version from the request, so it needs no fixture of its own.
+        createSharedChanges(setup);
+
+        // "columns" is a displayChanges parameter, but not one the report form submits. It must not reach the
+        // macros just because the request happens to carry it: the changes must keep the default layout.
+        Map<String, String> queryParameters = new LinkedHashMap<>();
+        queryParameters.put("action", "report");
+        queryParameters.put("products", DISPLAY_PRODUCT);
+        queryParameters.put("versions", "1.0");
+        queryParameters.put("columns", "1");
+        setup.gotoPage(new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "Report"), "view",
+            queryParameters);
+
+        ViewPage reportPage = new ViewPage();
+        assertTrue(reportPage.getContent().contains("A grid change"),
+            "The report must render the changes, otherwise the layout below proves nothing.");
+        // The grid displayer publishes its column count to its stylesheet as a custom property, so the default of
+        // 2 columns is what must be found there rather than the 1 carried by the request.
+        WebElement grid = setup.getDriver().findElementWithoutWaiting(By.cssSelector(".rn-changes-grid"));
+        assertTrue(grid.getAttribute("style").contains("--rn-changes-grid-columns: 2"),
+            "The changes must keep the default column layout of the displayer, got: " + grid.getAttribute("style"));
+    }
+
+    /**
+     * Creates, once for the whole class, the two changes shared by the tests that need changes only in order to
+     * render them: one carrying a screenshot, and one carrying two videos and no screenshot, so that the same grid
+     * holds both a card whose medium is a gallery and a card whose medium is a video. Called by each of those tests
+     * rather than from a {@code @BeforeAll} method, since {@link TestUtils} is injected per test method and since
+     * each of them must also be runnable on its own.
+     */
+    private void createSharedChanges(TestUtils setup) throws Exception
+    {
+        if (sharedChangesCreated) {
+            return;
+        }
+
+        DocumentReference screenshotChange = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", DISPLAY_PRODUCT, "1.0", "Entry001"), "WebHome");
+        setup.rest().delete(screenshotChange);
+        setup.createPage(screenshotChange, "", "A grid change");
+        setup.attachFile(screenshotChange, "screenshot.png", getClass().getResourceAsStream("/screenshot.png"), false);
+        setup.addObject(screenshotChange, "ReleaseNotes.Code.EntryClass",
+            "product", DISPLAY_PRODUCT, "type", "Change", "version", "1.0");
+        setup.addObject(screenshotChange, "ReleaseNotes.Code.Change.ChangeClass",
+            "title", "A grid change", "summary", "A grid change summary", "audience", "user", "importance", "1",
+            "category", "development", "screenshots", "screenshot.png");
+
+        DocumentReference videoChange = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", DISPLAY_PRODUCT, "1.0", "Entry002"), "WebHome");
+        setup.rest().delete(videoChange);
+        setup.createPage(videoChange, "", "A videos change");
+        setup.attachFile(videoChange, "video1.mp4", new ByteArrayInputStream(new byte[] {1}), false);
+        setup.attachFile(videoChange, "video2.mp4", new ByteArrayInputStream(new byte[] {2}), false);
+        setup.addObject(videoChange, "ReleaseNotes.Code.EntryClass",
+            "product", DISPLAY_PRODUCT, "type", "Change", "version", "1.0");
+        setup.addObject(videoChange, "ReleaseNotes.Code.Change.ChangeClass",
+            "title", "A videos change", "summary", "A videos change summary", "audience", "user", "importance", "1",
+            "category", "development", "screenshots", "video1.mp4,video2.mp4");
+
+        sharedChangesCreated = true;
     }
 
     /**
