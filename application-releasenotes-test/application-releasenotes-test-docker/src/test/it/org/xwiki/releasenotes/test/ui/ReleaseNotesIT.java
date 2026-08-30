@@ -291,11 +291,28 @@ class ReleaseNotesIT
         setup.gotoPage("XWiki", "XWikiPreferences", "admin", "section=releasenotes");
         WebElement product =
             setup.getDriver().findElement(By.name("ReleaseNotes.Code.ReleaseNotesConfigClass_0_product"));
-        assertEquals("XWiki", product.getAttribute("value"), "Expected the default product name to be displayed.");
+        assertEquals("", product.getAttribute("value"),
+            "No product name must be shipped: the administrator has to choose one.");
         WebElement template =
             setup.getDriver().findElement(By.name("ReleaseNotes.Code.ReleaseNotesConfigClass_0_template"));
         assertEquals("ReleaseNotes.Code.ReleaseNoteTemplate", template.getAttribute("value"),
             "Expected the default template reference to be displayed.");
+
+        // Both fields explain what they are for.
+        List<String> hints = setup.getDriver().findElementsWithoutWaiting(
+                By.cssSelector("#admin-page-content .xHint")).stream()
+            .map(WebElement::getText)
+            .toList();
+        assertEquals(2, hints.size(), "Expected a hint under each of the two configuration fields, got: " + hints);
+        assertTrue(hints.stream().anyMatch(hint -> hint.startsWith("The product name pre-filled")),
+            "Missing the hint for the product field, got: " + hints);
+        assertTrue(hints.stream().anyMatch(hint -> hint.startsWith("The page whose title and content are copied")),
+            "Missing the hint for the template field, got: " + hints);
+
+        // The application is not bundled with XWiki Standard and thus its section belongs to the "Other" category.
+        assertFalse(setup.getDriver()
+            .findElementsWithoutWaiting(By.cssSelector("#panel-body-other a[data-id='releasenotes']")).isEmpty(),
+            "The administration section must be registered in the \"Other\" category.");
 
         setup.gotoPage("ReleaseNotes", "WebHome");
         WebElement configureLink =
@@ -319,9 +336,15 @@ class ReleaseNotesIT
             new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", "TplProduct", "9.0"), "WebHome");
         setup.rest().delete(releaseNote);
 
-        // Make the template require and enforce script right, the way a template holding scripts does.
         DocumentReference template =
             new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "ReleaseNoteTemplate");
+
+        // The template holds no release note xobject, so its title falls back to a name instead of displaying the
+        // unresolved script that it hands to the release notes created from it.
+        assertEquals("Release Note Template", setup.gotoPage(template).getDocumentTitle(),
+            "The template page must not display raw Velocity as its title.");
+
+        // Make the template require and enforce script right, the way a template holding scripts does.
         ObjectReference templateRight = new ObjectReference("XWiki.RequiredRightClass[0]", template);
         setup.addObject(template, "XWiki.RequiredRightClass", "level", "script");
         setEnforceRequiredRights(setup, template, true);
@@ -334,8 +357,7 @@ class ReleaseNotesIT
             assertTrue(createdPage.getContent().contains("New and Noteworthy"),
                 "The content of the template must have been copied to the created release note.");
 
-            // The title of the template uses the version of the release note xobject, so it only renders this way if
-            // that xobject has been added to the created page.
+            // The template hands its title over as written, so it resolves against the release note's own xobject.
             assertEquals("Release Notes for TplProduct 9.0", createdPage.getDocumentTitle(),
                 "The title of the template must have been copied and evaluated on the created release note.");
 
@@ -504,6 +526,9 @@ class ReleaseNotesIT
     {
         Page page = setup.rest().get(reference);
         page.setEnforceRequiredRights(enforce);
+        // The REST API fills Page#title with the *rendered* title and stores whatever it is given back as the raw
+        // title, which would flatten a page whose title holds Velocity. A null title leaves the stored one alone.
+        page.setTitle(null);
         setup.rest().save(page);
     }
 }

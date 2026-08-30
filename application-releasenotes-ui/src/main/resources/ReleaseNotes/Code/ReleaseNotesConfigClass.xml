@@ -49,6 +49,7 @@
     <product>
       <customDisplay/>
       <disabled>0</disabled>
+      <hint>ReleaseNotes.Code.ReleaseNotesConfigClass_product.hint</hint>
       <name>product</name>
       <number>2</number>
       <picker>1</picker>
@@ -65,6 +66,7 @@
       <customDisplay/>
       <disabled>0</disabled>
       <displayType>input</displayType>
+      <hint>ReleaseNotes.Code.ReleaseNotesConfigClass_template.hint</hint>
       <idField/>
       <multiSelect>0</multiSelect>
       <name>template</name>
