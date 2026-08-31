@@ -196,9 +196,16 @@
         #set ($discard = $clauses.add("${class}.${name} &gt; :${name}${foreach.count}"))
       #elseif ($item.startsWith('&lt;'))
         #set ($discard = $clauses.add("${class}.${name} &lt; :${name}${foreach.count}"))
+      #elseif ($item.startsWith('='))
+        #set ($discard = $clauses.add("${class}.${name} = :${name}${foreach.count}"))
       #else
         #set ($discard = $clauses.add("${class}.${name} like :${name}${foreach.count}"))
       #end
+    #end
+    ## An empty filter matches nothing. Say it explicitly since joining an empty clause list would generate "()" and
+    ## make the whole query invalid.
+    #if ($clauses.isEmpty())
+      #set ($discard = $clauses.add('1 = 0'))
     #end
     #set ($xwql = "$xwql (${stringtool.join($clauses, ' or ')})")
   #end
@@ -206,11 +213,69 @@
     #foreach ($item in $stringtool.split($listAsString, ','))
       #if ($item.startsWith('&gt;=') || $item.startsWith('&lt;='))
         #set ($query = $query.bindValue("${name}${foreach.count}", $item.substring(2).trim()))
-      #elseif ($item.startsWith('&gt;') || $item.startsWith('&lt;'))
+      #elseif ($item.startsWith('&gt;') || $item.startsWith('&lt;') || $item.startsWith('='))
         #set ($query = $query.bindValue("${name}${foreach.count}", $item.substring(1).trim()))
       #else
         #set ($query = $query.bindValue("${name}${foreach.count}", $item.trim()))
       #end
+    #end
+  #end
+  ## Lists the versions the wiki holds a release note for, in the form the entries store them. They are read from the
+  ## release notes rather than from the entries because a query may only select documents: selecting a property value
+  ## needs programming right, which this application does not require.
+  ## Sets $existingVersions.
+  #macro (getExistingVersions $topSpace)
+    #set ($existingVersions = [])
+    #set ($releaseNotesQuery = "from doc.object(${topSpace}.Code.ReleaseNoteClass) as note")
+    #foreach ($releaseNote in $services.query.xwql($releaseNotesQuery).execute())
+      #set ($releaseNoteObject = $xwiki.getDocument($releaseNote).getObject("${topSpace}.Code.ReleaseNoteClass"))
+      #set ($releaseNoteVersion = "$!releaseNoteObject.getValue('version')")
+      #if ($releaseNoteVersion != '' &amp;&amp; !$existingVersions.contains($releaseNoteVersion))
+        #set ($discard = $existingVersions.add($releaseNoteVersion))
+      #end
+    #end
+  #end
+  ## The version comparison filters cannot be evaluated by the database: EntryClass.version is a string column, so
+  ## "&gt;=9.0" would exclude 10.0 and the outcome would depend on the database collation on top of that. Replace each
+  ## comparison filter by the explicit list of the existing versions it matches, compared with the extension version
+  ## scheme (the Maven ordering, which knows that 9.0 &lt; 10.0 and that 8.3-milestone-1 &lt; 8.3-rc-1 &lt; 8.3), so that
+  ## the query itself only ever tests equality. Sets $versions.
+  #macro (resolveVersionComparisons $listAsString $topSpace)
+    #set ($items = $stringtool.split($listAsString, ','))
+    #set ($hasComparison = false)
+    #foreach ($item in $items)
+      #if ($item.startsWith('&gt;') || $item.startsWith('&lt;'))
+        #set ($hasComparison = true)
+        #break
+      #end
+    #end
+    #if ($hasComparison)
+      #getExistingVersions($topSpace)
+      #set ($resolvedItems = [])
+      #foreach ($item in $items)
+        ## The two-character prefixes are tested first since "&gt;=" and "&lt;=" also start with "&gt;" and "&lt;".
+        #if ($item.startsWith('&gt;=') || $item.startsWith('&lt;='))
+          #set ($operator = $item.substring(0, 2))
+          #set ($bound = $services.extension.parseVersion($item.substring(2).trim()))
+        #elseif ($item.startsWith('&gt;') || $item.startsWith('&lt;'))
+          #set ($operator = $item.substring(0, 1))
+          #set ($bound = $services.extension.parseVersion($item.substring(1).trim()))
+        #else
+          #set ($operator = '')
+        #end
+        #if ($operator == '')
+          #set ($discard = $resolvedItems.add($item))
+        #else
+          #foreach ($existingVersion in $existingVersions)
+            #set ($comparison = $services.extension.parseVersion($existingVersion).compareTo($bound))
+            #if (($operator == '&gt;=' &amp;&amp; $comparison &gt;= 0) || ($operator == '&lt;=' &amp;&amp; $comparison &lt;= 0)
+              || ($operator == '&gt;' &amp;&amp; $comparison &gt; 0) || ($operator == '&lt;' &amp;&amp; $comparison &lt; 0))
+              #set ($discard = $resolvedItems.add("=${existingVersion}"))
+            #end
+          #end
+        #end
+      #end
+      #set ($versions = $stringtool.join($resolvedItems, ','))
     #end
   #end
   #set ($xvariable = $xcontext.macro.params.contextVariable)
@@ -229,6 +294,7 @@
   #set ($containsScreenshots = $xcontext.macro.params.containsScreenshots)
   ## Find all Release Notes Changes matching the passed parameters
   #set ($topSpace = $xcontext.macro.doc.documentReference.extractFirstReference('SPACE').getName())
+  #resolveVersionComparisons($versions, $topSpace)
   #set ($xwql = "from doc.object(${topSpace}.Code.EntryClass) as entries, doc.object(${topSpace}.Code.Change.ChangeClass) as changes where ")
   #addClause("product", "entries", $products, $topSpace, $xwql)
   #addClause("audience", "changes", $audience, $topSpace, "$xwql and ")
@@ -465,7 +531,7 @@
       <defaultValue>%</defaultValue>
     </property>
     <property>
-      <description/>
+      <description>Comma-separated list of versions. An item is a "like" pattern by default (e.g. "8.3%"), or an exact version when prefixed with "=", or a range bound when prefixed with "&gt;=", "&gt;", "&lt;=" or "&lt;". Range bounds are compared using the version ordering, not alphabetically: "&gt;=9.0" thus also matches 10.0.</description>
     </property>
     <property>
       <mandatory>0</mandatory>
