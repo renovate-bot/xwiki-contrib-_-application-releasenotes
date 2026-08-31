@@ -35,6 +35,7 @@ import org.xwiki.model.reference.ObjectPropertyReference;
 import org.xwiki.model.reference.ObjectReference;
 import org.xwiki.rest.model.jaxb.Page;
 import org.xwiki.rest.model.jaxb.Property;
+import org.xwiki.releasenotes.test.ui.po.PropertiesPanelElement;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.InlinePage;
@@ -339,7 +340,8 @@ class ReleaseNotesIT
 
         // The changes list reads product and version from EntryClass, which only works if the product_class and
         // version_class source parameters reach the results page.
-        TableLayoutElement changes = new LiveDataElement("releasenoteschanges").getTableLayout();
+        LiveDataElement changesLiveData = new LiveDataElement("releasenoteschanges");
+        TableLayoutElement changes = changesLiveData.getTableLayout();
         changes.waitUntilReady();
         changes.filterColumn("Title", "Listed Change");
         changes.waitUntilRowCountEqualsTo(1);
@@ -363,37 +365,18 @@ class ReleaseNotesIT
 
         // The two hidden columns are hidden, not dropped: the Properties panel offers exactly the properties the
         // macro declares, so they would be unreachable had they been left out of that list. They must be offered
-        // there, unchecked, for a reader to display them back.
-        Map<String, Boolean> properties = getPropertiesPanelEntries(setup);
-        assertEquals(Boolean.FALSE, properties.get("Summary"), "Summary must be offered unchecked in the panel.");
-        assertEquals(Boolean.FALSE, properties.get("Created"), "Created must be offered unchecked in the panel.");
-        assertEquals(Boolean.TRUE, properties.get("Title"), "Title must be offered checked in the panel.");
-    }
+        // there, unticked, and ticking one must display its column back.
+        PropertiesPanelElement properties = PropertiesPanelElement.open(changesLiveData);
+        assertTrue(properties.hasProperty("Summary"), "Summary must be offered by the properties panel.");
+        assertTrue(properties.hasProperty("Created"), "Created must be offered by the properties panel.");
+        assertFalse(properties.isPropertyDisplayed("Summary"), "Summary must be offered unticked.");
+        assertFalse(properties.isPropertyDisplayed("Created"), "Created must be offered unticked.");
+        assertTrue(properties.isPropertyDisplayed("Title"), "Title must be offered ticked.");
 
-    /**
-     * Opens the Properties panel of the changes Live Data and reads what it offers. The panel is the only way a
-     * reader has to display a property back, and it lists exactly the properties of the macro's {@code properties}
-     * parameter, each checked according to the {@code visible} flag of its descriptor.
-     *
-     * @param setup the test setup
-     * @return the label of every property the panel offers, mapped to whether its checkbox is ticked
-     */
-    private Map<String, Boolean> getPropertiesPanelEntries(TestUtils setup)
-    {
-        WebElement liveData = setup.getDriver().findElement(By.id("releasenoteschanges"));
-        setup.getDriver().findElementWithoutWaiting(liveData, By.cssSelector(".livedata-dropdown-menu")).click();
-        setup.getDriver().findElementWithoutWaiting(liveData, By.linkText("Properties...")).click();
-
-        Map<String, Boolean> entries = new LinkedHashMap<>();
-        for (WebElement property : setup.getDriver().findElementsWithoutWaiting(liveData,
-            By.cssSelector(".livedata-advanced-panel-properties .property"))) {
-            String name = setup.getDriver().findElementWithoutWaiting(property, By.cssSelector(".property-name"))
-                .getText();
-            WebElement checkbox = setup.getDriver().findElementWithoutWaiting(property,
-                By.cssSelector("input[type=\"checkbox\"]"));
-            entries.put(name, checkbox.isSelected());
-        }
-        return entries;
+        properties.setPropertyDisplayed("Summary", true);
+        properties.closePanel();
+        assertTrue(changes.hasColumn("Summary"), "Ticking Summary must display its column.");
+        changes.assertRow("Summary", "Listed change summary");
     }
 
     /**
