@@ -57,7 +57,9 @@ releasenotes.releases.livedata.date=Release Date
 releasenotes.releases.livedata.emptyvalue=
 releasenotes.report.screenshots.any=With and Without Screenshots
 releasenotes.report.screenshots.with=With Screenshots
-releasenotes.report.screenshots.without=Without Screenshots</content>
+releasenotes.report.screenshots.without=Without Screenshots
+releasenotes.change.screenshots.placeholder=Select or upload screenshots and videos...
+releasenotes.change.view=View this change</content>
   <object>
     <name>ReleaseNotes.Code.Translations</name>
     <number>0</number>
