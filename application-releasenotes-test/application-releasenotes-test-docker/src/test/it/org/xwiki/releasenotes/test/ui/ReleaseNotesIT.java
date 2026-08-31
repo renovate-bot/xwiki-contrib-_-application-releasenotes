@@ -35,6 +35,7 @@ import org.xwiki.model.reference.ObjectPropertyReference;
 import org.xwiki.model.reference.ObjectReference;
 import org.xwiki.rest.model.jaxb.Page;
 import org.xwiki.rest.model.jaxb.Property;
+import org.xwiki.releasenotes.test.ui.po.PropertiesPanelElement;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.InlinePage;
@@ -339,7 +340,8 @@ class ReleaseNotesIT
 
         // The changes list reads product and version from EntryClass, which only works if the product_class and
         // version_class source parameters reach the results page.
-        TableLayoutElement changes = new LiveDataElement("releasenoteschanges").getTableLayout();
+        LiveDataElement changesLiveData = new LiveDataElement("releasenoteschanges");
+        TableLayoutElement changes = changesLiveData.getTableLayout();
         changes.waitUntilReady();
         changes.filterColumn("Title", "Listed Change");
         changes.waitUntilRowCountEqualsTo(1);
@@ -349,17 +351,32 @@ class ReleaseNotesIT
         // used to carry it, is not displayed. The link of a non terminal page is the URL of its space.
         changes.assertCellWithLink("Title", "Listed Change", setup.getURL(change.getLastSpaceReference()));
 
-        // The default columns are only the ones that fit the width of a page: the creation date and the free text
-        // summary are left out, since together they make the table wider than the content area of a standard page.
-        assertFalse(changes.hasColumn("Summary"), "Summary must not be one of the default columns.");
-        assertFalse(changes.hasColumn("Created"), "Created must not be one of the default columns.");
+        // The displayed columns are only the ones that fit the width of a page: the creation date and the free text
+        // summary are hidden, since together they make the table wider than the content area of a standard page.
+        assertFalse(changes.hasColumn("Summary"), "Summary must not be one of the displayed columns.");
+        assertFalse(changes.hasColumn("Created"), "Created must not be one of the displayed columns.");
 
         // The Live Data table layout scrolls sideways when its columns do not fit their container, and nothing
-        // indicates it, so a column past the right edge is simply invisible. The default columns must fit.
+        // indicates it, so a column past the right edge is simply invisible. The displayed columns must fit.
         Long overflow = (Long) setup.getDriver().executeJavascript(
             "const wrapper = document.querySelector('#releasenoteschanges .layout-table-wrapper');"
                 + "return wrapper.scrollWidth - wrapper.clientWidth;");
         assertEquals(0L, overflow, "The changes table must fit the width of the page.");
+
+        // The two hidden columns are hidden, not dropped: the Properties panel offers exactly the properties the
+        // macro declares, so they would be unreachable had they been left out of that list. They must be offered
+        // there, unticked, and ticking one must display its column back.
+        PropertiesPanelElement properties = PropertiesPanelElement.open(changesLiveData);
+        assertTrue(properties.hasProperty("Summary"), "Summary must be offered by the properties panel.");
+        assertTrue(properties.hasProperty("Created"), "Created must be offered by the properties panel.");
+        assertFalse(properties.isPropertyDisplayed("Summary"), "Summary must be offered unticked.");
+        assertFalse(properties.isPropertyDisplayed("Created"), "Created must be offered unticked.");
+        assertTrue(properties.isPropertyDisplayed("Title"), "Title must be offered ticked.");
+
+        properties.setPropertyDisplayed("Summary", true);
+        properties.closePanel();
+        assertTrue(changes.hasColumn("Summary"), "Ticking Summary must display its column.");
+        changes.assertRow("Summary", "Listed change summary");
     }
 
     /**
