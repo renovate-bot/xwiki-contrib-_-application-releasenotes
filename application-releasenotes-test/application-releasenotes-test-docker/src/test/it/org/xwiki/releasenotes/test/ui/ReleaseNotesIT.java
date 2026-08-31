@@ -36,6 +36,8 @@ import org.xwiki.model.reference.ObjectReference;
 import org.xwiki.rest.model.jaxb.Page;
 import org.xwiki.rest.model.jaxb.Property;
 import org.xwiki.releasenotes.test.ui.po.PropertiesPanelElement;
+import org.xwiki.releasenotes.test.ui.po.ReleaseNotesAdministrationSectionPage;
+import org.xwiki.releasenotes.test.ui.po.ScrollableTableLayoutElement;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
 import org.xwiki.test.ui.po.InlinePage;
@@ -110,10 +112,11 @@ class ReleaseNotesIT
         // and with mixed case to exercise the case-insensitive alphabetical ordering, and one of them carries bold
         // wiki syntax to exercise the escaping.
         addButton.click();
-        WebElement textarea = setup.getDriver().findElement(By.cssSelector("textarea"));
-        textarea.clear();
-        textarea.sendKeys("bob jones\nAlice Smith\nCarol Nguyen\n**Robert Tables**");
-        setup.getDriver().findElement(By.cssSelector("input[name='action_save']")).click();
+        InlinePage contributorsEditor = new InlinePage();
+        contributorsEditor.setValue("contributors", "bob jones\nAlice Smith\nCarol Nguyen\n**Robert Tables**");
+        // Save through the page object, which waits for the asynchronous save to complete: navigating away straight
+        // after a click on the save button races it and can abort the save.
+        contributorsEditor.clickSaveAndView();
 
         // Back on the release note: every name renders, sorted alphabetically ignoring case, and the warning is gone.
         ViewPage afterPage = setup.gotoPage(releaseNote);
@@ -165,21 +168,14 @@ class ReleaseNotesIT
         setup.loginAsSuperAdmin();
 
         // The section displays the fields of the configuration xobject, bound to the configuration page.
-        setup.gotoPage("XWiki", "XWikiPreferences", "admin", "section=releasenotes");
-        WebElement product =
-            setup.getDriver().findElement(By.name("ReleaseNotes.Code.ReleaseNotesConfigClass_0_product"));
-        assertEquals("", product.getAttribute("value"),
+        ReleaseNotesAdministrationSectionPage section = ReleaseNotesAdministrationSectionPage.gotoSection();
+        assertEquals("", section.getProduct(),
             "No product name must be shipped: the administrator has to choose one.");
-        WebElement template =
-            setup.getDriver().findElement(By.name("ReleaseNotes.Code.ReleaseNotesConfigClass_0_template"));
-        assertEquals("ReleaseNotes.Code.ReleaseNoteTemplate", template.getAttribute("value"),
+        assertEquals("ReleaseNotes.Code.ReleaseNoteTemplate", section.getTemplate(),
             "Expected the default template reference to be displayed.");
 
         // Both fields explain what they are for.
-        List<String> hints = setup.getDriver().findElementsWithoutWaiting(
-                By.cssSelector("#admin-page-content .xHint")).stream()
-            .map(WebElement::getText)
-            .toList();
+        List<String> hints = section.getHints();
         assertEquals(2, hints.size(), "Expected a hint under each of the two configuration fields, got: " + hints);
         assertTrue(hints.stream().anyMatch(hint -> hint.startsWith("The product name pre-filled")),
             "Missing the hint for the product field, got: " + hints);
@@ -187,8 +183,7 @@ class ReleaseNotesIT
             "Missing the hint for the template field, got: " + hints);
 
         // The application is not bundled with XWiki Standard and thus its section belongs to the "Other" category.
-        assertFalse(setup.getDriver()
-            .findElementsWithoutWaiting(By.cssSelector("#panel-body-other a[data-id='releasenotes']")).isEmpty(),
+        assertTrue(section.isListedInCategory("other"),
             "The administration section must be registered in the \"Other\" category.");
     }
 
@@ -287,7 +282,7 @@ class ReleaseNotesIT
         // The changes list reads product and version from EntryClass, which only works if the product_class and
         // version_class source parameters reach the results page.
         LiveDataElement changesLiveData = new LiveDataElement("releasenoteschanges");
-        TableLayoutElement changes = changesLiveData.getTableLayout();
+        ScrollableTableLayoutElement changes = new ScrollableTableLayoutElement(changesLiveData);
         changes.waitUntilReady();
         changes.filterColumn("Title", "Listed Change");
         changes.waitUntilRowCountEqualsTo(1);
@@ -302,16 +297,9 @@ class ReleaseNotesIT
         assertFalse(changes.hasColumn("Summary"), "Summary must not be one of the displayed columns.");
         assertFalse(changes.hasColumn("Created"), "Created must not be one of the displayed columns.");
 
-        // The Live Data table layout scrolls sideways when its columns do not fit their container, and nothing
-        // indicates it, so a column past the right edge is simply invisible. The displayed columns must fit.
-        // The width compared is the table's own rather than the scroll extent of its wrapper: Live Data overhangs
-        // the last column header with an absolutely positioned resize handle, which keeps that extent wider than
-        // the visible width by an amount that depends on the browser and on the colour theme.
-        Long overflow = (Long) setup.getDriver().executeJavascript(
-            "const wrapper = document.querySelector('#releasenoteschanges .layout-table-wrapper');"
-                + "const table = wrapper.querySelector('table');"
-                + "return Math.max(0, Math.round(table.getBoundingClientRect().width - wrapper.clientWidth));");
-        assertEquals(0L, overflow, "The changes table must fit the width of the page.");
+        // A column past the right edge of the table layout is simply invisible, since nothing indicates that the
+        // layout scrolls sideways. The displayed columns must therefore fit their container.
+        assertEquals(0L, changes.getHorizontalOverflow(), "The changes table must fit the width of the page.");
 
         // The two hidden columns are hidden, not dropped: the Properties panel offers exactly the properties the
         // macro declares, so they would be unreachable had they been left out of that list. They must be offered
