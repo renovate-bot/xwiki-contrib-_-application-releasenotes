@@ -349,17 +349,51 @@ class ReleaseNotesIT
         // used to carry it, is not displayed. The link of a non terminal page is the URL of its space.
         changes.assertCellWithLink("Title", "Listed Change", setup.getURL(change.getLastSpaceReference()));
 
-        // The default columns are only the ones that fit the width of a page: the creation date and the free text
-        // summary are left out, since together they make the table wider than the content area of a standard page.
-        assertFalse(changes.hasColumn("Summary"), "Summary must not be one of the default columns.");
-        assertFalse(changes.hasColumn("Created"), "Created must not be one of the default columns.");
+        // The displayed columns are only the ones that fit the width of a page: the creation date and the free text
+        // summary are hidden, since together they make the table wider than the content area of a standard page.
+        assertFalse(changes.hasColumn("Summary"), "Summary must not be one of the displayed columns.");
+        assertFalse(changes.hasColumn("Created"), "Created must not be one of the displayed columns.");
 
         // The Live Data table layout scrolls sideways when its columns do not fit their container, and nothing
-        // indicates it, so a column past the right edge is simply invisible. The default columns must fit.
+        // indicates it, so a column past the right edge is simply invisible. The displayed columns must fit.
         Long overflow = (Long) setup.getDriver().executeJavascript(
             "const wrapper = document.querySelector('#releasenoteschanges .layout-table-wrapper');"
                 + "return wrapper.scrollWidth - wrapper.clientWidth;");
         assertEquals(0L, overflow, "The changes table must fit the width of the page.");
+
+        // The two hidden columns are hidden, not dropped: the Properties panel offers exactly the properties the
+        // macro declares, so they would be unreachable had they been left out of that list. They must be offered
+        // there, unchecked, for a reader to display them back.
+        Map<String, Boolean> properties = getPropertiesPanelEntries(setup);
+        assertEquals(Boolean.FALSE, properties.get("Summary"), "Summary must be offered unchecked in the panel.");
+        assertEquals(Boolean.FALSE, properties.get("Created"), "Created must be offered unchecked in the panel.");
+        assertEquals(Boolean.TRUE, properties.get("Title"), "Title must be offered checked in the panel.");
+    }
+
+    /**
+     * Opens the Properties panel of the changes Live Data and reads what it offers. The panel is the only way a
+     * reader has to display a property back, and it lists exactly the properties of the macro's {@code properties}
+     * parameter, each checked according to the {@code visible} flag of its descriptor.
+     *
+     * @param setup the test setup
+     * @return the label of every property the panel offers, mapped to whether its checkbox is ticked
+     */
+    private Map<String, Boolean> getPropertiesPanelEntries(TestUtils setup)
+    {
+        WebElement liveData = setup.getDriver().findElement(By.id("releasenoteschanges"));
+        setup.getDriver().findElementWithoutWaiting(liveData, By.cssSelector(".livedata-dropdown-menu")).click();
+        setup.getDriver().findElementWithoutWaiting(liveData, By.linkText("Properties...")).click();
+
+        Map<String, Boolean> entries = new LinkedHashMap<>();
+        for (WebElement property : setup.getDriver().findElementsWithoutWaiting(liveData,
+            By.cssSelector(".livedata-advanced-panel-properties .property"))) {
+            String name = setup.getDriver().findElementWithoutWaiting(property, By.cssSelector(".property-name"))
+                .getText();
+            WebElement checkbox = setup.getDriver().findElementWithoutWaiting(property,
+                By.cssSelector("input[type=\"checkbox\"]"));
+            entries.put(name, checkbox.isSelected());
+        }
+        return entries;
     }
 
     /**

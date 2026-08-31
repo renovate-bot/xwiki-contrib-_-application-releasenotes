@@ -69,14 +69,16 @@
 ## told about with the product_class and version_class source parameters. Their descriptors are declared explicitly
 ## below because Live Data only derives descriptors from the class named by the className parameter.
 ##
-## Only the columns that fit the width of a standard page are listed below. The Live Data table has no column width
+## Only the columns that fit the width of a standard page are displayed. The Live Data table has no column width
 ## of its own: it lays the columns out from their content and, when the total exceeds the page, it scrolls sideways
 ## with nothing indicating that a column is out of view, while the leftmost columns shrink to their 4rem minimum and
-## break their text mid-word. The creation date and the free text summary are therefore left out of the default set;
-## readers who want them add them back from the Live Data column selector, which lists every ChangeClass property.
+## break their text mid-word. The creation date and the free text summary are therefore hidden rather than dropped:
+## the Properties panel offers exactly the properties listed below, so a property left out of the list cannot be
+## displayed back at all, whereas a listed one whose descriptor is not visible is offered there unchecked and costs
+## no table width, its column being hidden rather than absent.
 {{liveData
   id="releasenoteschanges"
-  properties="title,product,version,category,audience,importance"
+  properties="title,product,version,category,audience,importance,doc.creationDate,summary"
   source="liveTable"
   sourceParameters="className=${topSpace}.Code.Change.ChangeClass&amp;translationPrefix=releasenotes.changes.livedata.&amp;product_class=${topSpace}.Code.EntryClass&amp;version_class=${topSpace}.Code.EntryClass"
   limit="15"
@@ -86,7 +88,9 @@
     "propertyDescriptors": [
       {"id": "title", "sortable": false, "displayer": {"id": "link", "propertyHref": "doc.url"}},
       {"id": "product", "type": "String"},
-      {"id": "version", "type": "String"}
+      {"id": "version", "type": "String"},
+      {"id": "doc.creationDate", "visible": false},
+      {"id": "summary", "sortable": false, "visible": false}
     ]
   }
 }
