@@ -10,5 +10,5 @@ Manages Release Notes for software products (creation, reports).
 * Minimal XWiki version supported: XWiki 17.10
 * License: LGPL 2.1
 * Translations: N/A
-* Sonar Dashboard: [![Status](https://sonarcloud.io/api/project_badges/measure?project=org.xwiki.contrib.latex:latex&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.xwiki.contrib.releasenotes:application-releasenotes)
+* Sonar Dashboard: [![Status](https://sonarcloud.io/api/project_badges/measure?project=org.xwiki.contrib.releasenotes:application-releasenotes&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.xwiki.contrib.releasenotes:application-releasenotes)
 * Continuous Integration Status: [![Build Status](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-releasenotes/job/master/badge/icon)](https://ci.xwiki.org/job/XWiki%20Contrib/job/application-releasenotes/job/master/)

@@ -116,36 +116,4 @@
       <classType>com.xpn.xwiki.objects.classes.DBListClass</classType>
     </version>
   </class>
-  <object>
-    <name>ReleaseNotes.Code.EntryClass</name>
-    <number>0</number>
-    <className>XWiki.ClassSheetBinding</className>
-    <guid>98ef6470-5895-4017-8cce-db1e23d7fabe</guid>
-    <class>
-      <name>XWiki.ClassSheetBinding</name>
-      <customClass/>
-      <customMapping/>
-      <defaultViewSheet/>
-      <defaultEditSheet/>
-      <defaultWeb/>
-      <nameField/>
-      <validationScript/>
-      <sheet>
-        <customDisplay/>
-        <disabled>0</disabled>
-        <name>sheet</name>
-        <number>1</number>
-        <picker>0</picker>
-        <prettyName>Sheet</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </sheet>
-    </class>
-    <property>
-      <sheet>ReleaseNotes.Code.ChangesSheet</sheet>
-    </property>
-  </object>
 </xwikidoc>

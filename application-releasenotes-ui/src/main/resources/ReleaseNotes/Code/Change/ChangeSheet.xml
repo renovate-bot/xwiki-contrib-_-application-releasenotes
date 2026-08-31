@@ -69,7 +69,7 @@
   * For entering Miscellaneous changes for Developers, set the importance to Low
   * When entering a Miscellaneous change, the title is optional. If set, the summary will be prefixed by it.
 
-  (% class='.xform col-xs-12' %)(((
+  (% class='xform col-xs-12' %)(((
   ; Product
   : $doc.display('product', 'edit', $entryObject)
   ; Version
