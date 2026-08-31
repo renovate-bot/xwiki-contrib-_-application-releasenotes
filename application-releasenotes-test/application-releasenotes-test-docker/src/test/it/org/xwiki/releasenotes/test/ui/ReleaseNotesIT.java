@@ -366,9 +366,13 @@ class ReleaseNotesIT
 
         // The Live Data table layout scrolls sideways when its columns do not fit their container, and nothing
         // indicates it, so a column past the right edge is simply invisible. The displayed columns must fit.
+        // The width compared is the table's own rather than the scroll extent of its wrapper: Live Data overhangs
+        // the last column header with an absolutely positioned resize handle, which keeps that extent wider than
+        // the visible width by an amount that depends on the browser and on the colour theme.
         Long overflow = (Long) setup.getDriver().executeJavascript(
             "const wrapper = document.querySelector('#releasenoteschanges .layout-table-wrapper');"
-                + "return wrapper.scrollWidth - wrapper.clientWidth;");
+                + "const table = wrapper.querySelector('table');"
+                + "return Math.max(0, Math.round(table.getBoundingClientRect().width - wrapper.clientWidth));");
         assertEquals(0L, overflow, "The changes table must fit the width of the page.");
 
         // The two hidden columns are hidden, not dropped: the Properties panel offers exactly the properties the
