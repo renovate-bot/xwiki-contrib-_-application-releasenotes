@@ -60,6 +60,11 @@ class ReleaseNotesIT
     private static final String DISPLAY_PRODUCT = "DisplayProduct";
 
     /**
+     * The product of the changes used to check how the version filters compare versions.
+     */
+    private static final String VERSION_PRODUCT = "VersionProduct";
+
+    /**
      * Whether the changes of {@link #DISPLAY_PRODUCT} have already been created, so that the first of the tests
      * sharing them builds them and the next ones reuse them.
      */
@@ -536,6 +541,81 @@ class ReleaseNotesIT
         setup.gotoPage(entry);
         assertFalse(setup.getDriver().findElementsWithoutWaiting(By.cssSelector("img[src*='first.png']")).isEmpty(),
             "The change page must display the screenshots the picker saved.");
+    }
+
+    /**
+     * A version is stored as text, so a comparison filter that the database evaluated would compare versions
+     * alphabetically and quietly drop 10.0 from a {@code >=9.0} report. This test goes through the whole chain -
+     * generated XWQL, database, rendering - which is what the page tests cannot do.
+     */
+    @Test
+    @Order(9)
+    void versionComparisonFiltersCompareVersionsNotStrings(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+        createVersionChange(setup, "9.0", "A nine change");
+        createVersionChange(setup, "10.0", "A ten change");
+
+        String content = reportContent(setup, ">=9.0");
+        assertTrue(content.contains("A nine change"), "The boundary version must be part of a \">=\" report, got: "
+            + content);
+        assertTrue(content.contains("A ten change"),
+            "10.0 comes after 9.0 as a version, and must not be dropped because it comes before it as a string, "
+                + "got: " + content);
+
+        content = reportContent(setup, "<10.0");
+        assertTrue(content.contains("A nine change"), "9.0 comes before 10.0 as a version, even though it comes "
+            + "after it as a string, got: " + content);
+        assertFalse(content.contains("A ten change"),
+            "The boundary version must be left out of a \"<\" report, got: " + content);
+
+        // A comparison that no existing version matches must render an empty report rather than build a query the
+        // database rejects.
+        content = reportContent(setup, ">=99.0");
+        assertFalse(content.contains("A nine change"), "Got: " + content);
+        assertFalse(content.contains("A ten change"), "Got: " + content);
+        assertFalse(content.contains("Failed to execute"),
+            "A filter matching no version must still produce a valid query, got: " + content);
+    }
+
+    /**
+     * Creates a release note of {@link #VERSION_PRODUCT} for the passed version holding one change, the way the
+     * application does: the version page carries the release note, and its child entry carries the change.
+     */
+    private void createVersionChange(TestUtils setup, String version, String title) throws Exception
+    {
+        DocumentReference releaseNote = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", VERSION_PRODUCT, version), "WebHome");
+        setup.rest().delete(releaseNote);
+        setup.createPage(releaseNote, "", version);
+        // The version filters are resolved against the versions the release notes declare, so the release note page
+        // is part of the fixture and not just decoration around the entry.
+        setup.addObject(releaseNote, "ReleaseNotes.Code.ReleaseNoteClass",
+            "product", VERSION_PRODUCT, "version", version, "released", "1");
+
+        DocumentReference entry = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", VERSION_PRODUCT, version, "Entry001"), "WebHome");
+        setup.rest().delete(entry);
+        setup.createPage(entry, "", title);
+        setup.addObject(entry, "ReleaseNotes.Code.EntryClass",
+            "product", VERSION_PRODUCT, "type", "Change", "version", version);
+        setup.addObject(entry, "ReleaseNotes.Code.Change.ChangeClass",
+            "title", title, "summary", title + " summary", "audience", "user", "importance", "1",
+            "category", "development");
+    }
+
+    /**
+     * @return the rendered content of the report of {@link #VERSION_PRODUCT} filtered by the passed versions filter
+     */
+    private String reportContent(TestUtils setup, String versions)
+    {
+        Map<String, String> queryParameters = new LinkedHashMap<>();
+        queryParameters.put("action", "report");
+        queryParameters.put("products", VERSION_PRODUCT);
+        queryParameters.put("versions", versions);
+        setup.gotoPage(new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "Report"), "view",
+            queryParameters);
+        return new ViewPage().getContent();
     }
 
     /**

@@ -80,6 +80,14 @@
       <type>xar</type>
       <scope>runtime</scope>
     </dependency>
+    <!-- Provides $services.extension, used by the getChanges macro to compare versions with the extension version
+         ordering instead of comparing them as strings. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-extension-script</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
     <!-- Required by wiki macros -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
