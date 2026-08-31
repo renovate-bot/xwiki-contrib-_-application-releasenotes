@@ -61,6 +61,13 @@
       <version>${platform.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- Page objects for the administration section registered by the ConfigurableClass xobject. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-administration-test-pageobjects</artifactId>
+      <version>${platform.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <testSourceDirectory>src/test/it</testSourceDirectory>
