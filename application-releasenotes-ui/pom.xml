@@ -120,6 +120,14 @@
       <version>${platform.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- Provides the WikiMacroFactoryComponentClass annotation, needed by the page tests calling a wiki macro. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-rendering-wikimacro-store</artifactId>
+      <version>${platform.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
