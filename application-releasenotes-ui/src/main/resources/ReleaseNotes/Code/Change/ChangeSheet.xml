@@ -42,7 +42,7 @@
 #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 #set ($entryObject = $doc.getObject("${topSpace}.Code.EntryClass"))
 #set ($changeObject = $doc.getObject("${topSpace}.Code.Change.ChangeClass"))
-#if ($xcontext.action == 'inline' || $xcontext.action == 'edit')
+#if ($xcontext.action == 'edit')
   #if ("$!request.product" != '')
     #set ($discard = $entryObject.set('product', $!request.product))
   #end
