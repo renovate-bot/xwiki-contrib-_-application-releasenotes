@@ -137,8 +137,16 @@ class ReleaseNotesIT
             "action=useradd&template=ReleaseNotes.Code.Change.ChangeTemplate&product=" + product
                 + "&version=1.0&audience=user");
         String currentUrl = setup.getDriver().getCurrentUrl();
-        assertTrue(currentUrl.contains("Entry001"),
+        assertTrue(currentUrl.contains("/edit/ReleaseNotes/Data/" + product + "/1.0/Entry001/WebHome"),
             "The new change must be numbered Entry001 despite the Contributors entry, landed on: " + currentUrl);
+        // The redirect must go through the "edit" action and the inline editor, and not through the deprecated
+        // "inline" action, which only exists in the legacy module this test's wiki does not have: with that action
+        // the URL still names Entry001 but resolves to a view of a missing page in a space named "inline".
+        assertTrue(currentUrl.contains("editor=inline"),
+            "The new change must be opened with the inline editor, landed on: " + currentUrl);
+        assertFalse(setup.getDriver()
+            .findElementsWithoutWaiting(By.cssSelector("select.releasenotes-screenshots-picker")).isEmpty(),
+            "The redirect must land on the edit form of the new change, filled in from the change template.");
     }
 
     /**
@@ -550,8 +558,6 @@ class ReleaseNotesIT
         setup.attachFile(entry, "first.png", getClass().getResourceAsStream("/screenshot.png"), false);
         setup.attachFile(entry, "second.png", getClass().getResourceAsStream("/screenshot.png"), false);
 
-        // "edit" with the inline editor, rather than the "inline" action the application still redirects to: that
-        // action only exists in the legacy module, which this test's wiki does not have.
         setup.gotoPage(entry, "edit", "editor=inline");
 
         // The form is reached from the release note and used to be a dead end towards the change's own page.

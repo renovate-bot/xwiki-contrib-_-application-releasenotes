@@ -70,7 +70,9 @@
       #set ($nextUniqueNumber = '001')
     #end
     #set ($versionPageReference = "${versionSpaceReferenceString}.Entry${nextUniqueNumber}.WebHome")
-    $response.sendRedirect($xwiki.getURL($versionPageReference.toString(), 'inline', "$!{queryString}&amp;shortVersion=${escapetool.url($shortVersion)}"))
+    ## The form of the new entry is opened with the "edit" action and the inline editor, and not with the "inline"
+    ## action, which is deprecated and only exists in the legacy module.
+    $response.sendRedirect($xwiki.getURL($versionPageReference.toString(), 'edit', "$!{queryString}&amp;editor=inline&amp;shortVersion=${escapetool.url($shortVersion)}"))
   #end
 #end</content>
 </xwikidoc>
