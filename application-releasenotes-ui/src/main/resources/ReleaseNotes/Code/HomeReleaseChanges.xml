@@ -76,11 +76,16 @@
 ## the Properties panel offers exactly the properties listed below, so a property left out of the list cannot be
 ## displayed back at all, whereas a listed one whose descriptor is not visible is offered there unchecked and costs
 ## no table width, its column being hidden rather than absent.
+##
+## The list is sorted on the creation date, most recent changes first, since that is what a reader of this list
+## looks for. Sorting on a hidden column works: only the display of the column is hidden, the property is still
+## part of the query.
 {{liveData
   id="releasenoteschanges"
   properties="title,product,version,category,audience,importance,doc.creationDate,summary"
   source="liveTable"
   sourceParameters="className=${topSpace}.Code.Change.ChangeClass&amp;translationPrefix=releasenotes.changes.livedata.&amp;product_class=${topSpace}.Code.EntryClass&amp;version_class=${topSpace}.Code.EntryClass"
+  sort="doc.creationDate:desc"
   limit="15"
 }}
 {
