@@ -57,6 +57,22 @@
   * $changeDoc
 #end
 {{/velocity}}
+
+= Paging =
+
+The macro collects at most ##limit## changes, starting at ##offset##, so that a filter matching thousands of changes
+cannot turn one page view into thousands of document loads. Whether it had more changes to collect is published
+beside them, in the context variable named after ##contextVariable## suffixed with ##HasMore##:
+
+##{{{
+{{getChanges products="XWiki" limit="20" offset="20" contextVariable="changeDocs"/}}
+
+{{velocity}}
+#if ($changeDocsHasMore)
+  There are more changes to display.
+#end
+{{/velocity}}
+}}}##
 </content>
   <attachment>
     <filename>no_image_thumb.png</filename>
@@ -240,14 +256,46 @@
   #elseif ("$!containsScreenshots" == 'false')
     #set ($xwql = "$xwql and not (changes.screenshots &lt;&gt; '' or (changes.screenshots is not null and '' is null))")
   #end
-  #set ($query = $services.query.xwql("$xwql order by changes.importance desc"))
+  ## Order on the document name too: importance only has three values, so it leaves most of the result set
+  ## unordered, and a page of an unordered result set may repeat or skip changes.
+  #set ($query = $services.query.xwql("$xwql order by changes.importance desc, doc.fullName"))
   #addBinding("product", $products, $query)
   #addBinding("audience", $audience, $query)
   #addBinding("version", $versions, $query)
   #addBinding("category", $categories, $query)
   #addBinding("importance", $importance, $query)
+  ## Ask for a single page of changes rather than for the whole result set: the filters can match every change ever
+  ## recorded, since their defaults are wildcards and the report page fills them from the request, and each row
+  ## returned here costs a full document load in the displayers.
+  #set ($limit = $numbertool.toNumber("$!xcontext.macro.params.limit"))
+  #if (!$limit || $limit.intValue() &lt; 1)
+    #set ($limit = 100)
+  #else
+    #set ($limit = $limit.intValue())
+  #end
+  #set ($offset = $numbertool.toNumber("$!xcontext.macro.params.offset"))
+  #if (!$offset || $offset.intValue() &lt; 0)
+    #set ($offset = 0)
+  #else
+    #set ($offset = $offset.intValue())
+  #end
+  ## One row beyond the page is fetched, which tells whether a next page exists without a second, counting query.
+  #set ($discard = $query.setLimit($mathtool.add($limit, 1)))
+  #set ($discard = $query.setOffset($offset))
   #set ($changeItems = $query.execute())
-  #setVariable("$xvariable" $changeItems)
+  ## Copy the page out rather than trimming the result in place: that extra row must never be displayed, and
+  ## callers remove their own exclusions from the list they are given, so it has to stay modifiable.
+  #set ($pageItems = [])
+  #foreach ($item in $changeItems)
+    #if ($foreach.count &lt;= $limit)
+      #set ($discard = $pageItems.add($item))
+    #end
+  #end
+  #set ($hasMore = ($changeItems.size() &gt; $limit))
+  #setVariable("$xvariable" $pageItems)
+  ## Publish the existence of a next page alongside the changes, under a name derived from the same context
+  ## variable, so that a caller can offer a way to reach it instead of silently dropping the rest.
+  #setVariable("${xvariable}HasMore" $hasMore)
 {{/velocity}}
 </code>
     </property>
@@ -736,6 +784,138 @@
     </property>
     <property>
       <name>contextVariable</name>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Code.Change.GetChangesMacro</name>
+    <number>9</number>
+    <className>XWiki.WikiMacroParameterClass</className>
+    <guid>affc269f-e688-4745-87c9-21d129ffe986</guid>
+    <class>
+      <name>XWiki.WikiMacroParameterClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <defaultValue>
+        <disabled>0</disabled>
+        <name>defaultValue</name>
+        <number>4</number>
+        <prettyName>Parameter default value</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </defaultValue>
+      <description>
+        <disabled>0</disabled>
+        <name>description</name>
+        <number>2</number>
+        <prettyName>Parameter description</prettyName>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </description>
+      <mandatory>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>mandatory</name>
+        <number>3</number>
+        <prettyName>Parameter mandatory</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </mandatory>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Parameter name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+    </class>
+    <property>
+      <defaultValue>100</defaultValue>
+    </property>
+    <property>
+      <description>Maximum number of changes to collect. Any value below 1 is replaced by the default. Whether the query had more changes to return is published in the context variable named after the one holding the changes, suffixed with "HasMore".</description>
+    </property>
+    <property>
+      <mandatory>0</mandatory>
+    </property>
+    <property>
+      <name>limit</name>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Code.Change.GetChangesMacro</name>
+    <number>10</number>
+    <className>XWiki.WikiMacroParameterClass</className>
+    <guid>c19e9a07-e766-4d5a-a09b-861d97f2b2cb</guid>
+    <class>
+      <name>XWiki.WikiMacroParameterClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <defaultValue>
+        <disabled>0</disabled>
+        <name>defaultValue</name>
+        <number>4</number>
+        <prettyName>Parameter default value</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </defaultValue>
+      <description>
+        <disabled>0</disabled>
+        <name>description</name>
+        <number>2</number>
+        <prettyName>Parameter description</prettyName>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </description>
+      <mandatory>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>mandatory</name>
+        <number>3</number>
+        <prettyName>Parameter mandatory</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </mandatory>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Parameter name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+    </class>
+    <property>
+      <defaultValue>0</defaultValue>
+    </property>
+    <property>
+      <description>Index of the first change to collect, to display the changes past the ones already displayed. Any value below 0 is replaced by the default.</description>
+    </property>
+    <property>
+      <mandatory>0</mandatory>
+    </property>
+    <property>
+      <name>offset</name>
     </property>
   </object>
 </xwikidoc>

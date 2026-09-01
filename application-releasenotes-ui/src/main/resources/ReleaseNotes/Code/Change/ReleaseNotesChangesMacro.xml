@@ -157,9 +157,23 @@
 {{velocity output="false"}}
 #set ($exclusions = "$!wikimacro.parameters.exclusions")
 #set ($exclusions = $exclusions.split('\s*,\s*'))
+#set ($changesLimit = "$!wikimacro.parameters.limit")
 
 #macro (removeExcludedChanges $changes)
   #set ($discard = $changes.removeAll($exclusions))
+#end
+
+## Each section is a page of changes, so it can leave changes out. Say so rather than let a release note look
+## complete while it is not: this is the only sign an author gets that the limit needs raising.
+#macro (displayTruncationWarning $hasMore $miscHasMore)
+  #if ($hasMore || $miscHasMore)
+    #set ($message = $services.localization.render('releasenotes.changes.truncated'))
+    #set ($message = $services.rendering.escape($message, 'xwiki/2.1'))
+
+(% class="box warningmessage" %)(((
+$message
+)))
+  #end
 #end
 {{/velocity}}
 
@@ -211,11 +225,11 @@
 {{/velocity}}
 
 {{velocity}}
-{{getChanges products="$product" versions="$versionsParameter" audience="user" containsScreenshots="true" contextVariable="userChanges"/}}
+{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="user" containsScreenshots="true" contextVariable="userChanges"/}}
 {{/velocity}}
 
 {{velocity}}
-{{getChanges products="$product" versions="$versionsParameter" audience="user" containsScreenshots="false" contextVariable="userMiscChanges"/}}
+{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="user" containsScreenshots="false" contextVariable="userMiscChanges"/}}
 {{/velocity}}
 
 {{velocity}}
@@ -236,6 +250,7 @@
     {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="userMiscChanges"/}}
   #end
 #end
+#displayTruncationWarning($userChangesHasMore, $userMiscChangesHasMore)
 == For Admins ==
 #if ("$!request.action" == 'adminadd')
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
@@ -257,11 +272,11 @@
 {{/velocity}}
 
 {{velocity}}
-{{getChanges products="$product" versions="$versionsParameter" audience="administrator" containsScreenshots="true" contextVariable="adminChanges"/}}
+{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="administrator" containsScreenshots="true" contextVariable="adminChanges"/}}
 {{/velocity}}
 
 {{velocity}}
-{{getChanges products="$product" versions="$versionsParameter" audience="administrator" containsScreenshots="false" contextVariable="adminMiscChanges"/}}
+{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="administrator" containsScreenshots="false" contextVariable="adminMiscChanges"/}}
 {{/velocity}}
 
 {{velocity}}
@@ -282,6 +297,7 @@
     {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="adminMiscChanges"/}}
   #end
 #end
+#displayTruncationWarning($adminChangesHasMore, $adminMiscChangesHasMore)
 == For Developers ==
 #if ("$!request.action" == 'devadd')
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
@@ -303,11 +319,11 @@
 {{/velocity}}
 
 {{velocity}}
-{{getChanges products="$product" versions="$versionsParameter" audience="developer" importance="Medium,High" contextVariable="devChanges"/}}
+{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="developer" importance="Medium,High" contextVariable="devChanges"/}}
 {{/velocity}}
 
 {{velocity}}
-{{getChanges products="$product" versions="$versionsParameter" audience="developer" importance="Low" contextVariable="devMiscChanges"/}}
+{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="developer" importance="Low" contextVariable="devMiscChanges"/}}
 {{/velocity}}
 
 {{velocity}}
@@ -327,7 +343,8 @@
 
     {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="devMiscChanges"/}}
   #end
-#end</code>
+#end
+#displayTruncationWarning($devChangesHasMore, $devMiscChangesHasMore)</code>
     </property>
     <property>
       <contentDescription/>
@@ -427,6 +444,84 @@
     </property>
     <property>
       <name>exclusions</name>
+    </property>
+    <property>
+      <type/>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Code.Change.ReleaseNotesChangesMacro</name>
+    <number>1</number>
+    <className>XWiki.WikiMacroParameterClass</className>
+    <guid>298f538b-1997-4aa1-85e1-f9a7f9b9c61f</guid>
+    <class>
+      <name>XWiki.WikiMacroParameterClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <defaultValue>
+        <disabled>0</disabled>
+        <name>defaultValue</name>
+        <number>4</number>
+        <prettyName>Parameter default value</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </defaultValue>
+      <description>
+        <disabled>0</disabled>
+        <name>description</name>
+        <number>2</number>
+        <prettyName>Parameter description</prettyName>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </description>
+      <mandatory>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>mandatory</name>
+        <number>3</number>
+        <prettyName>Parameter mandatory</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </mandatory>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Parameter name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <type>
+        <disabled>0</disabled>
+        <name>type</name>
+        <number>5</number>
+        <prettyName>Parameter type</prettyName>
+        <size>60</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </type>
+    </class>
+    <property>
+      <defaultValue>100</defaultValue>
+    </property>
+    <property>
+      <description>Maximum number of changes to display in each section of the release note. A section holding more changes than that says so, and raising this is what displays them all.</description>
+    </property>
+    <property>
+      <mandatory>0</mandatory>
+    </property>
+    <property>
+      <name>limit</name>
     </property>
     <property>
       <type/>
