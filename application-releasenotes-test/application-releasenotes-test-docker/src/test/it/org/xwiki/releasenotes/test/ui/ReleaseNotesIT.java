@@ -93,6 +93,11 @@ class ReleaseNotesIT
         DocumentReference contributorsEntry = new DocumentReference("xwiki",
             List.of("ReleaseNotes", "Data", product, "1.0", "Contributors"), "WebHome");
         setup.rest().delete(contributorsEntry);
+        // Adding a change takes the page of the new entry, so a page left by an earlier run of this test would be
+        // seen as taken and the new change would be numbered Entry002.
+        DocumentReference firstChange = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", product, "1.0", "Entry001"), "WebHome");
+        setup.rest().delete(firstChange);
 
         // Both macros, in the order the shipped release note template holds them.
         setup.createPage(releaseNote, "= New and Noteworthy =\n\n{{releasenotechanges/}}\n\n= Credits =\n\n"
