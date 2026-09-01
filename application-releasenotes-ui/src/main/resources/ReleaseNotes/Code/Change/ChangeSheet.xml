@@ -38,6 +38,8 @@
   <hidden>true</hidden>
   <content>{{include reference="ReleaseNotes.Code.Change.ChangeDisplayerVelocityMacros"/}}
 
+{{include reference="ReleaseNotes.Code.EntryVelocityMacros"/}}
+
 {{velocity}}
 #set ($entryObject = $doc.getObject("ReleaseNotes.Code.EntryClass"))
 #set ($changeObject = $doc.getObject("ReleaseNotes.Code.Change.ChangeClass"))
@@ -69,24 +71,17 @@
   * When entering a Miscellaneous change, the title is optional. If set, the summary will be prefixed by it.
 
   (% class='xform col-xs-12' %)(((
-  ; Product
-  : $doc.display('product', 'edit', $entryObject)
-  ; Version
-  : $doc.display('version', 'edit', $entryObject)
-  ; Title
-  : $doc.display('title', 'edit', $changeObject)
-  ; Target Audience
-  : $doc.display('audience', 'edit', $changeObject)
-  ; Category
-  : $doc.display('category', 'edit', $changeObject)
-  ; Importance
-  : $doc.display('importance', 'edit', $changeObject)
-  ; Summary
-  : $doc.display('summary', 'edit', $changeObject)
-  ; Screenshots
-  : $doc.display('screenshots', 'edit', $changeObject)
-  ; Extra Description (optional)
-  : $doc.display('description', 'edit', $changeObject)
+  #displayEntryField('releasenotes.change.field.product', $entryObject, 'product', '')
+  #displayEntryField('releasenotes.change.field.version', $entryObject, 'version', '')
+  #displayEntryField('releasenotes.change.field.title', $changeObject, 'title', '')
+  #displayEntryField('releasenotes.change.field.audience', $changeObject, 'audience', '')
+  #displayEntryField('releasenotes.change.field.category', $changeObject, 'category', '')
+  #displayEntryField('releasenotes.change.field.importance', $changeObject, 'importance', '')
+  #displayEntryField('releasenotes.change.field.summary', $changeObject, 'summary', '')
+  ## The screenshots displayer names its picker apart from the property, the property value itself being carried by
+  ## a hidden input. The label must point at the picker, which is the control the author interacts with.
+  #displayEntryField('releasenotes.change.field.screenshots', $changeObject, 'screenshots', '_picker')
+  #displayEntryField('releasenotes.change.field.description', $changeObject, 'description', '')
   )))
 #else
   ## The page title is the change title, so the text comes first and the media closes the page: a reader arriving

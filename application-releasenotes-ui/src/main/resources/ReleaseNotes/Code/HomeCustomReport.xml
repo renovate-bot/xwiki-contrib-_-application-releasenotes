@@ -41,20 +41,35 @@ $!xwiki.jsx.use("ReleaseNotes.Code.HomeCustomReport")
 #set ($anyScreenshots = $services.localization.render('releasenotes.report.screenshots.any'))
 #set ($withScreenshots = $services.localization.render('releasenotes.report.screenshots.with'))
 #set ($withoutScreenshots = $services.localization.render('releasenotes.report.screenshots.without'))
+## Each filter names itself with a label bound to its input, and hints at what it filters with a placeholder
+## attribute. A prompt held in the input's own value instead would give the field no accessible name, and would be
+## submitted as the filter value whenever the field is left untouched.
+#set ($filters = [
+  {'id': 'report-product', 'name': 'products', 'key': 'products'},
+  {'id': 'report-version', 'name': 'versions', 'key': 'versions'},
+  {'id': 'report-category', 'name': 'categories', 'key': 'categories'},
+  {'id': 'report-audience', 'name': 'audience', 'key': 'audience'},
+  {'id': 'report-importance', 'name': 'importance', 'key': 'importance'}
+])
 {{html clean="false"}}
-&lt;form action="$xwiki.getURL("ReleaseNotes.Code.Report")"&gt;
+&lt;form class="form-inline" action="$xwiki.getURL("ReleaseNotes.Code.Report")"&gt;
   &lt;input type="hidden" name="action" value="report"/&gt;
-  &lt;select name="displayer"&gt;
-    &lt;option value="grid"&gt;Grid&lt;/option&gt;
-    &lt;option value="flow"&gt;Flow&lt;/option&gt;
-    &lt;option value="simple"&gt;Simple&lt;/option&gt;
-    &lt;option value="list"&gt;List&lt;/option&gt;
-  &lt;/select&gt;
-  &lt;input id="report-product" type="text" name="products" value="Products..." size="30" class="withTip"/&gt;
-  &lt;input id="report-version" type="text" name="versions" value="Versions..." size="30" class="withTip"/&gt;
-  &lt;input id="report-category" type="text" name="categories" value="Categories..." size="30" class="withTip"/&gt;
-  &lt;input id="report-audience" type="text" name="audience" value="Audience..." size="30" class="withTip"/&gt;
-  &lt;input id="report-importance" type="text" name="importance" value="Importance..." size="30" class="withTip"/&gt;
+  &lt;div class="form-group"&gt;
+    &lt;label for="report-displayer"&gt;$escapetool.xml($services.localization.render('releasenotes.report.displayer.label'))&lt;/label&gt;
+    &lt;select id="report-displayer" class="form-control" name="displayer"&gt;
+      &lt;option value="grid"&gt;Grid&lt;/option&gt;
+      &lt;option value="flow"&gt;Flow&lt;/option&gt;
+      &lt;option value="simple"&gt;Simple&lt;/option&gt;
+      &lt;option value="list"&gt;List&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/div&gt;
+#foreach ($filter in $filters)
+  &lt;div class="form-group"&gt;
+    &lt;label for="$filter.id"&gt;$escapetool.xml($services.localization.render("releasenotes.report.${filter.key}.label"))&lt;/label&gt;
+    &lt;input id="$filter.id" class="form-control" type="text" name="$filter.name" size="30"
+      placeholder="$escapetool.xml($services.localization.render("releasenotes.report.${filter.key}.placeholder"))"/&gt;
+  &lt;/div&gt;
+#end
   &lt;br/&gt;
   &lt;label&gt;&lt;input type="radio" name="containsScreenshots" value="" checked="checked"/&gt; $escapetool.xml($anyScreenshots)&lt;/label&gt;
   &lt;label&gt;&lt;input type="radio" name="containsScreenshots" value="true"/&gt; $escapetool.xml($withScreenshots)&lt;/label&gt;

@@ -87,10 +87,10 @@
 {{html clean="false"}}
 &lt;div class="rn-report-pagination"&gt;
   #if ($reportOffset &gt; 0)
-    #displayReportPageLink($previousOffset 'releasenotes.report.previous')
+    #displayReportPageLink($previousOffset, 'releasenotes.report.previous')
   #end
   #if ($reportChangesHasMore)
-    #displayReportPageLink($nextOffset 'releasenotes.report.next')
+    #displayReportPageLink($nextOffset, 'releasenotes.report.next')
   #end
 &lt;/div&gt;
 {{/html}}

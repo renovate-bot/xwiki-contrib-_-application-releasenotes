@@ -36,7 +36,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="ReleaseNotes.Code.EntryVelocityMacros"/}}
+
+{{velocity}}
 #set ($entryObject = $doc.getObject("ReleaseNotes.Code.EntryClass"))
 #set ($contributorsObject = $doc.getObject("ReleaseNotes.Code.ContributorsClass"))
 #if ($xcontext.action == 'edit')
@@ -50,8 +52,7 @@
     #set ($discard = $entryObject.set('type', $!request.type))
   #end
   (% class='xform col-xs-12' %)(((
-  ; Contributors (one per line)
-  : $doc.display('contributors', 'edit', $contributorsObject)
+  #displayEntryField('releasenotes.contributors.field.contributors', $contributorsObject, 'contributors', '')
   )))
 #else
 #set ($contributors = "$!contributorsObject.getValue('contributors')")

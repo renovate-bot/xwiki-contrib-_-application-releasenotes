@@ -22,6 +22,7 @@ package org.xwiki.releasenotes;
 import java.util.List;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.junit.jupiter.api.Test;
@@ -65,6 +66,30 @@ class HomeCustomReportPageTest extends PageTest
         assertOption(radios.get(0), "", true);
         assertOption(radios.get(1), "true", false);
         assertOption(radios.get(2), "false", false);
+    }
+
+    /**
+     * A prompt written into the input's own {@code value} attribute gives the field no accessible name, and it is
+     * submitted as the filter value when the author leaves the field untouched. Every control of the form must
+     * instead be named by a label bound to it, and start out empty.
+     */
+    @Test
+    void everyFilterIsNamedByALabelAndStartsEmpty() throws Exception
+    {
+        XWikiDocument customReport = loadPage(HOME_CUSTOM_REPORT);
+
+        Document html = Jsoup.parse(customReport.getRenderedContent(this.context));
+
+        Elements fields = html.select("form select, form input[type=text]");
+        assertEquals(6, fields.size(), "Expected the layout selector and the five filters.");
+        for (Element field : fields) {
+            String id = field.attr("id");
+            assertFalse(id.isEmpty(), "A field can only be bound to a label through an identifier.");
+            assertEquals(1, html.select("label[for='" + id + "']").size(),
+                "Expected exactly one label bound to the '" + id + "' field.");
+            assertEquals("", field.attr("value"),
+                "The '" + id + "' field must start empty, otherwise its prompt is submitted as a filter value.");
+        }
     }
 
     private void assertOption(Element radio, String expectedValue, boolean expectedChecked)

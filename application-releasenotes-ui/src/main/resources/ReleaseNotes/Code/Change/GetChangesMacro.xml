@@ -357,10 +357,10 @@ beside them, in the context variable named after ##contextVariable## suffixed wi
     #end
   #end
   #set ($hasMore = ($changeItems.size() &gt; $limit))
-  #setVariable("$xvariable" $pageItems)
+  #setVariable("$xvariable", $pageItems)
   ## Publish the existence of a next page alongside the changes, under a name derived from the same context
   ## variable, so that a caller can offer a way to reach it instead of silently dropping the rest.
-  #setVariable("${xvariable}HasMore" $hasMore)
+  #setVariable("${xvariable}HasMore", $hasMore)
 {{/velocity}}
 </code>
     </property>
