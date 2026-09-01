@@ -42,13 +42,12 @@
 ## Inputs:
 ## - $changeItems
 ## - $displayEditLink
-#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 (% class='container col-xs-12' %)(((
 #foreach ($item in $changeItems)
   (% class='row' %)(((
   (% class='col-xs-6' %)(((
   #set ($changeDoc = $xwiki.getDocument($item))
-  #set ($changeObject = $changeDoc.getObject("${topSpace}.Code.Change.ChangeClass"))
+  #set ($changeObject = $changeDoc.getObject("ReleaseNotes.Code.Change.ChangeClass"))
   #displayScreenshots($changeObject, true, false)
   )))
   (% class="col-xs-6" %)(((

@@ -39,9 +39,8 @@
   <content>{{include reference="ReleaseNotes.Code.Change.ChangeDisplayerVelocityMacros"/}}
 
 {{velocity}}
-#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
-#set ($entryObject = $doc.getObject("${topSpace}.Code.EntryClass"))
-#set ($changeObject = $doc.getObject("${topSpace}.Code.Change.ChangeClass"))
+#set ($entryObject = $doc.getObject("ReleaseNotes.Code.EntryClass"))
+#set ($changeObject = $doc.getObject("ReleaseNotes.Code.Change.ChangeClass"))
 #if ($xcontext.action == 'edit')
   #if ("$!request.product" != '')
     #set ($discard = $entryObject.set('product', $!request.product))

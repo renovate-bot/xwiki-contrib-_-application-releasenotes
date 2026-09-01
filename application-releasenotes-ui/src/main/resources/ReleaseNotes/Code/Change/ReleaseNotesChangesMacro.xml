@@ -183,7 +183,6 @@
   #end
 #end
 ## Extract product + version + released info from xobject
-#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 #set ($product = $!doc.getValue('product'))
 #set ($version = $!doc.getValue('version'))
 #set ($released = $!doc.getValue('released'))
@@ -198,7 +197,7 @@
 {{html clean='false'}}
 &lt;form&gt;
   &lt;input type="hidden" name="action" value="useradd"/&gt;
-  &lt;input type="hidden" name="template" value="${topSpace}.Code.Change.ChangeTemplate"/&gt;
+  &lt;input type="hidden" name="template" value="ReleaseNotes.Code.Change.ChangeTemplate"/&gt;
   &lt;input type="hidden" name="product" value="$product"/&gt;
   &lt;input type="hidden" name="version" value="$version"/&gt;
   &lt;input type="hidden" name="audience" value="user"/&gt;
@@ -244,7 +243,7 @@
 {{html clean='false'}}
 &lt;form&gt;
   &lt;input type="hidden" name="action" value="adminadd"/&gt;
-  &lt;input type="hidden" name="template" value="${topSpace}.Code.Change.ChangeTemplate"/&gt;
+  &lt;input type="hidden" name="template" value="ReleaseNotes.Code.Change.ChangeTemplate"/&gt;
   &lt;input type="hidden" name="product" value="$product"/&gt;
   &lt;input type="hidden" name="version" value="$version"/&gt;
   &lt;input type="hidden" name="audience" value="administrator"/&gt;
@@ -290,7 +289,7 @@
 {{html clean='false'}}
 &lt;form&gt;
   &lt;input type="hidden" name="action" value="devadd"/&gt;
-  &lt;input type="hidden" name="template" value="${topSpace}.Code.Change.ChangeTemplate"/&gt;
+  &lt;input type="hidden" name="template" value="ReleaseNotes.Code.Change.ChangeTemplate"/&gt;
   &lt;input type="hidden" name="product" value="$product"/&gt;
   &lt;input type="hidden" name="version" value="$version"/&gt;
   &lt;input type="hidden" name="audience" value="developer"/&gt;

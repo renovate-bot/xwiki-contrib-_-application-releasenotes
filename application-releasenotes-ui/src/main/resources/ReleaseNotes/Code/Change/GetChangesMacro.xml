@@ -183,7 +183,7 @@
     </class>
     <property>
       <code>{{velocity}}
-  #macro (addClause $name $class $listAsString $topSpace $xwql)
+  #macro (addClause $name $class $listAsString $xwql)
     #set ($clauses = [])
     #foreach ($item in $stringtool.split($listAsString, ','))
       ## If the item starts with a comparison prefix then use a matching HQL operator. The two-character prefixes
@@ -224,11 +224,11 @@
   ## release notes rather than from the entries because a query may only select documents: selecting a property value
   ## needs programming right, which this application does not require.
   ## Sets $existingVersions.
-  #macro (getExistingVersions $topSpace)
+  #macro (getExistingVersions)
     #set ($existingVersions = [])
-    #set ($releaseNotesQuery = "from doc.object(${topSpace}.Code.ReleaseNoteClass) as note")
+    #set ($releaseNotesQuery = 'from doc.object(ReleaseNotes.Code.ReleaseNoteClass) as note')
     #foreach ($releaseNote in $services.query.xwql($releaseNotesQuery).execute())
-      #set ($releaseNoteObject = $xwiki.getDocument($releaseNote).getObject("${topSpace}.Code.ReleaseNoteClass"))
+      #set ($releaseNoteObject = $xwiki.getDocument($releaseNote).getObject('ReleaseNotes.Code.ReleaseNoteClass'))
       #set ($releaseNoteVersion = "$!releaseNoteObject.getValue('version')")
       #if ($releaseNoteVersion != '' &amp;&amp; !$existingVersions.contains($releaseNoteVersion))
         #set ($discard = $existingVersions.add($releaseNoteVersion))
@@ -240,7 +240,7 @@
   ## comparison filter by the explicit list of the existing versions it matches, compared with the extension version
   ## scheme (the Maven ordering, which knows that 9.0 &lt; 10.0 and that 8.3-milestone-1 &lt; 8.3-rc-1 &lt; 8.3), so that
   ## the query itself only ever tests equality. Sets $versions.
-  #macro (resolveVersionComparisons $listAsString $topSpace)
+  #macro (resolveVersionComparisons $listAsString)
     #set ($items = $stringtool.split($listAsString, ','))
     #set ($hasComparison = false)
     #foreach ($item in $items)
@@ -250,7 +250,7 @@
       #end
     #end
     #if ($hasComparison)
-      #getExistingVersions($topSpace)
+      #getExistingVersions()
       #set ($resolvedItems = [])
       #foreach ($item in $items)
         ## The two-character prefixes are tested first since "&gt;=" and "&lt;=" also start with "&gt;" and "&lt;".
@@ -293,14 +293,13 @@
   #set ($importance = $importance.replaceAll('low', 0))
   #set ($containsScreenshots = $xcontext.macro.params.containsScreenshots)
   ## Find all Release Notes Changes matching the passed parameters
-  #set ($topSpace = $xcontext.macro.doc.documentReference.extractFirstReference('SPACE').getName())
-  #resolveVersionComparisons($versions, $topSpace)
-  #set ($xwql = "from doc.object(${topSpace}.Code.EntryClass) as entries, doc.object(${topSpace}.Code.Change.ChangeClass) as changes where ")
-  #addClause("product", "entries", $products, $topSpace, $xwql)
-  #addClause("audience", "changes", $audience, $topSpace, "$xwql and ")
-  #addClause("version", "entries", $versions, $topSpace, "$xwql and ")
-  #addClause("category", "changes", $categories, $topSpace, "$xwql and ")
-  #addClause("importance", "changes", $importance, $topSpace, "$xwql and ")
+  #resolveVersionComparisons($versions)
+  #set ($xwql = "from doc.object(ReleaseNotes.Code.EntryClass) as entries, doc.object(ReleaseNotes.Code.Change.ChangeClass) as changes where ")
+  #addClause("product", "entries", $products, $xwql)
+  #addClause("audience", "changes", $audience, "$xwql and ")
+  #addClause("version", "entries", $versions, "$xwql and ")
+  #addClause("category", "changes", $categories, "$xwql and ")
+  #addClause("importance", "changes", $importance, "$xwql and ")
   #if ("$!containsScreenshots" == 'true')
     #set ($xwql = "$xwql and (changes.screenshots &lt;&gt; '' or (changes.screenshots is not null and '' is null))")
   #elseif ("$!containsScreenshots" == 'false')

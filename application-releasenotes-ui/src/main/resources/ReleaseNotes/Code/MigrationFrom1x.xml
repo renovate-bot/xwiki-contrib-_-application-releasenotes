@@ -38,8 +38,7 @@
   <hidden>true</hidden>
   <content>{{velocity}}
 ## Find all pages having a v1.x ReleaseNotes.Code.ChangesClass
-#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
-#set ($xwql = "from doc.object(${topSpace}.Code.ChangesClass) as changes")
+#set ($xwql = "from doc.object(ReleaseNotes.Code.ChangesClass) as changes")
 #if ($request.confirm != '1')
   The following pages need to be migrated:
 #else
@@ -49,11 +48,11 @@
   #if ($request.confirm == '1')
     #set ($itemDoc = $xwiki.getDocument($item))
     ## Add a ReleaseNotes.Code.EntryClass
-    #set ($newEntryObject = $itemDoc.newObject("${topSpace}.Code.EntryClass"))
+    #set ($newEntryObject = $itemDoc.newObject("ReleaseNotes.Code.EntryClass"))
     ## Add a ReleaseNotes.Code.Change.ChangeClass
-    #set ($newChangeObject = $itemDoc.newObject("${topSpace}.Code.Change.ChangeClass"))
+    #set ($newChangeObject = $itemDoc.newObject("ReleaseNotes.Code.Change.ChangeClass"))
     ## Copy data from ReleaseNotes.Code.ChangesClass into the 2 new objects
-    #set ($oldChangeObject = $itemDoc.getObject("${topSpace}.Code.ChangesClass"))
+    #set ($oldChangeObject = $itemDoc.getObject("ReleaseNotes.Code.ChangesClass"))
     #set ($discard = $newEntryObject.set('version', $oldChangeObject.getValue('version')))
     #set ($discard = $newEntryObject.set('product', $oldChangeObject.getValue('product')))
     #set ($discard = $newEntryObject.set('type', 'Change'))

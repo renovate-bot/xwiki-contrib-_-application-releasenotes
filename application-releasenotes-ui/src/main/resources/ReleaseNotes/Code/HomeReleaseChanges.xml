@@ -39,9 +39,8 @@
   <content>{{include reference="ReleaseNotes.Code.EntryVelocityMacros"/}}
 
 {{velocity}}
-#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 #if ($hasEdit)
-  #set ($configDoc = $xwiki.getDocument("${topSpace}.Code.ReleaseNotesConfig"))
+  #set ($configDoc = $xwiki.getDocument("ReleaseNotes.Code.ReleaseNotesConfig"))
   #set ($defaultProduct = $configDoc.getValue('product'))
   ## Add new change
   #if ($request.action == 'addChange')
@@ -54,7 +53,7 @@
   {{html clean='false'}}
     &lt;form&gt;
       &lt;input type="hidden" name="action" value="addChange"/&gt;
-      &lt;input type="hidden" name="template" value="${topSpace}.Code.Change.ChangeTemplate"/&gt;
+      &lt;input type="hidden" name="template" value="ReleaseNotes.Code.Change.ChangeTemplate"/&gt;
       &lt;input type="hidden" name="type" value="Change"/&gt;
       &lt;input id="product" type="text" name="product" value="$!escapetool.xml($defaultProduct)" size="16"/&gt;
       &lt;input id="version" type="text" name="version" value="Product version..." size="16" class="withTip"/&gt;
@@ -84,7 +83,7 @@
   id="releasenoteschanges"
   properties="title,product,version,category,audience,importance,doc.creationDate,summary"
   source="liveTable"
-  sourceParameters="className=${topSpace}.Code.Change.ChangeClass&amp;translationPrefix=releasenotes.changes.livedata.&amp;product_class=${topSpace}.Code.EntryClass&amp;version_class=${topSpace}.Code.EntryClass"
+  sourceParameters="className=ReleaseNotes.Code.Change.ChangeClass&amp;translationPrefix=releasenotes.changes.livedata.&amp;product_class=ReleaseNotes.Code.EntryClass&amp;version_class=ReleaseNotes.Code.EntryClass"
   sort="doc.creationDate:desc"
   limit="15"
 }}

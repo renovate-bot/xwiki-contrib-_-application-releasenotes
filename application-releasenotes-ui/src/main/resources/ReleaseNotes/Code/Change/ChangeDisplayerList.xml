@@ -42,10 +42,9 @@
 ## Inputs:
 ## - $changeItems
 ## - $displayEditLink
-#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 #foreach ($item in $changeItems)
   #set ($changeDoc = $xwiki.getDocument($item))
-  #set ($changeObject = $changeDoc.getObject("${topSpace}.Code.Change.ChangeClass"))
+  #set ($changeObject = $changeDoc.getObject("ReleaseNotes.Code.Change.ChangeClass"))
   #generateDisplayEditLink($displayEditLink, $changeDoc)##
   * (((
 #if ("$!changeObject.getValue('title')" != '')$changeObject.getValue('title')~: #end$changeObject.getValue('summary')
