@@ -57,10 +57,9 @@ $!xwiki.jsx.use("ReleaseNotes.Code.HomeCustomReport")
   &lt;div class="form-group"&gt;
     &lt;label for="report-displayer"&gt;$escapetool.xml($services.localization.render('releasenotes.report.displayer.label'))&lt;/label&gt;
     &lt;select id="report-displayer" class="form-control" name="displayer"&gt;
-      &lt;option value="grid"&gt;Grid&lt;/option&gt;
-      &lt;option value="flow"&gt;Flow&lt;/option&gt;
-      &lt;option value="simple"&gt;Simple&lt;/option&gt;
-      &lt;option value="list"&gt;List&lt;/option&gt;
+#foreach ($displayerName in ['grid', 'flow', 'simple', 'list'])
+      &lt;option value="$displayerName"&gt;$escapetool.xml($services.localization.render("releasenotes.report.displayer.${displayerName}"))&lt;/option&gt;
+#end
     &lt;/select&gt;
   &lt;/div&gt;
 #foreach ($filter in $filters)
@@ -76,7 +75,7 @@ $!xwiki.jsx.use("ReleaseNotes.Code.HomeCustomReport")
   &lt;label&gt;&lt;input type="radio" name="containsScreenshots" value="false"/&gt; $escapetool.xml($withoutScreenshots)&lt;/label&gt;
   &lt;br/&gt;
   &lt;span class="buttonwrapper"&gt;
-    &lt;input class="button" type="submit" value="Generate Report"/&gt;
+    &lt;input class="button" type="submit" value="$escapetool.xml($services.localization.render('releasenotes.report.submit'))"/&gt;
   &lt;/span&gt;
 &lt;/form&gt;
 {{/html}}

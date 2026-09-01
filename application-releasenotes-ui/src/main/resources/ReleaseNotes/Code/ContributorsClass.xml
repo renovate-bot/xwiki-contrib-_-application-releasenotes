@@ -51,6 +51,7 @@
       <customDisplay/>
       <disabled>0</disabled>
       <editor>PureText</editor>
+      <hint>ReleaseNotes.Code.ContributorsClass_contributors.hint</hint>
       <name>contributors</name>
       <number>1</number>
       <picker>0</picker>

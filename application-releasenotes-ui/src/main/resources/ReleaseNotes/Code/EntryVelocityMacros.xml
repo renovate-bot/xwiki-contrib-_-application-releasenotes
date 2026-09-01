@@ -42,16 +42,20 @@
  * label is what gives the input its accessible name and what makes clicking the label text focus the field: a bare
  * definition term text node does neither.
  *
- * @param $labelKey the translation key of the field label
+ * The label text is the translated pretty name of the field, which is also what the object editor and the Live Data
+ * of the home page name that field with. A sheet declaring a label of its own is a label free to drift from the one
+ * the very same field carries everywhere else.
+ *
  * @param $object the object holding the property, which together with the property name gives the input identifier
  *        that XWiki generates
  * @param $propertyName the name of the property to display in edit mode
  * @param $fieldIdSuffix appended to the generated input identifier, for the displayers that name their input apart
  *        (the empty string for all the standard ones)
  *#
-#macro (displayEntryField $labelKey $object $propertyName $fieldIdSuffix)
+#macro (displayEntryField $object $propertyName $fieldIdSuffix)
   #set ($fieldId = "${object.getxWikiClass().getName()}_${object.number}_${propertyName}$!{fieldIdSuffix}")
-  ; {{html clean="false"}}&lt;label for="$escapetool.xml($fieldId)"&gt;$escapetool.xml($services.localization.render($labelKey))&lt;/label&gt;{{/html}}
+  #set ($fieldLabel = $object.getxWikiClass().get($propertyName).translatedPrettyName)
+  ; {{html clean="false"}}&lt;label for="$escapetool.xml($fieldId)"&gt;$escapetool.xml($fieldLabel)&lt;/label&gt;{{/html}}
   : $doc.display($propertyName, 'edit', $object)
 #end
 #macro (getShortVersion $fullVersion $result)
@@ -63,7 +67,7 @@
 #end
 #macro (handleAddAction $product $version $queryString)
   #if ("$!version" == '')
-    {{error}}Version must be set for creating a new Release Note entry!{{/error}}
+    {{error}}{{translation key="releasenotes.entry.versionRequired"/}}{{/error}}
 
   #else
     #getShortVersion($version, $shortVersion)
@@ -71,7 +75,7 @@
     #set ($versionSpaceReferenceString = $services.model.serialize($versionSpaceReference))
     #reserveEntryPage($versionSpaceReferenceString, $entryPageReference)
     #if ("$!entryPageReference" == '')
-      {{error}}$services.localization.render('releasenotes.entry.notReserved'){{/error}}
+      {{error}}{{translation key="releasenotes.entry.notReserved"/}}{{/error}}
 
     #else
       ## The form of the new entry is opened with the "edit" action and the inline editor, and not with the "inline"

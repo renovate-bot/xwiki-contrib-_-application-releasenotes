@@ -197,7 +197,7 @@
   #if ($changeItems &amp;&amp; !$changeItems.isEmpty())
     {{include reference="ReleaseNotes.Code.Change.ChangeDisplayer${stringtool.capitalize($displayer)}"/}}
   #else
-    No changes!
+    {{translation key="releasenotes.changes.display.nochanges"/}}
   #end
 {{/velocity}}
 </code>

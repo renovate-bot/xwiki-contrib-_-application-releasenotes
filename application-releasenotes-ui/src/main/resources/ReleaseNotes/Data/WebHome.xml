@@ -39,31 +39,34 @@
   <content>{{velocity}}
 #set ($xwql = "from doc.object(ReleaseNotes.Code.ChangesClass) as changes")
 #if ($services.query.xwql($xwql).count() &gt; 0)
+  ## The link sits in the middle of the sentence, so its markup is built here and passed as parameters rather
+  ## than left in the translation value, where it would be escaped instead of rendered.
+  #set ($migrationParameters = ['[[', '&gt;&gt;ReleaseNotes.Code.MigrationFrom1x]]'])
   {{error}}
-    There are release changes using the old 1.x format and which need to be [[migrated to the 2.0 format&gt;&gt;ReleaseNotes.Code.MigrationFrom1x]]. Until you perform this migration, all releases notes using these changes will display empty.
+    $services.localization.render('releasenotes.home.migrationNeeded', $migrationParameters)
   {{/error}}
 
 #end
 {{/velocity}}
-= Release Notes =
+= {{translation key="releasenotes.home.releasenotes.heading"/}} =
 
 {{include reference="ReleaseNotes.Code.HomeReleaseNotes"/}}
 
-= Release Changes =
+= {{translation key="releasenotes.home.changes.heading"/}} =
 
-A Release Note is made of several Changes. You'll find below all the Release Changes.
+{{translation key="releasenotes.home.changes.description"/}}
 
 {{include reference="ReleaseNotes.Code.HomeReleaseChanges"/}}
 
-== Custom Reports ==
+== {{translation key="releasenotes.home.reports.heading"/}} ==
 
-You can generate some custom reports from Release Changes.
+{{translation key="releasenotes.home.reports.description"/}}
 
 {{include reference="ReleaseNotes.Code.HomeCustomReport"/}}
 
-Notes:
-* Lists are allowed by using commas (e.g. "High,Medium")
-* Wildcards are allowed (e.g. "8.3%")
+{{translation key="releasenotes.home.reports.notes"/}}
+* {{translation key="releasenotes.home.reports.notes.lists"/}}
+* {{translation key="releasenotes.home.reports.notes.wildcards"/}}
 </content>
   <object>
     <name>ReleaseNotes.Data.WebHome</name>

@@ -52,12 +52,12 @@
     #set ($discard = $entryObject.set('type', $!request.type))
   #end
   (% class='xform col-xs-12' %)(((
-  #displayEntryField('releasenotes.contributors.field.contributors', $contributorsObject, 'contributors', '')
+  #displayEntryField($contributorsObject, 'contributors', '')
   )))
 #else
 #set ($contributors = "$!contributorsObject.getValue('contributors')")
 #if ($contributors != '')
-The following people have contributed code to this release (sorted alphabetically):
+{{translation key="releasenotes.contributors.intro"/}}
 
 ## Sort the contributor names alphabetically, ignoring case, before rendering them.
 #set ($sortedContributors = [])
@@ -78,7 +78,7 @@ The following people have contributed code to this release (sorted alphabeticall
 * $services.rendering.escape($contributor, 'xwiki/2.1')
 #end
 #else
-{{warning}}The list of contributors has not been generated yet.{{/warning}}
+{{warning}}{{translation key="releasenotes.contributors.notGenerated"/}}{{/warning}}
 #end
 #end
 {{/velocity}}</content>

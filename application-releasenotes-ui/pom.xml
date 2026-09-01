@@ -50,6 +50,13 @@
       <version>${rendering.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <!-- The {{translation}} macro, which displays the strings of the release note pages and forms. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-localization-macro</artifactId>
+      <version>${platform.version}</version>
+      <scope>runtime</scope>
+    </dependency>
     <!-- Required for Class Sheet Binding -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
