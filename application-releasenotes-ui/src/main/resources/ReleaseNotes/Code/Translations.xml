@@ -62,7 +62,8 @@ releasenotes.report.screenshots.without=Without Screenshots
 releasenotes.report.previous=Previous changes
 releasenotes.report.next=Next changes
 releasenotes.change.screenshots.placeholder=Select or upload screenshots and videos...
-releasenotes.change.view=View this change</content>
+releasenotes.change.view=View this change
+releasenotes.entry.notReserved=Could not take a page for the new change. Please try again.</content>
   <object>
     <name>ReleaseNotes.Code.Translations</name>
     <number>0</number>

@@ -49,29 +49,67 @@
     {{error}}Version must be set for creating a new Release Note entry!{{/error}}
 
   #else
-    ## Compute automatically a new page name, using the format "Entry###" where ### is a zero-padded number.
     #getShortVersion($version $shortVersion)
     #set ($versionSpaceReference = $services.model.createDocumentReference('', ['ReleaseNotes', 'Data', "$product", "$shortVersion"], 'WebHome').parent)
     #set ($versionSpaceReferenceString = $services.model.serialize($versionSpaceReference))
-    ## Make sure we have existing entries, otherwise start at 1
-    ## Handle the case of MySQL which uses "\" as an escape character and we need to handle that
-    ## since that character is present in space references when there are dots in space names.
-    #set ($query = $services.query.xwql("from doc.object(ReleaseNotes.Code.EntryClass) as entries where entries.type = 'Change' and doc.space LIKE :space escape '!'"))
-    #set ($spaceLike = $versionSpaceReferenceString.replaceAll('([%_!])', '!$1').concat('.%'))
-    #set ($query = $query.bindValue('space', $spaceLike))
-    #if ($query.count() &gt; 0)
-      #set ($highestQuery = $services.query.xwql("from doc.object(ReleaseNotes.Code.EntryClass) as changes where changes.type = 'Change' and doc.space like :space escape '!' order by doc.space desc"))
-      #set ($highestQuery = $highestQuery.bindValue('space', $spaceLike))
-      #set ($highest = $highestQuery.setLimit(1).execute())
-      #set ($currentNumber = $numbertool.toNumber($services.model.resolveDocument($highest[0]).parent.name.replaceFirst("^.*\D", "")).intValue())
-      #set ($nextUniqueNumber = $numbertool.format('000', $mathtool.add($currentNumber, 1)))
+    #reserveEntryPage($versionSpaceReferenceString $entryPageReference)
+    #if ("$!entryPageReference" == '')
+      {{error}}$services.localization.render('releasenotes.entry.notReserved'){{/error}}
+
     #else
-      #set ($nextUniqueNumber = '001')
+      ## The form of the new entry is opened with the "edit" action and the inline editor, and not with the "inline"
+      ## action, which is deprecated and only exists in the legacy module.
+      $response.sendRedirect($xwiki.getURL($entryPageReference, 'edit', "$!{queryString}&amp;editor=inline&amp;shortVersion=${escapetool.url($shortVersion)}"))
     #end
-    #set ($versionPageReference = "${versionSpaceReferenceString}.Entry${nextUniqueNumber}.WebHome")
-    ## The form of the new entry is opened with the "edit" action and the inline editor, and not with the "inline"
-    ## action, which is deprecated and only exists in the legacy module.
-    $response.sendRedirect($xwiki.getURL($versionPageReference.toString(), 'edit', "$!{queryString}&amp;editor=inline&amp;shortVersion=${escapetool.url($shortVersion)}"))
   #end
+#end
+## Creates, empty, the page of a new entry under the passed version space, using the format "Entry###" where ### is a
+## zero-padded number, and returns its reference in $result. Returns an empty string when no free page name could be
+## taken.
+##
+## The page is created here, before its author is sent to the editor, rather than left to that editor to create when
+## the author saves: the name of a new entry is derived from the entries that already exist, and an entry only starts
+## existing when it is saved, so two authors adding a change to the same release note at the same time would both be
+## handed that same name and the second save would silently overwrite the first. The window is not the round trip, it
+## is the whole editing session. Creating the page takes the name for one author only.
+##
+## The page is left empty rather than filled from the entry template, because the "edit" action the author is
+## redirected to applies that template to any page without content, existing or not. The objects of the entry are
+## thus still created by the template, once.
+#macro (reserveEntryPage $versionSpaceReferenceString $result)
+  ## Handle the case of MySQL which uses "\" as an escape character and we need to handle that
+  ## since that character is present in space references when there are dots in space names.
+  #set ($spaceLike = $versionSpaceReferenceString.replaceAll('([%_!])', '!$1').concat('.%'))
+  ## Every page of the version space is looked at, and not only the saved entries, so that a page taken by an author
+  ## who has not saved their entry yet is seen as taken.
+  #set ($pagesQuery = $services.query.xwql("where doc.space like :space escape '!'"))
+  #set ($pagesQuery = $pagesQuery.bindValue('space', $spaceLike))
+  ## The highest number in use is computed here rather than asked of the query, because a query can only order the
+  ## page names as strings, which sorts "Entry999" above "Entry1000" and hands the number 1000 out over and over.
+  #set ($highestNumber = 0)
+  #foreach ($pageReference in $pagesQuery.execute())
+    #set ($entryName = $services.model.resolveDocument($pageReference).parent.name)
+    #if ($entryName.matches('Entry\d+'))
+      #set ($entryNumber = $numbertool.toNumber($entryName.replaceFirst('^Entry', '')).intValue())
+      #if ($entryNumber &gt; $highestNumber)
+        #set ($highestNumber = $entryNumber)
+      #end
+    #end
+  #end
+  ## Every page of the version space has just been looked at, so the page of the next number is free unless another
+  ## author took it in the meantime. A few numbers are therefore tried, and not just one.
+  #set ($reservedPageReference = '')
+  #foreach ($candidateNumber in [$mathtool.add($highestNumber, 1)..$mathtool.add($highestNumber, 10)])
+    #set ($paddedNumber = $numbertool.format('000', $candidateNumber))
+    #set ($candidatePageReference = "${versionSpaceReferenceString}.Entry${paddedNumber}.WebHome")
+    #set ($candidatePage = $xwiki.getDocument($candidatePageReference))
+    #if ($candidatePage.isNew())
+      #set ($discard = $candidatePage.save('Take the page of a new release note entry'))
+      #set ($reservedPageReference = $candidatePageReference)
+      #break
+    #end
+  #end
+  #set ($result = $NULL)
+  #setVariable ("$result" $reservedPageReference)
 #end</content>
 </xwikidoc>
