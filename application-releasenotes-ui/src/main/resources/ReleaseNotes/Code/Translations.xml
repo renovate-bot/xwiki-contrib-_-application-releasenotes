@@ -63,7 +63,34 @@ releasenotes.report.previous=Previous changes
 releasenotes.report.next=Next changes
 releasenotes.change.screenshots.placeholder=Select or upload screenshots and videos...
 releasenotes.change.view=View this change
-releasenotes.entry.notReserved=Could not take a page for the new change. Please try again.</content>
+releasenotes.entry.notReserved=Could not take a page for the new change. Please try again.
+releasenotes.releases.add.product.label=Product
+releasenotes.releases.add.version.label=Version
+releasenotes.releases.add.version.placeholder=e.g. 8.3-milestone-1
+releasenotes.changes.add.product.label=Product
+releasenotes.changes.add.version.label=Version
+releasenotes.changes.add.version.placeholder=e.g. 8.3-milestone-1
+releasenotes.report.displayer.label=Layout
+releasenotes.report.products.label=Products
+releasenotes.report.products.placeholder=All products
+releasenotes.report.versions.label=Versions
+releasenotes.report.versions.placeholder=All versions
+releasenotes.report.categories.label=Categories
+releasenotes.report.categories.placeholder=All categories
+releasenotes.report.audience.label=Audience
+releasenotes.report.audience.placeholder=Any audience
+releasenotes.report.importance.label=Importance
+releasenotes.report.importance.placeholder=Any importance
+releasenotes.change.field.product=Product
+releasenotes.change.field.version=Version
+releasenotes.change.field.title=Title
+releasenotes.change.field.audience=Target Audience
+releasenotes.change.field.category=Category
+releasenotes.change.field.importance=Importance
+releasenotes.change.field.summary=Summary
+releasenotes.change.field.screenshots=Screenshots
+releasenotes.change.field.description=Extra Description (optional)
+releasenotes.contributors.field.contributors=Contributors (one per line)</content>
   <object>
     <name>ReleaseNotes.Code.Translations</name>
     <number>0</number>

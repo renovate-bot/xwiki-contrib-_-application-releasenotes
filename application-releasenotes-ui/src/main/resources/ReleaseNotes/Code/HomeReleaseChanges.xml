@@ -50,13 +50,23 @@
     #end
     #handleAddAction($product, $!request.version, $!request.queryString)
   #end
+  ## The version prompt is a placeholder attribute and not the input's own value: as a value it would give the field
+  ## no accessible name, and an untouched field would submit the prompt as the version. The version is marked required
+  ## because #handleAddAction refuses an empty one.
   {{html clean='false'}}
-    &lt;form&gt;
+    &lt;form class="form-inline"&gt;
       &lt;input type="hidden" name="action" value="addChange"/&gt;
       &lt;input type="hidden" name="template" value="ReleaseNotes.Code.Change.ChangeTemplate"/&gt;
       &lt;input type="hidden" name="type" value="Change"/&gt;
-      &lt;input id="product" type="text" name="product" value="$!escapetool.xml($defaultProduct)" size="16"/&gt;
-      &lt;input id="version" type="text" name="version" value="Product version..." size="16" class="withTip"/&gt;
+      &lt;div class="form-group"&gt;
+        &lt;label for="product"&gt;$escapetool.xml($services.localization.render('releasenotes.changes.add.product.label'))&lt;/label&gt;
+        &lt;input id="product" class="form-control" type="text" name="product" value="$!escapetool.xml($defaultProduct)" size="16"/&gt;
+      &lt;/div&gt;
+      &lt;div class="form-group"&gt;
+        &lt;label for="version"&gt;$escapetool.xml($services.localization.render('releasenotes.changes.add.version.label'))&lt;/label&gt;
+        &lt;input id="version" class="form-control" type="text" name="version" size="16" required="required"
+          placeholder="$escapetool.xml($services.localization.render('releasenotes.changes.add.version.placeholder'))"/&gt;
+      &lt;/div&gt;
       &lt;span class="buttonwrapper"&gt;
         &lt;input class="button" type="submit" value="Add Release Change"/&gt;
       &lt;/span&gt;

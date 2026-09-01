@@ -22,13 +22,14 @@ package org.xwiki.releasenotes;
 import java.util.List;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.icon.IconManager;
-import org.xwiki.skinx.SkinExtension;
 import org.xwiki.livedata.internal.macro.LiveDataMacroComponentList;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.skinx.SkinExtension;
 import org.xwiki.test.page.HTML50ComponentList;
 import org.xwiki.test.page.PageTest;
 import org.xwiki.test.page.XWikiSyntax21ComponentList;
@@ -90,5 +91,34 @@ class HomeReleaseChangesPageTest extends PageTest
         assertEquals(1, sort.size(), "Expected the changes to be sorted on a single property.");
         assertEquals("doc.creationDate", sort.get(0).path("property").asText());
         assertTrue(sort.get(0).path("descending").asBoolean(), "Expected the most recent changes first.");
+    }
+
+    /**
+     * A prompt written into the input's own {@code value} attribute gives the field no accessible name, and when the
+     * author leaves the field untouched it is submitted as the version. The version is also what
+     * {@code #handleAddAction} refuses to work without, which the form has to say up front.
+     */
+    @Test
+    void theCreationFieldsAreNamedByALabelAndTheVersionIsMarkedRequired() throws Exception
+    {
+        // The creation form is only displayed to a user who can edit.
+        registerVelocityTool("hasEdit", true);
+        loadPage(ENTRY_VELOCITY_MACROS);
+
+        Document html = renderHTMLPage(HOME_RELEASE_CHANGES);
+
+        assertLabelled(html, "product");
+        Element version = assertLabelled(html, "version");
+        assertEquals("", version.attr("value"),
+            "The version must start empty, otherwise its prompt is submitted as the version of the change.");
+        assertTrue(version.hasAttr("required"), "Creating a change without a version is refused.");
+    }
+
+    private Element assertLabelled(Document html, String id)
+    {
+        Element field = html.selectFirst("input[type=text]#" + id);
+        assertEquals(1, html.select("label[for='" + id + "']").size(),
+            "Expected exactly one label bound to the '" + id + "' field.");
+        return field;
     }
 }

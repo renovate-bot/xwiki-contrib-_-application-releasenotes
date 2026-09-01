@@ -47,7 +47,7 @@ $!xwiki.jsx.use("ReleaseNotes.Code.HomeReleaseNotes")
   #if ($request.action == 'addReleaseNotes')
     #set ($product = $!request.product)
     #set ($version = $!request.version)
-    #getShortVersion($version $shortVersion)
+    #getShortVersion($version, $shortVersion)
     ## Create page if it doesn't exist
     #set ($rnPageReference = $services.model.createDocumentReference('', ['ReleaseNotes', 'Data', $product, $shortVersion], 'WebHome'))
     #set ($rnDoc = $xwiki.getDocument($rnPageReference))
@@ -79,11 +79,21 @@ $!xwiki.jsx.use("ReleaseNotes.Code.HomeReleaseNotes")
 
     #end
   #end
+  ## The version prompt is a placeholder attribute and not the input's own value: as a value it would give the field
+  ## no accessible name, and an untouched field would name the created release note after the prompt. The version is
+  ## marked required because the page reference of a release note is built from it.
   {{html}}
-    &lt;form&gt;
+    &lt;form class="form-inline"&gt;
       &lt;input type="hidden" name="action" value="addReleaseNotes"/&gt;
-      &lt;input id="product" type="text" name="product" value="$!escapetool.xml($defaultProduct)" size="32"/&gt;
-      &lt;input id="version" type="text" name="version" value="Version e.g. 8.3-milestone-1..." size="32" class="withTip"/&gt;
+      &lt;div class="form-group"&gt;
+        &lt;label for="product"&gt;$escapetool.xml($services.localization.render('releasenotes.releases.add.product.label'))&lt;/label&gt;
+        &lt;input id="product" class="form-control" type="text" name="product" value="$!escapetool.xml($defaultProduct)" size="32"/&gt;
+      &lt;/div&gt;
+      &lt;div class="form-group"&gt;
+        &lt;label for="version"&gt;$escapetool.xml($services.localization.render('releasenotes.releases.add.version.label'))&lt;/label&gt;
+        &lt;input id="version" class="form-control" type="text" name="version" size="32" required="required"
+          placeholder="$escapetool.xml($services.localization.render('releasenotes.releases.add.version.placeholder'))"/&gt;
+      &lt;/div&gt;
       &lt;span class="buttonwrapper"&gt;
         &lt;input class="button" type="submit" value="Add Release Note"/&gt;
       &lt;/span&gt;
