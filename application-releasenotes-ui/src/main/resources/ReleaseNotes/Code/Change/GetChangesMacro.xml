@@ -443,7 +443,7 @@ beside them, in the context variable named after ##contextVariable## suffixed wi
       </name>
     </class>
     <property>
-      <defaultValue>User,user,Administrator,Developer,developer,administrator</defaultValue>
+      <defaultValue>user,administrator,developer</defaultValue>
     </property>
     <property>
       <description/>

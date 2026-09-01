@@ -46,6 +46,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -83,6 +84,14 @@ class GetChangesMacroPageTest extends PageTest
         List.of("1.0", "2.0", "8.3-milestone-1", "8.3-rc-1", "8.3", "9.0", "10.0");
 
     private static final String RELEASE_NOTES_STATEMENT = "from doc.object(ReleaseNotes.Code.ReleaseNoteClass)";
+
+    /**
+     * The clause selecting the changes that do have a screenshot. It is spelled out by hand rather than with a
+     * {@code <> ''} alone because the property is stored as a large string, which some databases return as null
+     * rather than as the empty string when it was never set.
+     */
+    private static final String HAS_SCREENSHOTS =
+        "(changes.screenshots <> '' or (changes.screenshots is not null and '' is null))";
 
     @Mock
     private ScriptQuery query;
@@ -244,6 +253,135 @@ class GetChangesMacroPageTest extends PageTest
     }
 
     /**
+     * The audience is stored lower cased, but the macro is documented as accepting the capitalized spelling that
+     * reads better in a macro call, so it must lower case whatever it is given before matching.
+     */
+    @Test
+    void audienceFilterIsLowerCased() throws Exception
+    {
+        renderFilters("audience=\"User,Administrator,DEVELOPER\"");
+
+        assertTrue(mainStatement().contains("(changes.audience like :audience1 or changes.audience like :audience2 "
+            + "or changes.audience like :audience3)"), "Got: " + mainStatement());
+        verify(this.query).bindValue("audience1", "user");
+        verify(this.query).bindValue("audience2", "administrator");
+        verify(this.query).bindValue("audience3", "developer");
+    }
+
+    /**
+     * The importance is stored as a number, but the macro is documented as also accepting the names the edit form
+     * displays, in any case.
+     */
+    @ParameterizedTest
+    @CsvSource({
+        "High,   2",
+        "Medium, 1",
+        "Low,    0",
+        "HIGH,   2",
+        "high,   2",
+        "2,      2"
+    })
+    void importanceFilterAcceptsNames(String importance, String expectedBoundValue) throws Exception
+    {
+        renderFilters(String.format("importance=\"%s\"", importance));
+
+        verify(this.query).bindValue("importance1", expectedBoundValue);
+    }
+
+    /**
+     * Each name of a comma-separated importance filter is translated, and only the names are: a filter mixing names
+     * and stored values must keep the stored values untouched.
+     */
+    @Test
+    void importanceFilterWithSeveralItems() throws Exception
+    {
+        renderFilters("importance=\"High,Low,1\"");
+
+        assertTrue(mainStatement().contains("(changes.importance like :importance1 "
+            + "or changes.importance like :importance2 or changes.importance like :importance3)"),
+            "Got: " + mainStatement());
+        verify(this.query).bindValue("importance1", "2");
+        verify(this.query).bindValue("importance2", "0");
+        verify(this.query).bindValue("importance3", "1");
+    }
+
+    /**
+     * The screenshot filter is not a bound parameter but a hand-written clause, and the two values must select
+     * complementary sets of changes: a release note leads with the changes illustrated by a screenshot and lists
+     * all the others under "Miscellaneous", so a change missing from both would never be displayed.
+     */
+    @Test
+    void containsScreenshotsSelectsTheChangesHavingOne() throws Exception
+    {
+        renderFilters("containsScreenshots=\"true\"");
+
+        assertTrue(mainStatement().contains("and " + HAS_SCREENSHOTS), "Got: " + mainStatement());
+        assertFalse(mainStatement().contains("and not " + HAS_SCREENSHOTS), "Got: " + mainStatement());
+    }
+
+    @Test
+    void containsScreenshotsFalseSelectsTheChangesHavingNone() throws Exception
+    {
+        renderFilters("containsScreenshots=\"false\"");
+
+        assertTrue(mainStatement().contains("and not " + HAS_SCREENSHOTS), "Got: " + mainStatement());
+    }
+
+    /**
+     * The screenshot filter has no default value, and an unset filter must not restrict the result at all.
+     */
+    @Test
+    void containsScreenshotsUnsetDoesNotFilter() throws Exception
+    {
+        renderFilters("products=\"TestProduct\"");
+
+        assertFalse(mainStatement().contains("changes.screenshots"), "Got: " + mainStatement());
+    }
+
+    /**
+     * All the filters are combined with an {@code and}, each of them restricting the result further.
+     */
+    @Test
+    void allFiltersAreCombined() throws Exception
+    {
+        renderFilters("products=\"TestProduct\" versions=\"8.3\" audience=\"User\" categories=\"UI\" "
+            + "importance=\"High\" containsScreenshots=\"true\"");
+
+        assertEquals("from doc.object(ReleaseNotes.Code.EntryClass) as entries, "
+            + "doc.object(ReleaseNotes.Code.Change.ChangeClass) as changes where "
+            + "(entries.product like :product1) "
+            + "and (changes.audience like :audience1) "
+            + "and (entries.version like :version1) "
+            + "and (changes.category like :category1) "
+            + "and (changes.importance like :importance1) "
+            + "and " + HAS_SCREENSHOTS + " "
+            + "order by changes.importance desc, doc.fullName", mainStatement().replaceAll("\\s+", " ").trim());
+        verify(this.query).bindValue("product1", "TestProduct");
+        verify(this.query).bindValue("audience1", "user");
+        verify(this.query).bindValue("version1", "8.3");
+        verify(this.query).bindValue("category1", "UI");
+        verify(this.query).bindValue("importance1", "2");
+    }
+
+    /**
+     * Called with only its mandatory parameter, the macro must return every change of the default product, since
+     * that is what the report pages rely on to offer a filter that filters nothing.
+     */
+    @Test
+    void defaultFiltersMatchEveryChangeOfTheDefaultProduct() throws Exception
+    {
+        renderFilters("");
+
+        verify(this.query).bindValue("product1", "XWiki");
+        verify(this.query).bindValue("version1", "%");
+        verify(this.query).bindValue("category1", "%");
+        // The three importance values that ChangeClass allows.
+        verify(this.query).bindValue("importance1", "0");
+        verify(this.query).bindValue("importance2", "1");
+        verify(this.query).bindValue("importance3", "2");
+    }
+
+    /**
      * The result set size is driven by the filters, whose defaults are wildcards and which the report page fills
      * from the request. The query must therefore always be asked for a single page, and for the one row beyond it
      * that tells whether more changes exist.
@@ -339,6 +477,15 @@ class GetChangesMacroPageTest extends PageTest
     {
         return render("{{getChanges products=\"TestProduct\" limit=\"2\" contextVariable=\"changeDocs\"/}}\n\n"
             + "{{velocity}}$changeDocs / $changeDocsHasMore{{/velocity}}");
+    }
+
+    /**
+     * Renders a page calling the {@code getChanges} macro with the passed filters, i.e. with all its parameters
+     * but the mandatory one.
+     */
+    private String renderFilters(String filters) throws Exception
+    {
+        return render(String.format("{{getChanges %s contextVariable=\"changeDocs\"/}}", filters));
     }
 
     /**
