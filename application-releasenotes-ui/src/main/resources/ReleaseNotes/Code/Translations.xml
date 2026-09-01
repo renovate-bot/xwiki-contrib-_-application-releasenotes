@@ -49,6 +49,7 @@ releasenotes.changes.livedata.title=Title
 releasenotes.changes.livedata.importance=Importance
 releasenotes.changes.livedata.product=Product
 releasenotes.changes.livedata.emptyvalue=
+releasenotes.changes.truncated=This release note has more changes than the ones displayed here. Raise the "limit" parameter of the "releasenotechanges" macro to display them all.
 releasenotes.applicationsPanelEntryLabel=Release Notes
 releasenotes.releases.livedata.product=Product
 releasenotes.releases.livedata.version=Version
@@ -58,6 +59,8 @@ releasenotes.releases.livedata.emptyvalue=
 releasenotes.report.screenshots.any=With and Without Screenshots
 releasenotes.report.screenshots.with=With Screenshots
 releasenotes.report.screenshots.without=Without Screenshots
+releasenotes.report.previous=Previous changes
+releasenotes.report.next=Next changes
 releasenotes.change.screenshots.placeholder=Select or upload screenshots and videos...
 releasenotes.change.view=View this change</content>
   <object>

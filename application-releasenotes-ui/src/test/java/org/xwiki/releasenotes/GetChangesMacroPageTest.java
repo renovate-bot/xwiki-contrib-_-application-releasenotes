@@ -244,15 +244,122 @@ class GetChangesMacroPageTest extends PageTest
     }
 
     /**
+     * The result set size is driven by the filters, whose defaults are wildcards and which the report page fills
+     * from the request. The query must therefore always be asked for a single page, and for the one row beyond it
+     * that tells whether more changes exist.
+     */
+    @Test
+    void queryIsAlwaysAskedForOnePageOnly() throws Exception
+    {
+        renderGetChanges("%");
+
+        verify(this.query).setLimit(101);
+        verify(this.query).setOffset(0);
+    }
+
+    @Test
+    void limitAndOffsetSelectThePageToReturn() throws Exception
+    {
+        render("{{getChanges products=\"TestProduct\" limit=\"10\" offset=\"20\" contextVariable=\"c\"/}}");
+
+        verify(this.query).setLimit(11);
+        verify(this.query).setOffset(20);
+    }
+
+    /**
+     * A limit is a bound, so a value that would remove it must not be honoured, and neither must a value that would
+     * make the query return nothing at all.
+     */
+    @ParameterizedTest
+    @CsvSource({ "0", "-1", "notANumber", "''" })
+    void unusableLimitFallsBackToTheDefault(String limit) throws Exception
+    {
+        render(String.format("{{getChanges products=\"TestProduct\" limit=\"%s\" contextVariable=\"c\"/}}",
+            limit));
+
+        verify(this.query).setLimit(101);
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "-1", "notANumber", "''" })
+    void unusableOffsetFallsBackToTheFirstPage(String offset) throws Exception
+    {
+        render(String.format("{{getChanges products=\"TestProduct\" offset=\"%s\" contextVariable=\"c\"/}}",
+            offset));
+
+        verify(this.query).setOffset(0);
+    }
+
+    /**
+     * Importance has three values, so ordering on it alone leaves most of the result set in whatever order the
+     * database returns it, and a page of an unordered result set may repeat or skip changes.
+     */
+    @Test
+    void resultIsOrderedOnMoreThanTheImportance() throws Exception
+    {
+        renderGetChanges("%");
+
+        ArgumentCaptor<String> statement = ArgumentCaptor.forClass(String.class);
+        verify(this.queryManagerScriptService).xwql(statement.capture());
+        assertTrue(statement.getValue().endsWith("order by changes.importance desc, doc.fullName"),
+            "Expected the order to be fully determined, got: " + statement.getValue());
+    }
+
+    /**
+     * The row fetched beyond the page is only there to answer the "is there a next page?" question: it must be
+     * reported, under the name derived from the context variable, and it must not reach the caller's list.
+     */
+    @Test
+    void rowBeyondThePageIsReportedRatherThanReturned() throws Exception
+    {
+        when(this.query.execute()).thenReturn(List.of("first", "second", "third"));
+
+        String result = renderPageOfTwo();
+
+        assertTrue(result.contains("[first, second] / true"),
+            "Expected the page to hold the first two changes and to report the third, got: " + result);
+    }
+
+    @Test
+    void lastPageIsNotReportedAsHavingMoreChanges() throws Exception
+    {
+        when(this.query.execute()).thenReturn(List.of("first", "second"));
+
+        String result = renderPageOfTwo();
+
+        assertTrue(result.contains("[first, second] / false"),
+            "Expected the page to hold both changes and to report no other one, got: " + result);
+    }
+
+    /**
+     * Renders a page asking for two changes and displaying both what the macro published and whether it reported
+     * more changes to come.
+     */
+    private String renderPageOfTwo() throws Exception
+    {
+        return render("{{getChanges products=\"TestProduct\" limit=\"2\" contextVariable=\"changeDocs\"/}}\n\n"
+            + "{{velocity}}$changeDocs / $changeDocsHasMore{{/velocity}}");
+    }
+
+    /**
      * Renders a page calling the {@code getChanges} macro with the passed {@code versions} filter.
      */
     private void renderGetChanges(String versions) throws Exception
     {
+        render(String.format(
+            "{{getChanges products=\"TestProduct\" versions=\"%s\" contextVariable=\"changeDocs\"/}}", versions));
+    }
+
+    /**
+     * Renders the passed content as a page of the release notes space, which is what makes the macros resolve their
+     * own top level space.
+     */
+    private String render(String content) throws Exception
+    {
         XWikiDocument page = new XWikiDocument(TEST_PAGE);
         page.setSyntax(Syntax.XWIKI_2_1);
-        page.setContent(String.format(
-            "{{getChanges products=\"TestProduct\" versions=\"%s\" contextVariable=\"changeDocs\"/}}", versions));
+        page.setContent(content);
         this.xwiki.saveDocument(page, this.context);
-        page.getRenderedContent(this.context);
+        return page.getRenderedContent(this.context);
     }
 }

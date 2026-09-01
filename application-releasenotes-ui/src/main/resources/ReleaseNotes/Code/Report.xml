@@ -36,22 +36,64 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{velocity output="false"}}
 ## The report form submits one request parameter per filter. Forward those by name rather than whatever the
 ## request happens to carry, so that the string built here is always a list of known macro parameters, and strip
 ## from each value the characters that would end the parameter it sits in.
 #set ($reportParameters = ['products', 'versions', 'audience', 'categories', 'importance', 'containsScreenshots',
   'displayer'])
 #set ($parameters = "")
+#set ($filterQueryString = 'action=report')
 #foreach ($parameterName in $reportParameters)
   #set ($parameterValue = $stringtool.normalizeSpace("$!request.get($parameterName)"))
   #set ($parameterValue = $stringtool.remove($stringtool.remove($parameterValue, "'"), '"'))
   #if ($parameterValue != '')
     #set ($parameters = "$parameters $parameterName='$parameterValue' ")
+    ## The same filters have to reach the other pages of this report, this time as request parameters.
+    #set ($filterQueryString = "$filterQueryString&amp;$parameterName=$escapetool.url($parameterValue)")
   #end
 #end
-{{getChanges $parameters contextVariable='reportChanges'/}}
+## The filters come from the request and default to wildcards, so the report can be asked for every change of a
+## product at once. Display one page of changes at a time. The page size is fixed here rather than read from the
+## request, otherwise a single URL would bring back the unbounded query this paging exists to avoid.
+#set ($reportPageSize = 20)
+#set ($reportOffset = $numbertool.toNumber("$!request.offset"))
+#if (!$reportOffset || $reportOffset.intValue() &lt; 0)
+  #set ($reportOffset = 0)
+#else
+  #set ($reportOffset = $reportOffset.intValue())
+#end
+#set ($previousOffset = $mathtool.max(0, $mathtool.sub($reportOffset, $reportPageSize)))
+#set ($nextOffset = $mathtool.add($reportOffset, $reportPageSize))
+#macro (displayReportPageLink $newOffset $labelKey)
+  #set ($label = $escapetool.xml($services.localization.render($labelKey)))
+  #set ($pageURL = $escapetool.xml($doc.getURL('view', "${filterQueryString}&amp;offset=${newOffset}")))
+  &lt;a href="$pageURL"&gt;$label&lt;/a&gt;
+#end
+{{/velocity}}
 
+{{velocity}}
+{{getChanges $parameters limit="$reportPageSize" offset="$reportOffset" contextVariable='reportChanges'/}}
+{{/velocity}}
+
+{{velocity}}
 {{displayChanges $parameters contextVariable='reportChanges'/}}
+{{/velocity}}
+
+{{velocity}}
+## getChanges publishes whether it had more changes to return, which is what tells a next page apart from the last
+## one without counting the whole result set.
+#if ($reportOffset &gt; 0 || $reportChangesHasMore)
+{{html clean="false"}}
+&lt;div class="rn-report-pagination"&gt;
+  #if ($reportOffset &gt; 0)
+    #displayReportPageLink($previousOffset 'releasenotes.report.previous')
+  #end
+  #if ($reportChangesHasMore)
+    #displayReportPageLink($nextOffset 'releasenotes.report.next')
+  #end
+&lt;/div&gt;
+{{/html}}
+#end
 {{/velocity}}</content>
 </xwikidoc>
