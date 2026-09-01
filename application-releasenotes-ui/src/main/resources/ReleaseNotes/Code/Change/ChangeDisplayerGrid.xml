@@ -43,8 +43,7 @@
 ## - $changeItems
 ## - $columns
 ## - $displayEditLink
-#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
-#set ($discard = $xwiki.ssx.use("${topSpace}.Code.Change.ChangeDisplayerGrid"))
+#set ($discard = $xwiki.ssx.use("ReleaseNotes.Code.Change.ChangeDisplayerGrid"))
 ## Each change is a self-contained card, and the cards are laid out by CSS grid rather than chunked into rows of
 ## Bootstrap columns. Both choices serve the same goal: a reader must never be able to attach a screenshot to the
 ## neighbouring change. The card draws the boundary, and the grid removes the row, whose cells all grew to the
@@ -58,7 +57,7 @@
 (% class="rn-changes-grid" style="--rn-changes-grid-columns: $gridColumns" %)(((
 #foreach ($item in $changeItems)
   #set ($changeDoc = $xwiki.getDocument($item))
-  #set ($changeObject = $changeDoc.getObject("${topSpace}.Code.Change.ChangeClass"))
+  #set ($changeObject = $changeDoc.getObject("ReleaseNotes.Code.Change.ChangeClass"))
   #set ($title = "$!changeObject.getValue('title')")
   #set ($description = "$!changeObject.getValue('description')")
   #generateDisplayEditLink($displayEditLink, $changeDoc)

@@ -37,13 +37,12 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity}}
-#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
-$!xwiki.jsx.use("${topSpace}.Code.HomeCustomReport")
+$!xwiki.jsx.use("ReleaseNotes.Code.HomeCustomReport")
 #set ($anyScreenshots = $services.localization.render('releasenotes.report.screenshots.any'))
 #set ($withScreenshots = $services.localization.render('releasenotes.report.screenshots.with'))
 #set ($withoutScreenshots = $services.localization.render('releasenotes.report.screenshots.without'))
 {{html clean="false"}}
-&lt;form action="$xwiki.getURL("${topSpace}.Code.Report")"&gt;
+&lt;form action="$xwiki.getURL("ReleaseNotes.Code.Report")"&gt;
   &lt;input type="hidden" name="action" value="report"/&gt;
   &lt;select name="displayer"&gt;
     &lt;option value="grid"&gt;Grid&lt;/option&gt;

@@ -153,14 +153,13 @@
     </class>
     <property>
       <code>{{velocity}}
-#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
 ## The contributors list is stored in a deterministic "Contributors" child page of the current
 ## release note page, carrying an EntryClass envelope + a ContributorsClass payload.
 #set ($rnSpaceReference = $doc.documentReference.lastSpaceReference)
 #set ($contributorsSpaceReference = $services.model.createSpaceReference('Contributors', $rnSpaceReference))
 #set ($contributorsReference = $services.model.createDocumentReference('WebHome', $contributorsSpaceReference))
 #set ($contributorsDoc = $xwiki.getDocument($contributorsReference))
-#set ($contributorsObject = $contributorsDoc.getObject("${topSpace}.Code.ContributorsClass"))
+#set ($contributorsObject = $contributorsDoc.getObject("ReleaseNotes.Code.ContributorsClass"))
 #set ($contributors = "$!contributorsObject.getValue('contributors')")
 #if ($contributors != '')
 The following people have contributed code to this release (sorted alphabetically):
@@ -203,7 +202,7 @@ The following people have contributed code to this release (sorted alphabeticall
 &lt;form action="$contributorsDoc.getURL('edit')" method="get"&gt;
   &lt;input type="hidden" name="editor" value="inline"/&gt;
   &lt;input type="hidden" name="xhidden" value="1"/&gt;
-  &lt;input type="hidden" name="template" value="${topSpace}.Code.ContributorsTemplate"/&gt;
+  &lt;input type="hidden" name="template" value="ReleaseNotes.Code.ContributorsTemplate"/&gt;
   &lt;input type="hidden" name="product" value="$escapetool.xml($product)"/&gt;
   &lt;input type="hidden" name="version" value="$escapetool.xml($version)"/&gt;
   &lt;input type="hidden" name="type" value="Contributors"/&gt;

@@ -136,7 +136,6 @@
         <customDisplay>{{velocity}}
 #set ($fieldName = "${prefix}${name}")
 #if ($type == 'edit' || $type == 'search')
-  #set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
   ## The value is a comma separated list of media references, with optional spaces around the commas.
   ## See #displayScreenshots in ChangeDisplayerVelocityMacros for how it is read back.
   #set ($selectedValues = [])
@@ -161,7 +160,7 @@
     'data-accept': 'image/,.mp4,.webm',
     'placeholder': $services.localization.render('releasenotes.change.screenshots.placeholder')
   })
-  $xwiki.jsx.use("${topSpace}.Code.Change.ChangeClass")
+  $xwiki.jsx.use("ReleaseNotes.Code.Change.ChangeClass")
   {{html clean="false"}}
     &lt;span class="releasenotes-screenshots"&gt;
       #attachmentPicker($pickerParameters)

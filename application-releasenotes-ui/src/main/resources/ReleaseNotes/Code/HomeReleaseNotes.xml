@@ -39,10 +39,9 @@
   <content>{{include reference="ReleaseNotes.Code.EntryVelocityMacros"/}}
 
 {{velocity}}
-#set ($topSpace = $doc.documentReference.extractFirstReference('SPACE').getName())
-$!xwiki.jsx.use("${topSpace}.Code.HomeReleaseNotes")
+$!xwiki.jsx.use("ReleaseNotes.Code.HomeReleaseNotes")
 #if ($hasEdit)
-  #set ($configDoc = $xwiki.getDocument("${topSpace}.Code.ReleaseNotesConfig"))
+  #set ($configDoc = $xwiki.getDocument("ReleaseNotes.Code.ReleaseNotesConfig"))
   #set ($defaultProduct = $configDoc.getValue('product'))
   #set ($defaultTemplateReferenceString = $configDoc.getValue('template'))
   #if ($request.action == 'addReleaseNotes')
@@ -50,10 +49,10 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeReleaseNotes")
     #set ($version = $!request.version)
     #getShortVersion($version $shortVersion)
     ## Create page if it doesn't exist
-    #set ($rnPageReference = $services.model.createDocumentReference('', ["$topSpace", 'Data', $product, $shortVersion], 'WebHome'))
+    #set ($rnPageReference = $services.model.createDocumentReference('', ['ReleaseNotes', 'Data', $product, $shortVersion], 'WebHome'))
     #set ($rnDoc = $xwiki.getDocument($rnPageReference))
     #if ($rnDoc.isNew())
-      #set ($rnObject = $rnDoc.newObject("${topSpace}.Code.ReleaseNoteClass"))
+      #set ($rnObject = $rnDoc.newObject("ReleaseNotes.Code.ReleaseNoteClass"))
       #set ($discard = $rnObject.set('product', $product))
       #set ($discard = $rnObject.set('version', $version))
       #set ($discard = $rnObject.set('released', '0'))
@@ -98,7 +97,7 @@ $!xwiki.jsx.use("${topSpace}.Code.HomeReleaseNotes")
   id="releasenotes"
   properties="product,version,released,date"
   source="liveTable"
-  sourceParameters="className=${topSpace}.Code.ReleaseNoteClass&amp;translationPrefix=releasenotes.releases.livedata."
+  sourceParameters="className=ReleaseNotes.Code.ReleaseNoteClass&amp;translationPrefix=releasenotes.releases.livedata."
   sort="date:desc"
   limit="15"
 }}
