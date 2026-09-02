@@ -31,6 +31,7 @@ import org.xwiki.test.page.PageTest;
 import org.xwiki.test.page.XWikiSyntax21ComponentList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -71,6 +72,22 @@ class HomeReleaseNotesPageTest extends PageTest
         assertEquals("", version.attr("value"),
             "The version must start empty, otherwise its prompt names the created release note.");
         assertTrue(version.hasAttr("required"), "Creating a release note without a version is refused.");
+    }
+
+    /**
+     * The product field is pre-filled with the product name configured for the wiki, and no product name is shipped
+     * by default so that the administrator has to choose one. Its prompt therefore has to be a placeholder rather
+     * than a value: a value would be submitted as the product, and until a default is configured the placeholder is
+     * the only thing the field shows.
+     */
+    @Test
+    void theProductFieldPromptsWithAPlaceholder() throws Exception
+    {
+        Document html = renderHTMLPage(HOME_RELEASE_NOTES);
+
+        Element product = html.selectFirst("input[type=text]#product");
+        assertFalse(product.attr("placeholder").isEmpty(),
+            "Expected the product field to prompt with a placeholder, got: " + product);
     }
 
     private Element assertLabelled(Document html, String id)

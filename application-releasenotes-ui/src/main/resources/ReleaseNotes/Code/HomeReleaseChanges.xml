@@ -50,9 +50,10 @@
     #end
     #handleAddAction($product, $!request.version, $!request.queryString)
   #end
-  ## The version prompt is a placeholder attribute and not the input's own value: as a value it would give the field
-  ## no accessible name, and an untouched field would submit the prompt as the version. The version is marked required
-  ## because #handleAddAction refuses an empty one.
+  ## Both prompts are placeholder attributes and not the inputs' own value: as a value a prompt would give the field
+  ## no accessible name, and an untouched field would submit the prompt as the version. The product input still
+  ## carries a value because the configured default product name pre-fills it; its placeholder is what shows when no
+  ## default is configured. The version is marked required because #handleAddAction refuses an empty one.
   {{html clean='false'}}
     &lt;form class="form-inline"&gt;
       &lt;input type="hidden" name="action" value="addChange"/&gt;
@@ -60,7 +61,8 @@
       &lt;input type="hidden" name="type" value="Change"/&gt;
       &lt;div class="form-group"&gt;
         &lt;label for="product"&gt;$escapetool.xml($services.localization.render('releasenotes.changes.add.product.label'))&lt;/label&gt;
-        &lt;input id="product" class="form-control" type="text" name="product" value="$!escapetool.xml($defaultProduct)" size="16"/&gt;
+        &lt;input id="product" class="form-control" type="text" name="product" value="$!escapetool.xml($defaultProduct)" size="16"
+          placeholder="$escapetool.xml($services.localization.render('releasenotes.changes.add.product.placeholder'))"/&gt;
       &lt;/div&gt;
       &lt;div class="form-group"&gt;
         &lt;label for="version"&gt;$escapetool.xml($services.localization.render('releasenotes.changes.add.version.label'))&lt;/label&gt;
