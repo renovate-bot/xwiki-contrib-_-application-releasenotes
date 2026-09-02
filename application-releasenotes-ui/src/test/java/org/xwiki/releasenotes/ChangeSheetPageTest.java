@@ -30,6 +30,7 @@ import org.xwiki.edit.EditConfiguration;
 import org.xwiki.edit.internal.DefaultEditorDescriptorBuilder;
 import org.xwiki.edit.internal.DefaultEditorManager;
 import org.xwiki.edit.internal.TextSyntaxContentEditor;
+import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.page.HTML50ComponentList;
@@ -48,11 +49,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  */
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
-// The textarea properties of a change are edited through the editor components.
+// The textarea properties of a change are edited through the editor components, and the sheet displays its
+// conventions with the translation macro.
 @ComponentList({
     DefaultEditorManager.class,
     DefaultEditorDescriptorBuilder.class,
-    TextSyntaxContentEditor.class
+    TextSyntaxContentEditor.class,
+    TranslationMacro.class
 })
 class ChangeSheetPageTest extends PageTest
 {
@@ -115,6 +118,42 @@ class ChangeSheetPageTest extends PageTest
         Elements labels = html.select("dt label[for='" + pickerId + "']");
         assertEquals(1, labels.size(), "Expected the screenshots label to be bound to the picker.");
         assertEquals("select", html.select("#" + escapeCssIdentifier(pickerId)).get(0).tagName());
+    }
+
+    /**
+     * The form names each field with the pretty name of the class field itself, and not with a label of its own: a
+     * label declared here is a label free to end up saying one thing on this form and another one in the object
+     * editor or in the Live Data of the home page.
+     */
+    @Test
+    void everyEditedFieldIsNamedByTheLabelOfItsClassField() throws Exception
+    {
+        assertEquals(List.of(
+            "ReleaseNotes.Code.EntryClass_product",
+            "ReleaseNotes.Code.EntryClass_version",
+            "ReleaseNotes.Code.Change.ChangeClass_title",
+            "ReleaseNotes.Code.Change.ChangeClass_audience",
+            "ReleaseNotes.Code.Change.ChangeClass_category",
+            "ReleaseNotes.Code.Change.ChangeClass_importance",
+            "ReleaseNotes.Code.Change.ChangeClass_summary",
+            "ReleaseNotes.Code.Change.ChangeClass_screenshots",
+            "ReleaseNotes.Code.Change.ChangeClass_description"),
+            renderChangeInEditMode().select("dt label").eachText());
+    }
+
+    /**
+     * The conventions the form states are prose an author reads, so they go through the translation bundle like the
+     * rest of the form.
+     */
+    @Test
+    void theConventionsOfTheFormAreTranslated() throws Exception
+    {
+        assertEquals(List.of(
+            "releasenotes.change.conventions.noDeveloperScreenshots",
+            "releasenotes.change.conventions.userMiscellaneous",
+            "releasenotes.change.conventions.developerMiscellaneous",
+            "releasenotes.change.conventions.optionalTitle"),
+            renderChangeInEditMode().select("ul li").eachText());
     }
 
     private Document renderChangeInEditMode() throws Exception

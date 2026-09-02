@@ -162,7 +162,7 @@
 #set ($contributorsObject = $contributorsDoc.getObject("ReleaseNotes.Code.ContributorsClass"))
 #set ($contributors = "$!contributorsObject.getValue('contributors')")
 #if ($contributors != '')
-The following people have contributed code to this release (sorted alphabetically):
+{{translation key="releasenotes.contributors.intro"/}}
 
 ## Sort the contributor names alphabetically, ignoring case, before rendering them.
 #set ($sortedContributors = [])
@@ -183,7 +183,7 @@ The following people have contributed code to this release (sorted alphabeticall
 * $services.rendering.escape($contributor, 'xwiki/2.1')
 #end
 #else
-{{warning}}The list of contributors has not been generated yet.{{/warning}}
+{{warning}}{{translation key="releasenotes.contributors.notGenerated"/}}{{/warning}}
 #end
 ## Edit affordance: only for editors on a not-yet-released note, mirroring the changes macro.
 #set ($released = "$!doc.getValue('released')")
@@ -208,7 +208,7 @@ The following people have contributed code to this release (sorted alphabeticall
   &lt;input type="hidden" name="type" value="Contributors"/&gt;
   &lt;input type="hidden" name="xredirect" value="$escapetool.xml($doc.getURL('view'))"/&gt;
   &lt;span class="buttonwrapper"&gt;
-    &lt;input class="button" type="submit" value="Add contributors"/&gt;
+    &lt;input class="button" type="submit" value="$escapetool.xml($services.localization.render('releasenotes.contributors.submit'))"/&gt;
   &lt;/span&gt;
 &lt;/form&gt;
 {{/html}}

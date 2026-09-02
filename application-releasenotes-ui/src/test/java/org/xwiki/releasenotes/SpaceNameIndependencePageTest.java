@@ -22,10 +22,12 @@ package org.xwiki.releasenotes;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.rendering.wikimacro.internal.WikiMacroFactoryComponentClass;
+import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.page.HTML50ComponentList;
 import org.xwiki.test.page.PageTest;
 import org.xwiki.test.page.WikiMacroSetup;
@@ -49,6 +51,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
 @WikiMacroFactoryComponentClass
+// The pages under test display their strings with the translation macro.
+@ComponentList(TranslationMacro.class)
 class SpaceNameIndependencePageTest extends PageTest
 {
     private static final List<String> CHANGE_SPACES = List.of("ReleaseNotes", "Code", "Change");

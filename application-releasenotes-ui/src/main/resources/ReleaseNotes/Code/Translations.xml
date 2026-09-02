@@ -36,10 +36,85 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
-  <content>admin.releasenotes=Release Notes
+  <content># Administration section
+
+admin.releasenotes=Release Notes
 admin.releasenotes.description=Set the defaults used when creating a new release note.
+
+# XClass field labels, hints and list values. XWiki resolves the label of a field as
+# "&lt;class reference&gt;_&lt;field name&gt;", the hint below it as that key suffixed with ".hint", and the label of a
+# static list value as the field key suffixed with "_&lt;stored value&gt;". The sheets display their form labels from
+# these very keys, so that a field cannot be named one way on its form and another way in the object editor.
+
+ReleaseNotes.Code.EntryClass_product=Product
+ReleaseNotes.Code.EntryClass_version=Version
+ReleaseNotes.Code.EntryClass_type=Type
+ReleaseNotes.Code.EntryClass_type_Change=Change
+ReleaseNotes.Code.EntryClass_type_Contributors=Contributors
+ReleaseNotes.Code.Change.ChangeClass_category=Category
+ReleaseNotes.Code.Change.ChangeClass_title=Title
+ReleaseNotes.Code.Change.ChangeClass_summary=Short Description
+ReleaseNotes.Code.Change.ChangeClass_description=Additional Description (Optional)
+ReleaseNotes.Code.Change.ChangeClass_screenshots=Screenshots
+ReleaseNotes.Code.Change.ChangeClass_audience=Target Audience
+ReleaseNotes.Code.Change.ChangeClass_audience_user=User
+ReleaseNotes.Code.Change.ChangeClass_audience_administrator=Administrator
+ReleaseNotes.Code.Change.ChangeClass_audience_developer=Developer
+ReleaseNotes.Code.Change.ChangeClass_importance=Importance
+ReleaseNotes.Code.Change.ChangeClass_importance_2=High
+ReleaseNotes.Code.Change.ChangeClass_importance_1=Medium
+ReleaseNotes.Code.Change.ChangeClass_importance_0=Low
+ReleaseNotes.Code.ReleaseNoteClass_product=Product
+ReleaseNotes.Code.ReleaseNoteClass_version=Version
+ReleaseNotes.Code.ReleaseNoteClass_released=Is Released?
+ReleaseNotes.Code.ReleaseNoteClass_date=Release Date
+ReleaseNotes.Code.ContributorsClass_contributors=Contributors
+ReleaseNotes.Code.ContributorsClass_contributors.hint=One contributor name per line.
+ReleaseNotes.Code.ReleaseNotesConfigClass_product=Default Product Name
 ReleaseNotes.Code.ReleaseNotesConfigClass_product.hint=The product name pre-filled in the release note creation form. Leave it empty when the wiki holds release notes for several products.
+ReleaseNotes.Code.ReleaseNotesConfigClass_template=Template Reference
 ReleaseNotes.Code.ReleaseNotesConfigClass_template.hint=The page whose title and content are copied into each newly created release note. Existing release notes are not affected.
+
+# Application home page
+
+releasenotes.applicationsPanelEntryLabel=Release Notes
+releasenotes.home.migrationNeeded=Some release changes still use the old 1.x format and need to be migrated to the 2.0 format. Until this migration is performed, every release note using those changes displays empty. {0}Start the migration{1}.
+releasenotes.home.releasenotes.heading=Release Notes
+releasenotes.home.changes.heading=Release Changes
+releasenotes.home.changes.description=A release note is made of several changes. You'll find below all the release changes.
+releasenotes.home.reports.heading=Custom Reports
+releasenotes.home.reports.description=You can generate some custom reports from release changes.
+releasenotes.home.reports.notes=Notes:
+releasenotes.home.reports.notes.lists=Lists are allowed by using commas (e.g. "High,Medium")
+releasenotes.home.reports.notes.wildcards=Wildcards are allowed (e.g. "8.3%")
+
+# Release note creation form, on the application home page
+
+releasenotes.releases.add.product.label=Product
+releasenotes.releases.add.product.placeholder=e.g. XWiki
+releasenotes.releases.add.version.label=Version
+releasenotes.releases.add.version.placeholder=e.g. 8.3-milestone-1
+releasenotes.releases.add.submit=Add Release Note
+releasenotes.releases.add.alreadyExists=A release note already exists for version {0}. {1}Open it{2}.
+
+# Release notes Live Data, on the application home page
+
+releasenotes.releases.livedata.product=Product
+releasenotes.releases.livedata.version=Version
+releasenotes.releases.livedata.released=Released?
+releasenotes.releases.livedata.date=Release Date
+releasenotes.releases.livedata.emptyvalue=
+
+# Release change creation form, on the application home page
+
+releasenotes.changes.add.product.label=Product
+releasenotes.changes.add.product.placeholder=e.g. XWiki
+releasenotes.changes.add.version.label=Version
+releasenotes.changes.add.version.placeholder=e.g. 8.3-milestone-1
+releasenotes.changes.add.submit=Add Release Change
+
+# Release changes Live Data, on the application home page
+
 releasenotes.changes.livedata.version=Version
 releasenotes.changes.livedata.category=Category
 releasenotes.changes.livedata.audience=Audience
@@ -49,30 +124,14 @@ releasenotes.changes.livedata.title=Title
 releasenotes.changes.livedata.importance=Importance
 releasenotes.changes.livedata.product=Product
 releasenotes.changes.livedata.emptyvalue=
-releasenotes.changes.truncated=This release note has more changes than the ones displayed here. Raise the "limit" parameter of the "releasenotechanges" macro to display them all.
-releasenotes.applicationsPanelEntryLabel=Release Notes
-releasenotes.releases.livedata.product=Product
-releasenotes.releases.livedata.version=Version
-releasenotes.releases.livedata.released=Released?
-releasenotes.releases.livedata.date=Release Date
-releasenotes.releases.livedata.emptyvalue=
-releasenotes.report.screenshots.any=With and Without Screenshots
-releasenotes.report.screenshots.with=With Screenshots
-releasenotes.report.screenshots.without=Without Screenshots
-releasenotes.report.previous=Previous changes
-releasenotes.report.next=Next changes
-releasenotes.change.screenshots.placeholder=Select or upload screenshots and videos...
-releasenotes.change.view=View this change
-releasenotes.entry.notReserved=Could not take a page for the new change. Please try again.
-releasenotes.releases.add.product.label=Product
-releasenotes.releases.add.product.placeholder=e.g. XWiki
-releasenotes.releases.add.version.label=Version
-releasenotes.releases.add.version.placeholder=e.g. 8.3-milestone-1
-releasenotes.changes.add.product.label=Product
-releasenotes.changes.add.product.placeholder=e.g. XWiki
-releasenotes.changes.add.version.label=Version
-releasenotes.changes.add.version.placeholder=e.g. 8.3-milestone-1
+
+# Custom report form, on the application home page, and the report page it leads to
+
 releasenotes.report.displayer.label=Layout
+releasenotes.report.displayer.grid=Grid
+releasenotes.report.displayer.flow=Flow
+releasenotes.report.displayer.simple=Simple
+releasenotes.report.displayer.list=List
 releasenotes.report.products.label=Products
 releasenotes.report.products.placeholder=All products
 releasenotes.report.versions.label=Versions
@@ -83,16 +142,57 @@ releasenotes.report.audience.label=Audience
 releasenotes.report.audience.placeholder=Any audience
 releasenotes.report.importance.label=Importance
 releasenotes.report.importance.placeholder=Any importance
-releasenotes.change.field.product=Product
-releasenotes.change.field.version=Version
-releasenotes.change.field.title=Title
-releasenotes.change.field.audience=Target Audience
-releasenotes.change.field.category=Category
-releasenotes.change.field.importance=Importance
-releasenotes.change.field.summary=Summary
-releasenotes.change.field.screenshots=Screenshots
-releasenotes.change.field.description=Extra Description (optional)
-releasenotes.contributors.field.contributors=Contributors (one per line)</content>
+releasenotes.report.screenshots.any=With and Without Screenshots
+releasenotes.report.screenshots.with=With Screenshots
+releasenotes.report.screenshots.without=Without Screenshots
+releasenotes.report.submit=Generate Report
+releasenotes.report.previous=Previous changes
+releasenotes.report.next=Next changes
+
+# Migration of the release changes from the 1.x format
+
+releasenotes.migration.pending=The following pages need to be migrated:
+releasenotes.migration.migrated=The following pages have been migrated:
+releasenotes.migration.start=Start Migration
+
+# Release note body, section by section. The audiences repeat the same English wording, but each section is a
+# sentence of its own and translating one must not decide the wording of the two others.
+
+releasenotes.changes.user.heading=For Users
+releasenotes.changes.user.submit=Add User Change
+releasenotes.changes.user.nochanges=No changes!
+releasenotes.changes.user.miscellaneous=Miscellaneous
+releasenotes.changes.admin.heading=For Admins
+releasenotes.changes.admin.submit=Add Admin Change
+releasenotes.changes.admin.nochanges=No changes!
+releasenotes.changes.admin.miscellaneous=Miscellaneous
+releasenotes.changes.developer.heading=For Developers
+releasenotes.changes.developer.submit=Add Developer Change
+releasenotes.changes.developer.nochanges=No changes!
+releasenotes.changes.developer.miscellaneous=Miscellaneous
+releasenotes.changes.truncated=This release note has more changes than the ones displayed here. Raise the "limit" parameter of the "releasenotechanges" macro to display them all.
+releasenotes.changes.display.nochanges=No changes!
+
+# Contributors list of a release note
+
+releasenotes.contributors.intro=The following people have contributed code to this release (sorted alphabetically):
+releasenotes.contributors.notGenerated=The list of contributors has not been generated yet.
+releasenotes.contributors.submit=Add contributors
+
+# Release change page and its edit form
+
+releasenotes.change.conventions.heading=Conventions:
+releasenotes.change.conventions.noDeveloperScreenshots=Screenshots should not be filled for the Developer audience.
+releasenotes.change.conventions.userMiscellaneous=For entering Miscellaneous changes for Users, don't set any screenshots.
+releasenotes.change.conventions.developerMiscellaneous=For entering Miscellaneous changes for Developers, set the importance to Low.
+releasenotes.change.conventions.optionalTitle=When entering a Miscellaneous change, the title is optional. If set, the summary is prefixed by it.
+releasenotes.change.screenshots.placeholder=Select or upload screenshots and videos...
+releasenotes.change.view=View this change
+
+# Creation of a release note entry
+
+releasenotes.entry.versionRequired=A version is required to create a new release note entry.
+releasenotes.entry.notReserved=Could not take a page for the new change. Please try again.</content>
   <object>
     <name>ReleaseNotes.Code.Translations</name>
     <number>0</number>

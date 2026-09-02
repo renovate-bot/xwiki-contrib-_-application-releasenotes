@@ -25,6 +25,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.script.ModelScriptService;
@@ -56,8 +57,9 @@ import static org.mockito.Mockito.when;
  */
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
-// The macro addresses the pages of the release note through $services.model.
-@ComponentList(ModelScriptService.class)
+// The macro addresses the pages of the release note through $services.model, and displays its error messages
+// with the translation macro.
+@ComponentList({ ModelScriptService.class, TranslationMacro.class })
 class AddChangePageTest extends PageTest
 {
     private static final DocumentReference ENTRY_VELOCITY_MACROS =

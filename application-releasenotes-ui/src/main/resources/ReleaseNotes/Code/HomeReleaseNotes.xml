@@ -75,7 +75,13 @@ $!xwiki.jsx.use("ReleaseNotes.Code.HomeReleaseNotes")
       $response.sendRedirect($xwiki.getURL($services.model.serialize($rnPageReference)))
     #else
 
-      {{error}}That release notes already exists!{{/error}}
+      ## The message names the release note that already exists and links to it: an author who lands here has typed
+      ## a version by hand and needs to see which note that version is taken by. The link sits in the middle of the
+      ## sentence, so its markup is built here and passed as parameters rather than left in the translation value,
+      ## where it would be escaped instead of rendered.
+      #set ($alreadyExistsParameters = [$services.rendering.escape($version, 'xwiki/2.1'), '[[',
+        "&gt;&gt;path:$rnDoc.getURL('view')]]"])
+      {{error}}$services.localization.render('releasenotes.releases.add.alreadyExists', $alreadyExistsParameters){{/error}}
 
     #end
   #end
@@ -98,7 +104,7 @@ $!xwiki.jsx.use("ReleaseNotes.Code.HomeReleaseNotes")
           placeholder="$escapetool.xml($services.localization.render('releasenotes.releases.add.version.placeholder'))"/&gt;
       &lt;/div&gt;
       &lt;span class="buttonwrapper"&gt;
-        &lt;input class="button" type="submit" value="Add Release Note"/&gt;
+        &lt;input class="button" type="submit" value="$escapetool.xml($services.localization.render('releasenotes.releases.add.submit'))"/&gt;
       &lt;/span&gt;
     &lt;/form&gt;
   {{/html}}

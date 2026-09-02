@@ -70,7 +70,7 @@
           placeholder="$escapetool.xml($services.localization.render('releasenotes.changes.add.version.placeholder'))"/&gt;
       &lt;/div&gt;
       &lt;span class="buttonwrapper"&gt;
-        &lt;input class="button" type="submit" value="Add Release Change"/&gt;
+        &lt;input class="button" type="submit" value="$escapetool.xml($services.localization.render('releasenotes.changes.add.submit'))"/&gt;
       &lt;/span&gt;
     &lt;/form&gt;
   {{/html}}

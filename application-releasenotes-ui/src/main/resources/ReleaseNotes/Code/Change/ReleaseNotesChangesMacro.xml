@@ -167,11 +167,8 @@
 ## complete while it is not: this is the only sign an author gets that the limit needs raising.
 #macro (displayTruncationWarning $hasMore $miscHasMore)
   #if ($hasMore || $miscHasMore)
-    #set ($message = $services.localization.render('releasenotes.changes.truncated'))
-    #set ($message = $services.rendering.escape($message, 'xwiki/2.1'))
-
 (% class="box warningmessage" %)(((
-$message
+{{translation key="releasenotes.changes.truncated"/}}
 )))
   #end
 #end
@@ -203,7 +200,7 @@ $message
 ## Decide whether or not display edit links for changes: only display them when the current user has edit rights on
 ## the current page
 #set ($displayEditLink = $hasEdit)
-== For Users ==
+== {{translation key="releasenotes.changes.user.heading"/}} ==
 #if ("$!request.action" == 'useradd')
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
 #end
@@ -216,7 +213,7 @@ $message
   &lt;input type="hidden" name="version" value="$version"/&gt;
   &lt;input type="hidden" name="audience" value="user"/&gt;
   &lt;span class="buttonwrapper"&gt;
-    &lt;input class="button" type="submit" value="Add User Change"/&gt;
+    &lt;input class="button" type="submit" value="$escapetool.xml($services.localization.render('releasenotes.changes.user.submit'))"/&gt;
   &lt;/span&gt;
 &lt;/form&gt;
 {{/html}}
@@ -236,7 +233,7 @@ $message
 #removeExcludedChanges($userMiscChanges)
 #if ($userChanges.size() == 0)
   #if ($userMiscChanges.size() == 0)
-    No changes!
+    {{translation key="releasenotes.changes.user.nochanges"/}}
   #else
     {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="userMiscChanges"/}}
   #end
@@ -244,13 +241,13 @@ $message
   {{displayChanges displayer="simple" displayEditLink="$displayEditLink" contextVariable="userChanges"/}}
 
   #if ($userMiscChanges.size() &gt; 0)
-    === Miscellaneous ===
+    === {{translation key="releasenotes.changes.user.miscellaneous"/}} ===
 
     {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="userMiscChanges"/}}
   #end
 #end
 #displayTruncationWarning($userChangesHasMore, $userMiscChangesHasMore)
-== For Admins ==
+== {{translation key="releasenotes.changes.admin.heading"/}} ==
 #if ("$!request.action" == 'adminadd')
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
 #end
@@ -263,7 +260,7 @@ $message
   &lt;input type="hidden" name="version" value="$version"/&gt;
   &lt;input type="hidden" name="audience" value="administrator"/&gt;
   &lt;span class="buttonwrapper"&gt;
-    &lt;input class="button" type="submit" value="Add Admin Change"/&gt;
+    &lt;input class="button" type="submit" value="$escapetool.xml($services.localization.render('releasenotes.changes.admin.submit'))"/&gt;
   &lt;/span&gt;
 &lt;/form&gt;
 {{/html}}
@@ -283,7 +280,7 @@ $message
 #removeExcludedChanges($adminMiscChanges)
 #if ($adminChanges.size() == 0)
   #if ($adminMiscChanges.size() == 0)
-    No changes!
+    {{translation key="releasenotes.changes.admin.nochanges"/}}
   #else
     {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="adminMiscChanges"/}}
   #end
@@ -291,13 +288,13 @@ $message
   {{displayChanges displayer="simple" displayEditLink="$displayEditLink" contextVariable="adminChanges"/}}
 
   #if ($adminMiscChanges.size() &gt; 0)
-    === Miscellaneous ===
+    === {{translation key="releasenotes.changes.admin.miscellaneous"/}} ===
 
     {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="adminMiscChanges"/}}
   #end
 #end
 #displayTruncationWarning($adminChangesHasMore, $adminMiscChangesHasMore)
-== For Developers ==
+== {{translation key="releasenotes.changes.developer.heading"/}} ==
 #if ("$!request.action" == 'devadd')
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
 #end
@@ -310,7 +307,7 @@ $message
   &lt;input type="hidden" name="version" value="$version"/&gt;
   &lt;input type="hidden" name="audience" value="developer"/&gt;
   &lt;span class="buttonwrapper"&gt;
-    &lt;input class="button" type="submit" value="Add Developer Change"/&gt;
+    &lt;input class="button" type="submit" value="$escapetool.xml($services.localization.render('releasenotes.changes.developer.submit'))"/&gt;
   &lt;/span&gt;
 &lt;/form&gt;
 {{/html}}
@@ -330,7 +327,7 @@ $message
 #removeExcludedChanges($devMiscChanges)
 #if ($devChanges.size() == 0)
   #if ($devMiscChanges.size() == 0)
-    No changes!
+    {{translation key="releasenotes.changes.developer.nochanges"/}}
   #else
     {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="devMiscChanges"/}}
   #end
@@ -338,7 +335,7 @@ $message
   {{displayChanges displayer="simple" displayEditLink="$displayEditLink" contextVariable="devChanges"/}}
 
   #if ($devMiscChanges.size() &gt; 0)
-    === Miscellaneous ===
+    === {{translation key="releasenotes.changes.developer.miscellaneous"/}} ===
 
     {{displayChanges displayer="list" displayEditLink="$displayEditLink" contextVariable="devMiscChanges"/}}
   #end

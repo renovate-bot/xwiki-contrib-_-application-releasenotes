@@ -31,10 +31,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.rendering.wikimacro.internal.WikiMacroFactoryComponentClass;
+import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.page.HTML50ComponentList;
 import org.xwiki.test.page.PageTest;
 import org.xwiki.test.page.WikiMacroSetup;
@@ -56,6 +58,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
 @WikiMacroFactoryComponentClass
+// The pages under test display their strings with the translation macro.
+@ComponentList(TranslationMacro.class)
 class DisplayChangesMacroPageTest extends PageTest
 {
     private static final List<String> CHANGE_SPACE = List.of("ReleaseNotes", "Code", "Change");
@@ -209,7 +213,7 @@ class DisplayChangesMacroPageTest extends PageTest
 
         String text = render("", "otherChangeDocs", change).text();
 
-        assertEquals("No changes!", text);
+        assertEquals("releasenotes.changes.display.nochanges", text);
         assertFalse(text.contains(TITLE), "Expected no change at all to be displayed.");
     }
 

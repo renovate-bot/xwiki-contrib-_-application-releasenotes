@@ -31,11 +31,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
+import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.query.internal.ScriptQuery;
 import org.xwiki.query.script.QueryManagerScriptService;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.rendering.wikimacro.internal.WikiMacroFactoryComponentClass;
+import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.test.page.HTML50ComponentList;
 import org.xwiki.test.page.PageTest;
@@ -63,6 +65,8 @@ import static org.mockito.Mockito.when;
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
 @WikiMacroFactoryComponentClass
+// The pages under test display their strings with the translation macro.
+@ComponentList(TranslationMacro.class)
 class ReleaseNotesChangesMacroPageTest extends PageTest
 {
     private static final DocumentReference RELEASE_NOTES_CHANGES_MACRO =

@@ -64,24 +64,24 @@
     {{html clean='false'}}&lt;a class='releasenotes-view-change' title='$viewText' href='$viewURL'&gt;$services.icon.renderHTML('eye')&lt;span class='sr-only'&gt;$viewText&lt;/span&gt;&lt;/a&gt;{{/html}}
 
   #end
-  Conventions:
-  * Screenshots should not be filled for Developer audience
-  * For entering Miscellaneous changes for Users, don't set any screenshots
-  * For entering Miscellaneous changes for Developers, set the importance to Low
-  * When entering a Miscellaneous change, the title is optional. If set, the summary will be prefixed by it.
+  {{translation key="releasenotes.change.conventions.heading"/}}
+  * {{translation key="releasenotes.change.conventions.noDeveloperScreenshots"/}}
+  * {{translation key="releasenotes.change.conventions.userMiscellaneous"/}}
+  * {{translation key="releasenotes.change.conventions.developerMiscellaneous"/}}
+  * {{translation key="releasenotes.change.conventions.optionalTitle"/}}
 
   (% class='xform col-xs-12' %)(((
-  #displayEntryField('releasenotes.change.field.product', $entryObject, 'product', '')
-  #displayEntryField('releasenotes.change.field.version', $entryObject, 'version', '')
-  #displayEntryField('releasenotes.change.field.title', $changeObject, 'title', '')
-  #displayEntryField('releasenotes.change.field.audience', $changeObject, 'audience', '')
-  #displayEntryField('releasenotes.change.field.category', $changeObject, 'category', '')
-  #displayEntryField('releasenotes.change.field.importance', $changeObject, 'importance', '')
-  #displayEntryField('releasenotes.change.field.summary', $changeObject, 'summary', '')
+  #displayEntryField($entryObject, 'product', '')
+  #displayEntryField($entryObject, 'version', '')
+  #displayEntryField($changeObject, 'title', '')
+  #displayEntryField($changeObject, 'audience', '')
+  #displayEntryField($changeObject, 'category', '')
+  #displayEntryField($changeObject, 'importance', '')
+  #displayEntryField($changeObject, 'summary', '')
   ## The screenshots displayer names its picker apart from the property, the property value itself being carried by
   ## a hidden input. The label must point at the picker, which is the control the author interacts with.
-  #displayEntryField('releasenotes.change.field.screenshots', $changeObject, 'screenshots', '_picker')
-  #displayEntryField('releasenotes.change.field.description', $changeObject, 'description', '')
+  #displayEntryField($changeObject, 'screenshots', '_picker')
+  #displayEntryField($changeObject, 'description', '')
   )))
 #else
   ## The page title is the change title, so the text comes first and the media closes the page: a reader arriving
