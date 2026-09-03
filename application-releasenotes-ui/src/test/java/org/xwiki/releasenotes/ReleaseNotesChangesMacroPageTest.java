@@ -35,6 +35,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.script.ModelScriptService;
 import org.xwiki.query.internal.ScriptQuery;
 import org.xwiki.query.script.QueryManagerScriptService;
 import org.xwiki.rendering.syntax.Syntax;
@@ -48,9 +49,12 @@ import org.xwiki.test.page.XWikiSyntax21ComponentList;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.web.XWikiServletResponseStub;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -67,8 +71,9 @@ import static org.mockito.Mockito.when;
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
 @WikiMacroFactoryComponentClass
-// The pages under test display their strings with the translation macro.
-@ComponentList(TranslationMacro.class)
+// The pages under test display their strings with the translation macro, and reserve the page of a new change
+// through $services.model.
+@ComponentList({ TranslationMacro.class, ModelScriptService.class })
 class ReleaseNotesChangesMacroPageTest extends PageTest
 {
     private static final DocumentReference RELEASE_NOTES_CHANGES_MACRO =
@@ -81,6 +86,8 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
         new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "ReleaseNoteClass");
 
     private static final String PRODUCT = "XWiki";
+
+    private static final String VALID_TOKEN = "valid-token";
 
     /** The clause selecting the changes that do have a screenshot. */
     private static final String HAS_SCREENSHOTS =
@@ -112,6 +119,9 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
 
     /** The values bound to each of those queries, by parameter name. */
     private final List<Map<String, String>> bindings = new ArrayList<>();
+
+    /** Where a submitted add-change action redirected the author, i.e. the page it reserved, or {@code null}. */
+    private String redirect;
 
     @BeforeEach
     void setUp() throws Exception
@@ -315,6 +325,79 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
                 boundValues(index, "version"),
                 "The aggregated versions must reach the query as their own filters, with their own values.");
         }
+    }
+
+    /**
+     * A release note only offers its "Add Change" button to an editor while it is not released, so a request to add
+     * a change to a released note is one its own pages never send. The button being hidden is not on its own what
+     * stops the request from being honoured: the action must be handled under the same condition that shows it.
+     */
+    @Test
+    void aReleasedNoteDoesNotHandleTheAddChangeAction() throws Exception
+    {
+        assertNull(submitAddChangeAction("1"),
+            "A released release note must not reserve a change from a submitted add-change action.");
+    }
+
+    /**
+     * The counterpart of the above: an editor's add-change action on a note that is not released is handled, which
+     * is what tells the guard above apart from one that would refuse every request.
+     */
+    @Test
+    void anEditableUnreleasedNoteHandlesTheAddChangeAction() throws Exception
+    {
+        assertNotNull(submitAddChangeAction("0"),
+            "An editor's add-change action on a note that is not released must reserve the change it redirects to.");
+    }
+
+    /**
+     * Renders a release note while a {@code useradd} action, carrying a valid form token, is submitted against it
+     * by a user who can edit it, i.e. the request the note's own "Add Change" button sends, and returns where the
+     * note redirected the author, that is the page it reserved for the new change, or {@code null} when the action
+     * was not handled.
+     *
+     * @param released the value stored in the {@code released} field of the release note xobject
+     */
+    private String submitAddChangeAction(String released) throws Exception
+    {
+        // The action is submitted the way the note's own button submits it: by an editor, with a valid token.
+        registerVelocityTool("hasEdit", true);
+        this.componentManager.registerComponent(ScriptService.class, "csrf",
+            new CSRFTokenScriptServiceStub(VALID_TOKEN));
+        this.request.put("action", "useradd");
+        this.request.put("form_token", VALID_TOKEN);
+        // Reserving the page of a new change saves it, which the application is allowed to do on the author's behalf.
+        when(this.oldcore.getMockRightService().hasAccessLevel(anyString(), anyString(), anyString(), any()))
+            .thenReturn(true);
+        when(this.oldcore.getMockRightService().hasProgrammingRights(any())).thenReturn(true);
+        this.redirect = null;
+        this.context.setResponse(new XWikiServletResponseStub()
+        {
+            @Override
+            public void sendRedirect(String location)
+            {
+                ReleaseNotesChangesMacroPageTest.this.redirect = location;
+            }
+        });
+        // No change exists yet, so a handled action reserves the first one.
+        when(this.query.execute()).thenReturn(List.of());
+
+        // The action is handled by #handleAddAction, which the macro includes from this page.
+        loadPage(new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "EntryVelocityMacros"));
+        loadPage(RELEASE_NOTE_CLASS);
+        XWikiDocument releaseNote = new XWikiDocument(new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", PRODUCT, "8.3"), "WebHome"));
+        releaseNote.setSyntax(Syntax.XWIKI_2_1);
+        BaseObject releaseNoteObject = releaseNote.newXObject(RELEASE_NOTE_CLASS, this.context);
+        releaseNoteObject.setStringValue("product", PRODUCT);
+        releaseNoteObject.setStringValue("version", "8.3");
+        releaseNoteObject.setStringValue("released", released);
+        releaseNote.setContent("{{releasenotechanges limit=\"100\"/}}");
+        this.xwiki.saveDocument(releaseNote, this.context);
+        this.context.setDoc(releaseNote);
+
+        renderHTMLPage(releaseNote);
+        return this.redirect;
     }
 
     private void assertSectionQuery(int index, String expectedAudience, String expectedScreenshotClause,

@@ -208,7 +208,9 @@
 ## the current page
 #set ($displayEditLink = $hasEdit)
 == {{translation key="releasenotes.changes.user.heading"/}} ==
-#if ("$!request.action" == 'useradd' &amp;&amp; $services.csrf.isTokenValid($request.getParameter('form_token')))
+## Handle the action only under the same condition that shows its button: the current user can edit the note and
+## the note is not released. The button being hidden otherwise is not by itself what keeps the action from running.
+#if ($hasEdit &amp;&amp; $released != '1' &amp;&amp; "$!request.action" == 'useradd' &amp;&amp; $services.csrf.isTokenValid($request.getParameter('form_token')))
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
 #end
 #if ($hasEdit &amp;&amp; $released != '1')
@@ -256,7 +258,7 @@
 #end
 #displayTruncationWarning($userChangesHasMore, $userMiscChangesHasMore)
 == {{translation key="releasenotes.changes.admin.heading"/}} ==
-#if ("$!request.action" == 'adminadd' &amp;&amp; $services.csrf.isTokenValid($request.getParameter('form_token')))
+#if ($hasEdit &amp;&amp; $released != '1' &amp;&amp; "$!request.action" == 'adminadd' &amp;&amp; $services.csrf.isTokenValid($request.getParameter('form_token')))
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
 #end
 #if ($hasEdit &amp;&amp; $released != '1')
@@ -304,7 +306,7 @@
 #end
 #displayTruncationWarning($adminChangesHasMore, $adminMiscChangesHasMore)
 == {{translation key="releasenotes.changes.developer.heading"/}} ==
-#if ("$!request.action" == 'devadd' &amp;&amp; $services.csrf.isTokenValid($request.getParameter('form_token')))
+#if ($hasEdit &amp;&amp; $released != '1' &amp;&amp; "$!request.action" == 'devadd' &amp;&amp; $services.csrf.isTokenValid($request.getParameter('form_token')))
   #handleAddAction($product, $version, "${request.queryString}&amp;xredirect=$doc.getURL('view')")
 #end
 #if ($hasEdit &amp;&amp; $released != '1')
