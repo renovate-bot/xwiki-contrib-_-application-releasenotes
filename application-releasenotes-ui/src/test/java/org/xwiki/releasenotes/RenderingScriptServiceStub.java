@@ -52,6 +52,22 @@ public class RenderingScriptServiceStub implements ScriptService
     }
 
     /**
+     * @return an escaper prefixing every character with the XWiki 2.x escape character, which is what the
+     *         platform's own escaping does, so that a value routed through it reaches the wiki syntax parser as
+     *         plain text and comes back out of it unchanged
+     */
+    public static UnaryOperator<String> xwikiSyntaxEscaper()
+    {
+        return content -> {
+            StringBuilder result = new StringBuilder(content.length() * 2);
+            for (char character : content.toCharArray()) {
+                result.append('~').append(character);
+            }
+            return result.toString();
+        };
+    }
+
+    /**
      * @param content the content to escape
      * @param syntaxId the identifier of the syntax the content is escaped for (ignored by this stand-in)
      * @return the content transformed by the configured function
