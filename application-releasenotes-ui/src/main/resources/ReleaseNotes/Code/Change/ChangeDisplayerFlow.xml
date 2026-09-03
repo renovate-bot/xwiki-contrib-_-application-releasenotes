@@ -60,7 +60,7 @@
   $changeDoc.display('summary', 'view', $changeObject)
   #set ($description = $changeObject.getValue('description'))
   #if ("$!description" != '')
-    [[More details&gt;&gt;doc:$changeDoc.documentReference]]
+    [[${moreDetailsLabel}&gt;&gt;doc:$changeDoc.documentReference]]
   #end
   )))
   )))

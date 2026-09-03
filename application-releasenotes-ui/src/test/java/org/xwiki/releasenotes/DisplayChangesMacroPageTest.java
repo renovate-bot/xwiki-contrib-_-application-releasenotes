@@ -81,6 +81,12 @@ class DisplayChangesMacroPageTest extends PageTest
     private static final String SUMMARY = "What the first change brings";
 
     /**
+     * The translation key of the label of the link towards the page of a change, which is what a page test displays
+     * in place of the label itself since it registers no translation bundle.
+     */
+    private static final String MORE_DETAILS_KEY = "releasenotes.changes.display.moreDetails";
+
+    /**
      * Serializes a change reference the way the getChanges query returns it, i.e. as the local reference of the page,
      * with the dots of the version space escaped.
      */
@@ -133,8 +139,26 @@ class DisplayChangesMacroPageTest extends PageTest
         Document html = render("displayer=\"simple\"", first, second);
 
         assertEquals(List.of(TITLE, "A second change"), html.select("h3").eachText());
-        // Only the change that has a description is worth opening.
-        assertEquals(List.of("More details"), html.select("a").eachText());
+        // Only the change that has a description is worth opening. A page test registers no translation bundle, so
+        // the label of the link renders as its own key.
+        assertEquals(List.of(MORE_DETAILS_KEY), html.select("a").eachText());
+    }
+
+    /**
+     * The link towards the page of a change is one of the strings the application displays, so its label comes from
+     * the translation bundle rather than being hardcoded in English.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = { "simple", "grid", "flow" })
+    void theMoreDetailsLabelComesFromTheTranslationBundle(String displayer) throws Exception
+    {
+        DocumentReference change = createChange("Entry001", TITLE, SUMMARY, "The long story");
+
+        Document html = render(String.format("displayer=\"%s\"", displayer), change);
+
+        assertEquals(List.of(MORE_DETAILS_KEY), html.select("a").eachText(),
+            String.format("The \"%s\" displayer does not take the label from the bundle: %s", displayer,
+                html.body().html()));
     }
 
     /**
