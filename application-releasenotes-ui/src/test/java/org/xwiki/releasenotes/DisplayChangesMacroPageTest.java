@@ -246,6 +246,25 @@ class DisplayChangesMacroPageTest extends PageTest
             "The title must still be displayed, as inert text: " + html.text());
     }
 
+    /**
+     * The title of a change is optional, and a change that has none is nothing but its summary. Displaying it under
+     * a heading holding no text at all gives the release note an empty section, which the table of contents of the
+     * release note template then lists as an empty entry.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = { "simple", "list", "grid", "flow" })
+    void changeWithNoTitleGetsNoHeadingAtAll(String displayer) throws Exception
+    {
+        DocumentReference change = createChange("Entry001", "", SUMMARY, "");
+
+        Document html = render(String.format("displayer=\"%s\"", displayer), change);
+
+        assertTrue(html.select("h3").isEmpty(),
+            String.format("The \"%s\" displayer gave a change with no title a heading: %s", displayer,
+                html.body().html()));
+        assertTrue(html.text().contains(SUMMARY), "The summary must still be displayed: " + html.body().html());
+    }
+
     private Document render(String macroParameters, DocumentReference... changes) throws Exception
     {
         return render(macroParameters, "changeDocs", changes);
