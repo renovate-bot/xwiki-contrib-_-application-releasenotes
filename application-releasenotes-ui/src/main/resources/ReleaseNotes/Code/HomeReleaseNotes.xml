@@ -44,7 +44,7 @@ $!xwiki.jsx.use("ReleaseNotes.Code.HomeReleaseNotes")
   #set ($configDoc = $xwiki.getDocument("ReleaseNotes.Code.ReleaseNotesConfig"))
   #set ($defaultProduct = $configDoc.getValue('product'))
   #set ($defaultTemplateReferenceString = $configDoc.getValue('template'))
-  #if ($request.action == 'addReleaseNotes')
+  #if ($request.action == 'addReleaseNotes' &amp;&amp; $services.csrf.isTokenValid($request.getParameter('form_token')))
     #set ($product = $!request.product)
     #set ($version = $!request.version)
     #getShortVersion($version, $shortVersion)
@@ -93,6 +93,7 @@ $!xwiki.jsx.use("ReleaseNotes.Code.HomeReleaseNotes")
   {{html}}
     &lt;form class="form-inline"&gt;
       &lt;input type="hidden" name="action" value="addReleaseNotes"/&gt;
+      &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)"/&gt;
       &lt;div class="form-group"&gt;
         &lt;label for="product"&gt;$escapetool.xml($services.localization.render('releasenotes.releases.add.product.label'))&lt;/label&gt;
         &lt;input id="product" class="form-control" type="text" name="product" value="$!escapetool.xml($defaultProduct)" size="32"

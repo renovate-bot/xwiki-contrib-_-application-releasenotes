@@ -43,7 +43,7 @@
   #set ($configDoc = $xwiki.getDocument("ReleaseNotes.Code.ReleaseNotesConfig"))
   #set ($defaultProduct = $configDoc.getValue('product'))
   ## Add new change
-  #if ($request.action == 'addChange')
+  #if ($request.action == 'addChange' &amp;&amp; $services.csrf.isTokenValid($request.getParameter('form_token')))
     #set ($product = $request.product)
     #if ("$!product" == '')
       #set ($product = $defaultProduct)
@@ -57,6 +57,7 @@
   {{html clean='false'}}
     &lt;form class="form-inline"&gt;
       &lt;input type="hidden" name="action" value="addChange"/&gt;
+      &lt;input type="hidden" name="form_token" value="$!escapetool.xml($services.csrf.token)"/&gt;
       &lt;input type="hidden" name="template" value="ReleaseNotes.Code.Change.ChangeTemplate"/&gt;
       &lt;input type="hidden" name="type" value="Change"/&gt;
       &lt;div class="form-group"&gt;
