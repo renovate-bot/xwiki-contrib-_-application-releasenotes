@@ -209,8 +209,8 @@
 &lt;form&gt;
   &lt;input type="hidden" name="action" value="useradd"/&gt;
   &lt;input type="hidden" name="template" value="ReleaseNotes.Code.Change.ChangeTemplate"/&gt;
-  &lt;input type="hidden" name="product" value="$product"/&gt;
-  &lt;input type="hidden" name="version" value="$version"/&gt;
+  &lt;input type="hidden" name="product" value="$!escapetool.xml($product)"/&gt;
+  &lt;input type="hidden" name="version" value="$!escapetool.xml($version)"/&gt;
   &lt;input type="hidden" name="audience" value="user"/&gt;
   &lt;span class="buttonwrapper"&gt;
     &lt;input class="button" type="submit" value="$escapetool.xml($services.localization.render('releasenotes.changes.user.submit'))"/&gt;
@@ -256,8 +256,8 @@
 &lt;form&gt;
   &lt;input type="hidden" name="action" value="adminadd"/&gt;
   &lt;input type="hidden" name="template" value="ReleaseNotes.Code.Change.ChangeTemplate"/&gt;
-  &lt;input type="hidden" name="product" value="$product"/&gt;
-  &lt;input type="hidden" name="version" value="$version"/&gt;
+  &lt;input type="hidden" name="product" value="$!escapetool.xml($product)"/&gt;
+  &lt;input type="hidden" name="version" value="$!escapetool.xml($version)"/&gt;
   &lt;input type="hidden" name="audience" value="administrator"/&gt;
   &lt;span class="buttonwrapper"&gt;
     &lt;input class="button" type="submit" value="$escapetool.xml($services.localization.render('releasenotes.changes.admin.submit'))"/&gt;
@@ -303,8 +303,8 @@
 &lt;form&gt;
   &lt;input type="hidden" name="action" value="devadd"/&gt;
   &lt;input type="hidden" name="template" value="ReleaseNotes.Code.Change.ChangeTemplate"/&gt;
-  &lt;input type="hidden" name="product" value="$product"/&gt;
-  &lt;input type="hidden" name="version" value="$version"/&gt;
+  &lt;input type="hidden" name="product" value="$!escapetool.xml($product)"/&gt;
+  &lt;input type="hidden" name="version" value="$!escapetool.xml($version)"/&gt;
   &lt;input type="hidden" name="audience" value="developer"/&gt;
   &lt;span class="buttonwrapper"&gt;
     &lt;input class="button" type="submit" value="$escapetool.xml($services.localization.render('releasenotes.changes.developer.submit'))"/&gt;

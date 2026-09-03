@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -230,6 +232,33 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
         }
     }
 
+    /**
+     * The product and version an author typed reach the "Add Change" forms as the value of a hidden input, so a
+     * value carrying an attribute delimiter must be emitted escaped: left raw, it would break out of the input and
+     * inject markup that runs for everyone who later views the release note.
+     */
+    @Test
+    void addChangeFormsEscapeTheStoredVersion() throws Exception
+    {
+        // The creation forms are only rendered for a user who can edit the release note.
+        registerVelocityTool("hasEdit", true);
+        when(this.query.execute()).thenReturn(changes(0));
+
+        String payload = "\"><script>alert(1)</script>";
+        Document html = renderReleaseNote("8.3", payload, 100);
+
+        Elements versionInputs = html.select("form input[type=hidden][name=version]");
+        assertFalse(versionInputs.isEmpty(), "Expected the add-change forms to be rendered for an editor.");
+        for (Element input : versionInputs) {
+            // jsoup decodes the attribute, so an escaped value round-trips to the payload; an unescaped one would
+            // have been truncated at the first quote.
+            assertEquals(payload, input.attr("value"),
+                "The stored version must be carried as a single attribute value, not broken out of it.");
+        }
+        assertTrue(html.select("script").isEmpty(),
+            "The stored version must not be able to inject a script element into the release note.");
+    }
+
     private void assertSectionQuery(int index, String expectedAudience, String expectedScreenshotClause,
         List<String> expectedImportance)
     {
@@ -280,6 +309,22 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
      */
     private Document renderReleaseNote(String shortVersion, int limit) throws Exception
     {
+        // The version stored in the xobject is what the page name resolves to for a milestone/RC/final; the two
+        // are the same here since these tests are not about the escaping of the version.
+        return renderReleaseNote(shortVersion, shortVersion, limit);
+    }
+
+    /**
+     * Renders a release note whose body is the macro under test, storing an arbitrary version in its xobject
+     * independently of the space it is filed under, so that a version carrying markup can be exercised.
+     *
+     * @param shortVersion the name of the space holding the release note
+     * @param version the value stored in the {@code version} field of the release note xobject
+     * @param limit the value of the {@code limit} macro parameter
+     * @return the rendered release note
+     */
+    private Document renderReleaseNote(String shortVersion, String version, int limit) throws Exception
+    {
         loadPage(RELEASE_NOTE_CLASS);
 
         XWikiDocument releaseNote = new XWikiDocument(new DocumentReference("xwiki",
@@ -287,7 +332,7 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
         releaseNote.setSyntax(Syntax.XWIKI_2_1);
         BaseObject releaseNoteObject = releaseNote.newXObject(RELEASE_NOTE_CLASS, this.context);
         releaseNoteObject.setStringValue("product", PRODUCT);
-        releaseNoteObject.setStringValue("version", shortVersion);
+        releaseNoteObject.setStringValue("version", version);
         releaseNote.setContent(String.format("{{releasenotechanges limit=\"%s\"/}}", limit));
         this.xwiki.saveDocument(releaseNote, this.context);
         // The macro reads the version off the page it is on, so that page has to be the one in the context.
