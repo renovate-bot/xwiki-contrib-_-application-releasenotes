@@ -233,7 +233,7 @@
       <code>{{velocity}}
 {{html clean="false"}}
 #set ($attachmentReference = $services.model.resolveAttachment($xcontext.macro.params.attachment))
-&lt;video controls muted src="$escapetool.xml($xwiki.getURL($attachmentReference))" width="$escapetool.xml($!xcontext.macro.params.width)"&gt;
+&lt;video controls muted src="$escapetool.xml($xwiki.getURL($attachmentReference))" width="$!escapetool.xml($xcontext.macro.params.width)"&gt;
   Sorry, your browser doesn't support embedded videos.
 &lt;/video&gt;
 {{/html}}

@@ -95,12 +95,34 @@ class HTML5VideoPageTest extends PageTest
             "The width must not be able to inject a script element into the page.");
     }
 
+    /**
+     * The {@code width} parameter is optional, so the macro can be called without it. The attribute must then be
+     * emitted empty rather than carrying the source text of the Velocity reference that computes it.
+     */
+    @Test
+    void widthIsEmptyInThePlayerAttributeWhenNotPassed() throws Exception
+    {
+        Document html = renderVideo("{{html5video attachment=\"ReleaseNotes.Data.TestPage@demo.mp4\"/}}");
+
+        Element video = html.selectFirst("video");
+        assertFalse(video == null, "Expected the macro to render a video player.");
+        assertEquals("", video.attr("width"),
+            "The width attribute must be empty when no width is passed to the macro.");
+        assertFalse(video.outerHtml().contains("escapetool"),
+            "The width attribute must not contain the source text of the reference computing it.");
+    }
+
     private Document renderVideo(String attachment, String widthWikiSyntax) throws Exception
+    {
+        return renderVideo(String.format("{{html5video attachment=\"%s\" width=\"%s\"/}}", attachment,
+            widthWikiSyntax));
+    }
+
+    private Document renderVideo(String macroWikiSyntax) throws Exception
     {
         XWikiDocument testPage = this.xwiki.getDocument(TEST_PAGE, this.context);
         testPage.setSyntax(Syntax.XWIKI_2_1);
-        testPage.setContent(String.format("{{html5video attachment=\"%s\" width=\"%s\"/}}", attachment,
-            widthWikiSyntax));
+        testPage.setContent(macroWikiSyntax);
         this.xwiki.saveDocument(testPage, this.context);
         this.context.setDoc(testPage);
 
