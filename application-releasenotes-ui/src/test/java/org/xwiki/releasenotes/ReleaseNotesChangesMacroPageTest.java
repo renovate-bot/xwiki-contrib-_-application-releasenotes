@@ -130,6 +130,12 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
             return this.query;
         });
 
+        // A PageTest does not register $services.rendering, which the macro escapes the values it places into the
+        // getChanges calls with. The stand-in escapes the way the platform does, so that what the parser gets back
+        // is what these tests assert on.
+        this.componentManager.registerComponent(ScriptService.class, "rendering",
+            new RenderingScriptServiceStub(RenderingScriptServiceStub.xwikiSyntaxEscaper()));
+
         WikiMacroSetup.loadWikiMacro(this, this.componentManager, GET_CHANGES_MACRO);
         WikiMacroSetup.loadWikiMacro(this, this.componentManager, RELEASE_NOTES_CHANGES_MACRO);
     }
@@ -259,6 +265,58 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
             "The stored version must not be able to inject a script element into the release note.");
     }
 
+    /**
+     * The product is plain text stored in the release note xobject, but the macro places it into the parameters of
+     * the getChanges calls it builds, which are re-parsed as wiki syntax, so it must be emitted escaped: left raw,
+     * a product carrying a double quote would close the parameter and the rest of it would be parsed as wiki
+     * syntax of its own, macros included.
+     */
+    @Test
+    void productIsEscapedBeforeItIsRenderedAsWikiSyntax() throws Exception
+    {
+        when(this.query.execute()).thenReturn(changes(0));
+
+        String product = "XWiki\" x=\"1\"/}}{{html}}<b>escaped</b>{{/html}}";
+        Document html = renderReleaseNote("8.3", "8.3", product, 100);
+
+        assertTrue(html.select("b").isEmpty(),
+            "The product must not close the getChanges call and have the rest of it rendered as wiki syntax: "
+                + html.body().html());
+        assertEquals(2 * AUDIENCE_COUNT, this.statements.size(), "Expected two queries per audience section.");
+        for (int index = 0; index < this.statements.size(); index++) {
+            assertEquals(List.of(product), boundValues(index, "product"),
+                "The product must reach the query as a single filter, with its own value.");
+        }
+    }
+
+    /**
+     * The version comes from the name of the space holding the release note, and the macro places the versions it
+     * derives from it into the parameters of the getChanges calls, so those too must be emitted escaped: left raw,
+     * a space name carrying a double quote would close the parameter and the rest of it would be parsed as wiki
+     * syntax of its own, macros included.
+     */
+    @Test
+    void versionsAreEscapedBeforeTheyAreRenderedAsWikiSyntax() throws Exception
+    {
+        when(this.query.execute()).thenReturn(changes(0));
+
+        // A space name with neither an "M" nor an "RC" in it, so that it is read as a final version and goes
+        // through the aggregation branch.
+        String shortVersion = "8.3\" x=\"1\"/}}{{html}}<b>escaped</b>{{/html}}";
+        Document html = renderReleaseNote(shortVersion, "8.3", PRODUCT, 100);
+
+        assertTrue(html.select("b").isEmpty(),
+            "The space name must not close the getChanges call and have the rest of it rendered as wiki syntax: "
+                + html.body().html());
+        assertEquals(2 * AUDIENCE_COUNT, this.statements.size(), "Expected two queries per audience section.");
+        for (int index = 0; index < this.statements.size(); index++) {
+            assertEquals(
+                List.of(shortVersion, shortVersion + "-milestone%", shortVersion + "-rc%"),
+                boundValues(index, "version"),
+                "The aggregated versions must reach the query as their own filters, with their own values.");
+        }
+    }
+
     private void assertSectionQuery(int index, String expectedAudience, String expectedScreenshotClause,
         List<String> expectedImportance)
     {
@@ -325,13 +383,29 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
      */
     private Document renderReleaseNote(String shortVersion, String version, int limit) throws Exception
     {
+        return renderReleaseNote(shortVersion, version, PRODUCT, limit);
+    }
+
+    /**
+     * Renders a release note whose body is the macro under test, storing an arbitrary product and version in its
+     * xobject, so that a product carrying markup can be exercised as well.
+     *
+     * @param shortVersion the name of the space holding the release note
+     * @param version the value stored in the {@code version} field of the release note xobject
+     * @param product the value stored in the {@code product} field of the release note xobject
+     * @param limit the value of the {@code limit} macro parameter
+     * @return the rendered release note
+     */
+    private Document renderReleaseNote(String shortVersion, String version, String product, int limit)
+        throws Exception
+    {
         loadPage(RELEASE_NOTE_CLASS);
 
         XWikiDocument releaseNote = new XWikiDocument(new DocumentReference("xwiki",
             List.of("ReleaseNotes", "Data", PRODUCT, shortVersion), "WebHome"));
         releaseNote.setSyntax(Syntax.XWIKI_2_1);
         BaseObject releaseNoteObject = releaseNote.newXObject(RELEASE_NOTE_CLASS, this.context);
-        releaseNoteObject.setStringValue("product", PRODUCT);
+        releaseNoteObject.setStringValue("product", product);
         releaseNoteObject.setStringValue("version", version);
         releaseNote.setContent(String.format("{{releasenotechanges limit=\"%s\"/}}", limit));
         this.xwiki.saveDocument(releaseNote, this.context);

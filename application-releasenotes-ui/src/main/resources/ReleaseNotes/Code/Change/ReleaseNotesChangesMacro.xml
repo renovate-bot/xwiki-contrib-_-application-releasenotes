@@ -197,6 +197,13 @@
 #set ($product = $!doc.getValue('product'))
 #set ($version = $!doc.getValue('version'))
 #set ($released = $!doc.getValue('released'))
+## The product and the versions are placed into the getChanges calls below as macro parameter values, which are
+## re-parsed as wiki syntax, so both must be emitted escaped: left raw, a value carrying a double quote would
+## close the parameter and the rest of the value would be parsed as wiki syntax of its own. The versions are
+## escaped only once the milestone/RC/final parsing above has built them, since that parsing works on the raw
+## page name.
+#set ($escapedProduct = $services.rendering.escape("$!product", 'xwiki/2.1'))
+#set ($escapedVersions = $services.rendering.escape($versionsParameter, 'xwiki/2.1'))
 ## Decide whether or not display edit links for changes: only display them when the current user has edit rights on
 ## the current page
 #set ($displayEditLink = $hasEdit)
@@ -222,11 +229,11 @@
 {{/velocity}}
 
 {{velocity}}
-{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="user" containsScreenshots="true" contextVariable="userChanges"/}}
+{{getChanges limit="$changesLimit" products="$escapedProduct" versions="$escapedVersions" audience="user" containsScreenshots="true" contextVariable="userChanges"/}}
 {{/velocity}}
 
 {{velocity}}
-{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="user" containsScreenshots="false" contextVariable="userMiscChanges"/}}
+{{getChanges limit="$changesLimit" products="$escapedProduct" versions="$escapedVersions" audience="user" containsScreenshots="false" contextVariable="userMiscChanges"/}}
 {{/velocity}}
 
 {{velocity}}
@@ -270,11 +277,11 @@
 {{/velocity}}
 
 {{velocity}}
-{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="administrator" containsScreenshots="true" contextVariable="adminChanges"/}}
+{{getChanges limit="$changesLimit" products="$escapedProduct" versions="$escapedVersions" audience="administrator" containsScreenshots="true" contextVariable="adminChanges"/}}
 {{/velocity}}
 
 {{velocity}}
-{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="administrator" containsScreenshots="false" contextVariable="adminMiscChanges"/}}
+{{getChanges limit="$changesLimit" products="$escapedProduct" versions="$escapedVersions" audience="administrator" containsScreenshots="false" contextVariable="adminMiscChanges"/}}
 {{/velocity}}
 
 {{velocity}}
@@ -318,11 +325,11 @@
 {{/velocity}}
 
 {{velocity}}
-{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="developer" importance="Medium,High" contextVariable="devChanges"/}}
+{{getChanges limit="$changesLimit" products="$escapedProduct" versions="$escapedVersions" audience="developer" importance="Medium,High" contextVariable="devChanges"/}}
 {{/velocity}}
 
 {{velocity}}
-{{getChanges limit="$changesLimit" products="$product" versions="$versionsParameter" audience="developer" importance="Low" contextVariable="devMiscChanges"/}}
+{{getChanges limit="$changesLimit" products="$escapedProduct" versions="$escapedVersions" audience="developer" importance="Low" contextVariable="devMiscChanges"/}}
 {{/velocity}}
 
 {{velocity}}
