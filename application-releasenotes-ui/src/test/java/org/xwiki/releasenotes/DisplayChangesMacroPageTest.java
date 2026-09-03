@@ -35,6 +35,7 @@ import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rendering.syntax.Syntax;
+import org.xwiki.script.service.ScriptService;
 import org.xwiki.rendering.wikimacro.internal.WikiMacroFactoryComponentClass;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.page.HTML50ComponentList;
@@ -89,6 +90,10 @@ class DisplayChangesMacroPageTest extends PageTest
     void setUp() throws Exception
     {
         this.localSerializer = this.componentManager.getInstance(EntityReferenceSerializer.TYPE_STRING, "local");
+
+        // A PageTest does not register $services.rendering, which the displayers escape the change title with;
+        // stand one in that leaves a plain title untouched so the assertions below see it unchanged.
+        this.componentManager.registerComponent(ScriptService.class, "rendering", new RenderingScriptServiceStub());
 
         loadPage(CHANGE_CLASS);
         for (String displayer : List.of("Simple", "List", "Grid", "Flow")) {
@@ -215,6 +220,30 @@ class DisplayChangesMacroPageTest extends PageTest
 
         assertEquals("releasenotes.changes.display.nochanges", text);
         assertFalse(text.contains(TITLE), "Expected no change at all to be displayed.");
+    }
+
+    /**
+     * The change title is plain text, but the displayers place it into rendered wiki syntax, so it must be escaped
+     * first: a title carrying a macro would otherwise be executed when the change is listed, with the rights of the
+     * page rendering the list. Here the escaping neutralises the wiki braces, so the macro in the title stays inert.
+     */
+    @Test
+    void theChangeTitleIsEscapedBeforeItIsRenderedAsWikiSyntax() throws Exception
+    {
+        // Escape the way the platform does for the braces that open and close a macro, so a title that looks like a
+        // macro call renders as text rather than running.
+        this.componentManager.registerComponent(ScriptService.class, "rendering",
+            new RenderingScriptServiceStub(
+                content -> content.replace("~", "~~").replace("{", "~{").replace("}", "~}")));
+
+        DocumentReference change = createChange("Entry001", "{{html}}<b>injected</b>{{/html}}", SUMMARY, "");
+
+        Document html = render("displayer=\"simple\"", change);
+
+        assertTrue(html.select("b").isEmpty(),
+            "A macro in the change title must not be executed when the change is displayed: " + html.body().html());
+        assertTrue(html.text().contains("{{html}}"),
+            "The title must still be displayed, as inert text: " + html.text());
     }
 
     private Document render(String macroParameters, DocumentReference... changes) throws Exception

@@ -58,7 +58,7 @@
 #foreach ($item in $changeItems)
   #set ($changeDoc = $xwiki.getDocument($item))
   #set ($changeObject = $changeDoc.getObject("ReleaseNotes.Code.Change.ChangeClass"))
-  #set ($title = "$!changeObject.getValue('title')")
+  #set ($title = $services.rendering.escape("$!changeObject.getValue('title')", 'xwiki/2.1'))
   #set ($description = "$!changeObject.getValue('description')")
   #generateDisplayEditLink($displayEditLink, $changeDoc)
   (% class="rn-change-card" %)(((

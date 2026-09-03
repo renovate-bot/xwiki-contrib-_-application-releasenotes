@@ -46,7 +46,8 @@
   #set ($changeDoc = $xwiki.getDocument($item))
   #set ($changeObject = $changeDoc.getObject("ReleaseNotes.Code.Change.ChangeClass"))
   #generateDisplayEditLink($displayEditLink, $changeDoc)
-  === $changeObject.getValue('title')${displayEditLinkMarkup}=== 
+  #set ($title = $services.rendering.escape("$!changeObject.getValue('title')", 'xwiki/2.1'))
+  === $title${displayEditLinkMarkup}=== 
   $changeObject.getValue('summary')
   #if ("$changeObject.getValue('screenshots')" != '')
 

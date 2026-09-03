@@ -26,6 +26,7 @@ import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rendering.syntax.Syntax;
+import org.xwiki.script.service.ScriptService;
 import org.xwiki.rendering.wikimacro.internal.WikiMacroFactoryComponentClass;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.page.HTML50ComponentList;
@@ -77,6 +78,8 @@ class SpaceNameIndependencePageTest extends PageTest
         loadPage(new DocumentReference("xwiki", CHANGE_SPACES, "ChangeDisplayerList"));
         loadPage(CHANGE_CLASS);
         WikiMacroSetup.loadWikiMacro(this, this.componentManager, DISPLAY_CHANGES_MACRO);
+        // A PageTest does not register $services.rendering, which the list displayer escapes the title with.
+        this.componentManager.registerComponent(ScriptService.class, "rendering", new RenderingScriptServiceStub());
 
         DocumentReference change = createChange("Grid displayer", "Changes are now laid out by CSS grid.");
         String rendered = renderDisplayChangesFrom(AWKWARD_SPACE, change);
