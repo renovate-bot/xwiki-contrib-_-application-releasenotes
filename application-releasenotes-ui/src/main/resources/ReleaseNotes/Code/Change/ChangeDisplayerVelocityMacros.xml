@@ -74,13 +74,16 @@
       {{gallery width="420px" height="315px"}}
     #end
     #foreach($screenshotReference in $screenshotReferences)
+      ## The reference is emitted into the reference part of an image link, so it must be escaped: left raw, a
+      ## reference holding wiki syntax would close the link and have the rest of its value parsed on its own.
+      #set ($screenshot = $services.rendering.escape($screenshotReference, 'xwiki/2.1'))
       #if ($useGallery)
-        [[image:$screenshotReference]]
+        [[image:$screenshot]]
       #else
         #if ($foreach.count &gt; 1)
 
         #end
-        [[image:$screenshotReference||style="border:1px solid silver;"]]
+        [[image:$screenshot||style="border:1px solid silver;"]]
       #end
     #end
     #if ($useGallery)
@@ -100,10 +103,13 @@
         #set ($computedVideoReferences = $videoReferences)
       #end
       #foreach($videoReference in $computedVideoReferences)
+        ## Same as for the screenshots above: the reference is emitted into a macro parameter value, so it must be
+        ## escaped or a reference holding a quote would close the parameter and have what follows parsed on its own.
+        #set ($video = $services.rendering.escape($videoReference, 'xwiki/2.1'))
         #if ($foreach.count &gt; 1)
 
         #end
-        {{html5video attachment="$videoReference" width="420" /}}
+        {{html5video attachment="$video" width="420" /}}
       #end
     #end
   #end
