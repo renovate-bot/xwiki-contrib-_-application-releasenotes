@@ -56,9 +56,17 @@
   #end
   ## Display the summary through the change document, so that its rich text is rendered in the context of that
   ## document rather than of this displayer, the way the change's own page renders it.
-  $changeDoc.display('summary', 'view', $changeObject)#if ($title == '')${displayEditLinkMarkup}#end
-  #if ("$changeObject.getValue('screenshots')" != '')
+  ## The edit link of a change with no title reaches the summary line through a variable rather than through a
+  ## directive closing that line: Velocity drops the newline ending a line that ends with a directive. The blank
+  ## line that follows then closes the paragraph the summary is rendered in, which the screenshots below must not
+  ## be part of: the gallery they are displayed in is a standalone macro and cannot be used inline.
+  #set ($summaryEditLinkMarkup = '')
+  #if ($title == '')
+    #set ($summaryEditLinkMarkup = $displayEditLinkMarkup)
+  #end
+  $changeDoc.display('summary', 'view', $changeObject)$summaryEditLinkMarkup
 
+  #if ("$changeObject.getValue('screenshots')" != '')
     #displayScreenshots($changeObject, true, false)
 
   #end

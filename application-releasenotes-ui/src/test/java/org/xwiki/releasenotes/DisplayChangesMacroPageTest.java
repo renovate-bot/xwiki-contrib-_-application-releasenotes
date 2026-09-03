@@ -21,6 +21,7 @@ package org.xwiki.releasenotes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,9 +35,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.model.script.ModelScriptService;
+import org.xwiki.rendering.internal.macro.gallery.GalleryMacro;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.rendering.wikimacro.internal.WikiMacroFactoryComponentClass;
+import org.xwiki.skinx.SkinExtension;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.page.HTML50ComponentList;
 import org.xwiki.test.page.PageTest;
@@ -59,8 +63,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
 @WikiMacroFactoryComponentClass
-// The pages under test display their strings with the translation macro.
-@ComponentList(TranslationMacro.class)
+// The pages under test display their strings with the translation macro, and the screenshots of a change in a
+// gallery, whose references they resolve through the model script service.
+@ComponentList({
+    TranslationMacro.class,
+    GalleryMacro.class,
+    ModelScriptService.class
+})
 class DisplayChangesMacroPageTest extends PageTest
 {
     private static final List<String> CHANGE_SPACE = List.of("ReleaseNotes", "Code", "Change");
@@ -87,6 +96,12 @@ class DisplayChangesMacroPageTest extends PageTest
     private static final String MORE_DETAILS_KEY = "releasenotes.changes.display.moreDetails";
 
     /**
+     * A paragraph opened inside another one, which is what a displayer emits when it lays a block into the
+     * paragraph the summary of a change is rendered in.
+     */
+    private static final Pattern NESTED_PARAGRAPH = Pattern.compile("<p>\\s*<p>");
+
+    /**
      * Serializes a change reference the way the getChanges query returns it, i.e. as the local reference of the page,
      * with the dots of the version space escaped.
      */
@@ -100,6 +115,9 @@ class DisplayChangesMacroPageTest extends PageTest
         // A PageTest does not register $services.rendering, which the displayers escape the change title with;
         // stand one in that leaves a plain title untouched so the assertions below see it unchanged.
         this.componentManager.registerComponent(ScriptService.class, "rendering", new RenderingScriptServiceStub());
+        // The gallery macro that holds the screenshots of a change pulls the skin extensions of its slide-show.
+        this.componentManager.registerMockComponent(SkinExtension.class, "jsfx");
+        this.componentManager.registerMockComponent(SkinExtension.class, "ssfx");
 
         loadPage(CHANGE_CLASS);
         for (String displayer : List.of("Simple", "List", "Grid", "Flow")) {
@@ -289,6 +307,29 @@ class DisplayChangesMacroPageTest extends PageTest
         assertTrue(html.text().contains(SUMMARY), "The summary must still be displayed: " + html.body().html());
     }
 
+    /**
+     * The summary of a change is rendered into blocks of its own, so a displayer must close it before displaying
+     * anything else: what follows the summary would otherwise be laid into the paragraph the summary ends with,
+     * where the screenshots of the change cannot be displayed at all, the gallery holding them being a standalone
+     * macro, and where the link towards the change page would nest a paragraph inside another one.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = { "simple", "grid", "flow" })
+    void whatFollowsTheSummaryIsDisplayedOutsideOfIt(String displayer) throws Exception
+    {
+        DocumentReference change = createChange("Entry001", TITLE, SUMMARY, "The long story", "a.png");
+
+        String html = renderHtml(String.format("displayer=\"%s\"", displayer), "changeDocs", change);
+        Document document = Jsoup.parseBodyFragment(html);
+
+        assertTrue(document.select(".xwikirenderingerror").isEmpty(),
+            String.format("The \"%s\" displayer failed to display the change: %s", displayer, html));
+        assertEquals(1, document.select("div.gallery").size(),
+            String.format("The \"%s\" displayer dropped the screenshots of the change: %s", displayer, html));
+        assertFalse(NESTED_PARAGRAPH.matcher(html).find(),
+            String.format("The \"%s\" displayer left the summary sharing its paragraph: %s", displayer, html));
+    }
+
     private Document render(String macroParameters, DocumentReference... changes) throws Exception
     {
         return render(macroParameters, "changeDocs", changes);
@@ -303,6 +344,19 @@ class DisplayChangesMacroPageTest extends PageTest
      */
     private Document render(String macroParameters, String variable, DocumentReference... changes) throws Exception
     {
+        return Jsoup.parseBodyFragment(renderHtml(macroParameters, variable, changes));
+    }
+
+    /**
+     * Renders the same page as {@link #render(String, String, DocumentReference...)} but returns the HTML as it
+     * stands, since parsing it repairs the very nesting some of the assertions are about.
+     *
+     * @param macroParameters the macro parameters, besides the context variable
+     * @param variable the name under which the changes are published, i.e. the {@code contextVariable} parameter
+     * @param changes the changes to display
+     */
+    private String renderHtml(String macroParameters, String variable, DocumentReference... changes) throws Exception
+    {
         String changeList = Stream.of(changes)
             .map(change -> String.format("'%s'", this.localSerializer.serialize(change)))
             .collect(Collectors.joining(", "));
@@ -316,11 +370,17 @@ class DisplayChangesMacroPageTest extends PageTest
         // The displayers resolve the top level space of the application from the document being rendered.
         this.context.setDoc(page);
 
-        return Jsoup.parseBodyFragment(page.getRenderedContent(this.context));
+        return page.getRenderedContent(this.context);
     }
 
     private DocumentReference createChange(String name, String title, String summary, String description)
         throws Exception
+    {
+        return createChange(name, title, summary, description, "");
+    }
+
+    private DocumentReference createChange(String name, String title, String summary, String description,
+        String screenshots) throws Exception
     {
         List<String> spaces = new ArrayList<>(VERSION_SPACE);
         spaces.add(name);
@@ -330,6 +390,7 @@ class DisplayChangesMacroPageTest extends PageTest
         changeObject.setStringValue("title", title);
         changeObject.setLargeStringValue("summary", summary);
         changeObject.setLargeStringValue("description", description);
+        changeObject.setStringValue("screenshots", screenshots);
         this.xwiki.saveDocument(change, this.context);
 
         return change.getDocumentReference();

@@ -63,7 +63,15 @@
   #end
   ## Display the summary through the change document, so that its rich text is rendered in the context of that
   ## document rather than of this displayer, the way the change's own page renders it.
-  $changeDoc.display('summary', 'view', $changeObject)#if ($title == '')${displayEditLinkMarkup}#end
+  ## The edit link of a change with no title reaches the summary line through a variable rather than through a
+  ## directive closing that line: Velocity drops the newline ending a line that ends with a directive. The blank
+  ## line that follows then keeps the link towards the change out of the paragraph the summary is rendered in.
+  #set ($summaryEditLinkMarkup = '')
+  #if ($title == '')
+    #set ($summaryEditLinkMarkup = $displayEditLinkMarkup)
+  #end
+  $changeDoc.display('summary', 'view', $changeObject)$summaryEditLinkMarkup
+
   #set ($description = $changeObject.getValue('description'))
   #if ("$!description" != '')
     [[${moreDetailsLabel}&gt;&gt;doc:$changeDoc.documentReference]]
