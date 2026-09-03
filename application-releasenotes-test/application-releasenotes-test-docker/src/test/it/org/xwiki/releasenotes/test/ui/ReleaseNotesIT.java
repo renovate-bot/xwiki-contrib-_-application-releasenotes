@@ -148,7 +148,7 @@ class ReleaseNotesIT
         // query must not count the Contributors entry.
         setup.gotoPage(releaseNote, "view",
             "action=useradd&template=ReleaseNotes.Code.Change.ChangeTemplate&product=" + product
-                + "&version=1.0&audience=user");
+                + "&version=1.0&audience=user&form_token=" + setup.getSecretToken());
         String currentUrl = setup.getDriver().getCurrentUrl();
         assertTrue(currentUrl.contains("/edit/ReleaseNotes/Data/" + product + "/1.0/Entry001/WebHome"),
             "The new change must be numbered Entry001 despite the Contributors entry, landed on: " + currentUrl);
@@ -220,8 +220,10 @@ class ReleaseNotesIT
         setEnforceRequiredRights(setup, template, true);
 
         try {
-            // The creation form is a GET form passing the product and the version to the application home page.
-            setup.gotoPage("ReleaseNotes", "WebHome", "view", "action=addReleaseNotes&product=TplProduct&version=9.0");
+            // The creation form is a GET form passing the product, the version and the form token to the
+            // application home page.
+            setup.gotoPage("ReleaseNotes", "WebHome", "view",
+                "action=addReleaseNotes&product=TplProduct&version=9.0&form_token=" + setup.getSecretToken());
 
             ViewPage createdPage = setup.gotoPage(releaseNote);
             assertTrue(createdPage.getContent().contains("New and Noteworthy"),
