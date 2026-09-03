@@ -47,8 +47,10 @@
   #set ($changeObject = $changeDoc.getObject("ReleaseNotes.Code.Change.ChangeClass"))
   #generateDisplayEditLink($displayEditLink, $changeDoc)
   #set ($title = $services.rendering.escape("$!changeObject.getValue('title')", 'xwiki/2.1'))
-  === $title${displayEditLinkMarkup}=== 
-  $changeObject.getValue('summary')
+  === $title${displayEditLinkMarkup}===
+  ## Display the summary through the change document, so that its rich text is rendered in the context of that
+  ## document rather than of this displayer, the way the change's own page renders it.
+  $changeDoc.display('summary', 'view', $changeObject)
   #if ("$changeObject.getValue('screenshots')" != '')
 
     #displayScreenshots($changeObject, true, false)

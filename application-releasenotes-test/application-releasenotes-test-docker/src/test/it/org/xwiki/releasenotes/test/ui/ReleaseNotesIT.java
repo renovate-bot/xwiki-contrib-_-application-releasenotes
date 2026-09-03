@@ -627,4 +627,90 @@ class ReleaseNotesIT
         page.setTitle(null);
         setup.rest().save(page);
     }
+
+    /**
+     * The summary and the description of a change are rich text, written by whoever authors the change, which the
+     * application lets any contributor do without granting them the Script right. Those fields are displayed
+     * through the change document, so that they are rendered with the rights of the change author rather than with
+     * the rights of the page that lists or displays the change: a macro a non-Script author writes there is thus
+     * rendered inert, both where the change is listed (a release note, through the displayer) and on the change's
+     * own page (through its sheet).
+     */
+    @Test
+    @Order(10)
+    void changeFieldsAreDisplayedWithTheChangeAuthorRights(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+
+        String product = "InjectionProduct";
+        DocumentReference releaseNote =
+            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", product, "1.0"), "WebHome");
+        DocumentReference change = new DocumentReference("xwiki",
+            List.of("ReleaseNotes", "Data", product, "1.0", "Entry001"), "WebHome");
+        DocumentReference contributor = new DocumentReference("xwiki", "XWiki", "RnContributor");
+        setup.rest().delete(change);
+        setup.rest().delete(releaseNote);
+        setup.rest().delete(contributor);
+
+        // The release note and the displayers it uses are set up by an administrator, i.e. with the Script right
+        // that the change author below lacks.
+        setup.createPage(releaseNote, "= New and Noteworthy =\n\n{{releasenotechanges/}}", "RN 1.0");
+        setup.addObject(releaseNote, "ReleaseNotes.Code.ReleaseNoteClass",
+            "product", product, "version", "1.0", "released", "0");
+
+        // A contributor who may edit the version space but has no Script right, i.e. an ordinary registered user.
+        setup.createUser("RnContributor", "rncontributorpass", "");
+        setup.setRightsOnSpace(releaseNote.getLastSpaceReference(), "XWiki.RnContributor", "", "edit", true);
+
+        // The change is authored by that contributor, logged in as themselves so that the change document's content
+        // author is the contributor and not the administrator who set up the release note (createPage and addObject
+        // save through the browser, i.e. as the logged-in user). Its summary and description each carry an html
+        // macro that, rendered with the displaying page's rights, would inject an active event handler into every
+        // viewer's page.
+        String summary = "SUMMARYMARK "
+            + "{{html clean=\"false\"}}<img src=\"x\" onerror=\"window.__rnInjected = 1\"/>{{/html}}";
+        String description = "DESCRIPTIONMARK "
+            + "{{html clean=\"false\"}}<b onmouseover=\"window.__rnInjected = 2\">boom</b>{{/html}}";
+        setup.login("RnContributor", "rncontributorpass");
+        setup.createPage(change, "", "An injected change");
+        setup.addObject(change, "ReleaseNotes.Code.EntryClass",
+            "product", product, "type", "Change", "version", "1.0");
+        setup.addObject(change, "ReleaseNotes.Code.Change.ChangeClass",
+            "title", "Injected change", "audience", "user", "importance", "1", "category", "development",
+            "summary", summary, "description", description);
+
+        // Back to an administrator, i.e. a viewer holding the Script right the change author lacks, to read the note.
+        setup.loginAsSuperAdmin();
+
+        // The release note lists the change through the list displayer (the change carries no screenshot), so its
+        // summary is rendered there.
+        setup.gotoPage(releaseNote);
+        assertFieldRenderedInert(setup, "SUMMARYMARK");
+
+        // The change's own page renders both the summary and the description through the change sheet.
+        setup.gotoPage(change);
+        assertFieldRenderedInert(setup, "SUMMARYMARK");
+        assertFieldRenderedInert(setup, "DESCRIPTIONMARK");
+
+        setup.rest().delete(change);
+        setup.rest().delete(releaseNote);
+        setup.rest().delete(contributor);
+    }
+
+    /**
+     * Asserts that the rendered content holds the given marker, i.e. the field it identifies is displayed, but no
+     * inline event handler, i.e. the macro the field also holds was rendered inert rather than executed.
+     *
+     * @param setup the test utilities, whose driver is on the page to check
+     * @param marker the plain-text marker the field carries, to make sure the field itself is displayed
+     */
+    private void assertFieldRenderedInert(TestUtils setup, String marker)
+    {
+        String content = setup.getDriver()
+            .findElementWithoutWaiting(By.id("xwikicontent")).getAttribute("innerHTML");
+        assertTrue(content.contains(marker),
+            "Expected the change field carrying '" + marker + "' to be displayed, got: " + content);
+        assertFalse(content.contains("onerror") || content.contains("onmouseover"),
+            "A macro written by a non-Script change author must be rendered inert, got: " + content);
+    }
 }
