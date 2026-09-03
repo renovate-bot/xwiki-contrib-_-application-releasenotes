@@ -199,7 +199,8 @@ class DisplayChangesMacroPageTest extends PageTest
 
     /**
      * The {@code flow} displayer lays a change out as its media next to its text, which is what its two half-width
-     * columns are for.
+     * columns are for. They are halves from the medium breakpoint up only: a narrower screen stacks them rather
+     * than shrink the screenshot to a thumbnail.
      */
     @Test
     void flowDisplayerLaysTheMediaNextToTheText() throws Exception
@@ -210,7 +211,7 @@ class DisplayChangesMacroPageTest extends PageTest
 
         Elements rows = html.select("div.row");
         assertEquals(1, rows.size(), "Expected one row per change.");
-        assertEquals(2, rows.get(0).select("div.col-xs-6").size(),
+        assertEquals(2, rows.get(0).select("div.col-md-6").size(),
             "Expected the media and the text to share the row.");
         assertEquals(1, rows.get(0).select("div.rn-change-media div.gallery").size(),
             "Expected the screenshots of the change in the media column: " + html.body().html());
