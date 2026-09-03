@@ -39,13 +39,16 @@
   <content>{{velocity}}
 ## Find all pages having a v1.x ReleaseNotes.Code.ChangesClass
 #set ($xwql = "from doc.object(ReleaseNotes.Code.ChangesClass) as changes")
-#if ($request.confirm != '1')
+## The migration writes to every 1.x change document, so it only runs on a request carrying a valid
+## form token; a request without one falls through to the unconfirmed state and changes nothing.
+#set ($migrate = ($request.confirm == '1' &amp;&amp; $services.csrf.isTokenValid($request.getParameter('form_token'))))
+#if (!$migrate)
   {{translation key="releasenotes.migration.pending"/}}
 #else
   {{translation key="releasenotes.migration.migrated"/}}
 #end
 #foreach ($item in $services.query.xwql($xwql).execute())
-  #if ($request.confirm == '1')
+  #if ($migrate)
     #set ($itemDoc = $xwiki.getDocument($item))
     ## Add a ReleaseNotes.Code.EntryClass
     #set ($newEntryObject = $itemDoc.newObject("ReleaseNotes.Code.EntryClass"))
@@ -73,8 +76,8 @@
   #end
 #end
 
-#if ($request.confirm != '1')
-[[{{translation key="releasenotes.migration.start"/}}&gt;&gt;||queryString='confirm=1']]
+#if (!$migrate)
+[[{{translation key="releasenotes.migration.start"/}}&gt;&gt;||queryString="confirm=1&amp;form_token=$escapetool.url($services.csrf.token)"]]
 #end
 {{/velocity}}</content>
 </xwikidoc>
