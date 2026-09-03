@@ -86,11 +86,13 @@
 #else
   ## The page title is the change title, so the text comes first and the media closes the page: a reader arriving
   ## here already knows which change they are looking at, and wants to read what it is before seeing it.
-  $changeObject.getValue('summary')
+  ## The summary and the description are displayed through the document, so that their rich text is rendered in
+  ## the context of this change rather than of this sheet.
+  $doc.display('summary', 'view', $changeObject)
   #set ($description = $changeObject.getValue('description'))
   #if ("$!description" != '')
 
-    $description
+    $doc.display('description', 'view', $changeObject)
   #end
 
   #displayScreenshots($changeObject, true, false)
