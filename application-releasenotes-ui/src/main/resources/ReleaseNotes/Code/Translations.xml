@@ -172,6 +172,7 @@ releasenotes.changes.developer.nochanges=No changes!
 releasenotes.changes.developer.miscellaneous=Miscellaneous
 releasenotes.changes.truncated=This release note has more changes than the ones displayed here. Raise the "limit" parameter of the "releasenotechanges" macro to display them all.
 releasenotes.changes.display.nochanges=No changes!
+releasenotes.changes.display.moreDetails=More details
 
 # Contributors list of a release note
 
@@ -188,6 +189,7 @@ releasenotes.change.conventions.developerMiscellaneous=For entering Miscellaneou
 releasenotes.change.conventions.optionalTitle=When entering a Miscellaneous change, the title is optional. If set, the summary is prefixed by it.
 releasenotes.change.screenshots.placeholder=Select or upload screenshots and videos...
 releasenotes.change.view=View this change
+releasenotes.change.video.notSupported=Sorry, your browser doesn't support embedded videos.
 
 # Creation of a release note entry
 

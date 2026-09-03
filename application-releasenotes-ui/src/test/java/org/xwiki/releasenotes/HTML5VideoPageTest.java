@@ -112,6 +112,21 @@ class HTML5VideoPageTest extends PageTest
             "The width attribute must not contain the source text of the reference computing it.");
     }
 
+    /**
+     * The player carries the text that a browser unable to play the video displays in its place. Like every other
+     * string the application displays, it comes from the translation bundle, so that it is not always English.
+     */
+    @Test
+    void theFallbackTextOfThePlayerComesFromTheTranslationBundle() throws Exception
+    {
+        Document html = renderVideo("{{html5video attachment=\"ReleaseNotes.Data.TestPage@demo.mp4\"/}}");
+
+        Element video = html.selectFirst("video");
+        assertFalse(video == null, "Expected the macro to render a video player.");
+        // A page test registers no translation bundle, so a translated string renders as its own key.
+        assertEquals("releasenotes.change.video.notSupported", video.text());
+    }
+
     private Document renderVideo(String attachment, String widthWikiSyntax) throws Exception
     {
         return renderVideo(String.format("{{html5video attachment=\"%s\" width=\"%s\"/}}", attachment,

@@ -48,6 +48,11 @@
     #set ($displayEditLinkMarkup = '')
   #end
 #end
+## The label of the link towards a change page, shared by the displayers that only summarise a change. It is
+## emitted into the label part of a link, so it is escaped: a translation carrying wiki syntax would otherwise
+## close the link and have the rest of its value parsed on its own.
+#set ($moreDetailsLabel = $services.rendering.escape(
+  $services.localization.render('releasenotes.changes.display.moreDetails'), 'xwiki/2.1'))
 #macro(displayScreenshots $changeObject $useGallery $alwaysDisplayScreenshots)
   #set ($mediaReferences = $changeObject.getValue('screenshots'))
   #if ("$!mediaReferences" == '' &amp;&amp; $alwaysDisplayScreenshots)

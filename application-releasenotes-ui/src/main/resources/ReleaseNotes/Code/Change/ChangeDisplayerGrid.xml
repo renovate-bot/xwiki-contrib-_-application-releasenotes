@@ -82,7 +82,7 @@
 
   #if ($description != '')
 
-  (% class="rn-change-details" %)[[More details&gt;&gt;doc:$changeDoc.documentReference]]
+  (% class="rn-change-details" %)[[${moreDetailsLabel}&gt;&gt;doc:$changeDoc.documentReference]]
   #end
   )))
 #end
