@@ -42,15 +42,22 @@
 ## Inputs:
 ## - $changeItems
 ## - $displayEditLink
-(% class='container col-xs-12' %)(((
+#set ($discard = $xwiki.ssx.use("ReleaseNotes.Code.Change.ChangeDisplayerFlow"))
+(% class='container col-xs-12 rn-changes-flow' %)(((
 #foreach ($item in $changeItems)
   (% class='row' %)(((
-  (% class='col-xs-6' %)(((
+  ## The columns are halves only from the width at which one of them can still hold the screenshot at the size
+  ## the gallery asks for; below that they stack, rather than shrink the screenshot to a thumbnail and the
+  ## summary beside it to a ribbon a few words wide.
+  (% class='col-md-6 rn-change-media' %)(((
   #set ($changeDoc = $xwiki.getDocument($item))
   #set ($changeObject = $changeDoc.getObject("ReleaseNotes.Code.Change.ChangeClass"))
-  #displayScreenshots($changeObject, true, false)
+  ## Every change gets a media block, the same way the grid displayer does: the screenshots when the change has
+  ## any, its video when it has none, and the "no image" placeholder when it has neither. A change left with an
+  ## empty column would otherwise be read as illustrated by the screenshot of the change displayed below it.
+  #displayScreenshots($changeObject, true, true)
   )))
-  (% class="col-xs-6" %)(((
+  (% class="col-md-6 rn-change-text" %)(((
   #generateDisplayEditLink($displayEditLink, $changeDoc)
   #set ($title = $services.rendering.escape("$!changeObject.getValue('title')", 'xwiki/2.1'))
   ## The title of a change is optional, so a change is only given a section of its own when it has one: a heading
@@ -83,4 +90,161 @@
 #end
 )))
 {{/velocity}}</content>
+  <object>
+    <name>ReleaseNotes.Code.Change.ChangeDisplayerFlow</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>5ac700e5-d107-4b18-9eea-ada1c32ffd86</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <disabled>0</disabled>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>/* The flow displayer pairs each change with its media, so the two halves of a change must start at the same
+   height: a screenshot that hangs below the title it illustrates reads as belonging to the change underneath. */
+.rn-changes-flow {
+  /* A column may not open with the leading margin the theme gives a heading or a paragraph, which would push
+     one half of a change below the other. */
+  .rn-change-media &gt; *:first-child,
+  .rn-change-text &gt; *:first-child {
+    margin-top: 0;
+  }
+
+  /* Narrow enough and the two columns stack, so the text follows the media instead of sitting beside it and
+     needs back the separation the margin above takes away. */
+  @media (max-width: 991px) {
+    .rn-change-text {
+      margin-top: 20px;
+    }
+  }
+
+  .rn-change-media {
+    /* The gallery and the video macros both ask for a fixed width, which overflows the column when the report
+       is displayed in a narrow page. */
+    .gallery,
+    img,
+    video {
+      max-width: 100%;
+    }
+
+    /* The gallery pads its box out to the fixed height it was given and centres the screenshot inside it, which
+       leaves a short screenshot sitting up to a hundred pixels below the title on the other side of the row.
+       Have the box hug the screenshot, and the screenshot start at the top of the box, so that a change is one
+       block whatever the size of its screenshot. The height being overridden is an inline style, hence the
+       !important; the maximised gallery is left alone, since it fills the viewport on purpose. */
+    .xGallery:not(.maximized) {
+      height: auto !important;
+      /* The rows the gallery reserves for its own chrome grow with the box when the box has no fixed height,
+         which would put the screenshot back below the title. */
+      grid-template-rows: auto 1fr auto;
+
+      .currentImage {
+        align-self: start;
+        /* The height asked of the gallery in #displayScreenshots, which no longer caps a tall screenshot now
+           that the box is sized by its content. */
+        max-height: 315px;
+      }
+    }
+  }
+}</code>
+    </property>
+    <property>
+      <contentType>LESS</contentType>
+    </property>
+    <property>
+      <name>Release Notes changes flow</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
 </xwikidoc>

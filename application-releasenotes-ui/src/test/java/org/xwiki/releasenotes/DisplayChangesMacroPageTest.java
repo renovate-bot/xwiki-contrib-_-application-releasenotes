@@ -199,20 +199,41 @@ class DisplayChangesMacroPageTest extends PageTest
 
     /**
      * The {@code flow} displayer lays a change out as its media next to its text, which is what its two half-width
-     * columns are for.
+     * columns are for. They are halves from the medium breakpoint up only: a narrower screen stacks them rather
+     * than shrink the screenshot to a thumbnail.
      */
     @Test
     void flowDisplayerLaysTheMediaNextToTheText() throws Exception
     {
-        DocumentReference change = createChange("Entry001", TITLE, SUMMARY, "");
+        DocumentReference change = createChange("Entry001", TITLE, SUMMARY, "", "a.png");
 
         Document html = render("displayer=\"flow\"", change);
 
         Elements rows = html.select("div.row");
         assertEquals(1, rows.size(), "Expected one row per change.");
-        assertEquals(2, rows.get(0).select("div.col-xs-6").size(),
+        assertEquals(2, rows.get(0).select("div.col-md-6").size(),
             "Expected the media and the text to share the row.");
-        assertEquals(List.of(TITLE), html.select("h3").eachText());
+        assertEquals(1, rows.get(0).select("div.rn-change-media div.gallery").size(),
+            "Expected the screenshots of the change in the media column: " + html.body().html());
+        assertEquals(List.of(TITLE), rows.get(0).select("div.rn-change-text h3").eachText());
+    }
+
+    /**
+     * A change with no screenshot must still be given a media block, so that the screenshot of the change displayed
+     * next to it cannot be read as illustrating it.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = { "grid", "flow" })
+    void changeWithNoScreenshotStillGetsAMediaBlock(String displayer) throws Exception
+    {
+        DocumentReference change = createChange("Entry001", TITLE, SUMMARY, "");
+
+        Document html = render(String.format("displayer=\"%s\"", displayer), change);
+
+        assertEquals(1, html.select("div.gallery").size(),
+            String.format("The \"%s\" displayer left the change with no media: %s", displayer, html.body().html()));
+        assertTrue(html.select("div.gallery").html().contains("no_image_thumb.png"),
+            String.format("The \"%s\" displayer displayed no placeholder: %s", displayer, html.body().html()));
     }
 
     /**
