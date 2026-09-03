@@ -46,8 +46,9 @@
   #set ($changeDoc = $xwiki.getDocument($item))
   #set ($changeObject = $changeDoc.getObject("ReleaseNotes.Code.Change.ChangeClass"))
   #generateDisplayEditLink($displayEditLink, $changeDoc)##
+  #set ($title = $services.rendering.escape("$!changeObject.getValue('title')", 'xwiki/2.1'))##
   * (((
-#if ("$!changeObject.getValue('title')" != '')$changeObject.getValue('title')~: #end$changeObject.getValue('summary')
+#if ("$!title" != '')$title~: #end$changeObject.getValue('summary')
 )))${displayEditLinkMarkup}
 #end
 {{/velocity}}</content>

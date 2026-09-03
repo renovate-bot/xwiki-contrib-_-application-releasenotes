@@ -52,7 +52,8 @@
   )))
   (% class="col-xs-6" %)(((
   #generateDisplayEditLink($displayEditLink, $changeDoc)
-  === $changeObject.getValue('title')${displayEditLinkMarkup}===
+  #set ($title = $services.rendering.escape("$!changeObject.getValue('title')", 'xwiki/2.1'))
+  === $title${displayEditLinkMarkup}===
 
   $changeObject.getValue('summary')
   #set ($description = $changeObject.getValue('description'))
