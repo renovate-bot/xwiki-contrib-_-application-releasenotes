@@ -38,9 +38,11 @@ import org.xwiki.test.page.WikiMacroSetup;
 import org.xwiki.test.page.XWikiSyntax21ComponentList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -79,6 +81,11 @@ class ReportPageTest extends PageTest
         this.componentManager.registerComponent(ScriptService.class, "query", this.queryManagerScriptService);
         when(this.queryManagerScriptService.xwql(anyString())).thenReturn(this.query);
         when(this.query.bindValue(anyString(), any())).thenReturn(this.query);
+
+        // The report escapes each filter value into the macro parameter it writes it to. The stand-in escapes the
+        // way the platform does, so that what the parser gets back is what these tests assert on.
+        this.componentManager.registerComponent(ScriptService.class, "rendering",
+            new RenderingScriptServiceStub(RenderingScriptServiceStub.xwikiSyntaxEscaper()));
 
         WikiMacroSetup.loadWikiMacro(this, this.componentManager, GET_CHANGES_MACRO);
         WikiMacroSetup.loadWikiMacro(this, this.componentManager, DISPLAY_CHANGES_MACRO);
@@ -145,6 +152,60 @@ class ReportPageTest extends PageTest
         this.request.put("products", "XWiki");
 
         assertEquals(0, renderReportPaginationLinks().size());
+    }
+
+    /**
+     * A filter value is written into a macro parameter, so it has to be escaped for the wiki syntax. Left raw, a
+     * value ending with the escape character escapes the closing quote of the parameter instead, and the whole
+     * macro call stops parsing and is displayed as text where the report should be.
+     */
+    @Test
+    void filterValueEndingWithTheEscapeCharacterIsStillReportedOn() throws Exception
+    {
+        when(this.query.execute()).thenReturn(changes(1));
+        this.request.put("products", "XWiki~");
+
+        String html = renderHTMLPage(REPORT).html();
+
+        assertFalse(html.contains("getChanges"),
+            "The report must display the changes, not its own macro calls, got: " + html);
+        // The escaping belongs to the wiki syntax the value is written into, so the value the query filters on is
+        // the one the reader typed, tilde included.
+        verify(this.query).bindValue("product1", "XWiki~");
+    }
+
+    /**
+     * The quote that ends a macro parameter is the other character a filter value must not be able to write raw.
+     */
+    @Test
+    void filterValueCarryingAQuoteIsStillReportedOn() throws Exception
+    {
+        when(this.query.execute()).thenReturn(changes(1));
+        this.request.put("products", "XWiki's");
+
+        String html = renderHTMLPage(REPORT).html();
+
+        assertFalse(html.contains("getChanges"),
+            "The report must display the changes, not its own macro calls, got: " + html);
+        verify(this.query).bindValue("product1", "XWiki's");
+    }
+
+    /**
+     * The paging links carry the filters as request parameters and not as wiki syntax, so they must carry the
+     * value the reader typed rather than its escaped form, which the next page would otherwise filter on.
+     */
+    @Test
+    void pagingLinksCarryTheUnescapedFilterValue() throws Exception
+    {
+        when(this.query.execute()).thenReturn(changes(PAGE_SIZE + 1));
+        this.request.put("products", "XWiki~");
+
+        Elements links = renderReportPaginationLinks();
+
+        assertEquals(1, links.size());
+        String href = links.get(0).attr("href");
+        assertTrue(href.contains("products=XWiki%7E"),
+            "Expected the paging link to carry the filter value as typed, got: " + href);
     }
 
     private void assertPageLink(Element link, int expectedOffset)
