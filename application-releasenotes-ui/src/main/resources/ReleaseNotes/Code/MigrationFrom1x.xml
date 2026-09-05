@@ -36,7 +36,19 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
+  <enforceRequiredRights>true</enforceRequiredRights>
   <content>{{velocity}}
+## The migration converts every 1.x change document of the wiki and saves it, and the conversion cannot be undone:
+## it removes the 1.x object from the page it converts. Its query is not restricted to the ReleaseNotes space, so
+## administering the wiki is what it takes to run it. The check gates the listing as well as the conversion: a user
+## who may not run the migration has no use for the list of the pages it would touch, and hiding the action while
+## still answering the request that performs it would not keep that request from performing it.
+## The check is in the page content, so the document also enforces wiki_admin as a required right: that is
+## what refuses edit on this page to anyone who does not already hold the right the check tests for.
+#set ($hasWikiAdmin = $services.security.authorization.hasAccess('admin', $doc.documentReference.wikiReference))
+#if (!$hasWikiAdmin)
+{{error}}{{translation key="releasenotes.migration.notAllowed"/}}{{/error}}
+#else
 ## Find all pages having a v1.x ReleaseNotes.Code.ChangesClass
 #set ($xwql = "from doc.object(ReleaseNotes.Code.ChangesClass) as changes")
 ## The migration writes to every 1.x change document, so it only runs on a request carrying a valid
@@ -79,5 +91,43 @@
 #if (!$migrate)
 [[{{translation key="releasenotes.migration.start"/}}&gt;&gt;||queryString="confirm=1&amp;form_token=$escapetool.url($services.csrf.token)"]]
 #end
+#end
 {{/velocity}}</content>
+  <object>
+    <name>ReleaseNotes.Code.MigrationFrom1x</name>
+    <number>0</number>
+    <className>XWiki.RequiredRightClass</className>
+    <guid>ebbb508d-cd97-4b2d-a734-fdf15896c93f</guid>
+    <class>
+      <name>XWiki.RequiredRightClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <level>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>level</name>
+        <number>1</number>
+        <prettyName>Level</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>edit|script|wiki_admin|programming</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </level>
+    </class>
+    <property>
+      <level>wiki_admin</level>
+    </property>
+  </object>
 </xwikidoc>
