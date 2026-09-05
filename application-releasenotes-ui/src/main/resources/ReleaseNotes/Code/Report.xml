@@ -38,18 +38,21 @@
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
 ## The report form submits one request parameter per filter. Forward those by name rather than whatever the
-## request happens to carry, so that the string built here is always a list of known macro parameters, and strip
-## from each value the characters that would end the parameter it sits in.
+## request happens to carry, so that the string built here is always a list of known macro parameters.
 #set ($reportParameters = ['products', 'versions', 'audience', 'categories', 'importance', 'containsScreenshots',
   'displayer'])
 #set ($parameters = "")
 #set ($filterQueryString = 'action=report')
 #foreach ($parameterName in $reportParameters)
   #set ($parameterValue = $stringtool.normalizeSpace("$!request.get($parameterName)"))
-  #set ($parameterValue = $stringtool.remove($stringtool.remove($parameterValue, "'"), '"'))
   #if ($parameterValue != '')
-    #set ($parameters = "$parameters $parameterName='$parameterValue' ")
-    ## The same filters have to reach the other pages of this report, this time as request parameters.
+    ## The value is placed into a macro parameter, which is re-parsed as wiki syntax, so it is emitted escaped:
+    ## left raw, a value carrying a quote would close the parameter, and a value ending with the escape character
+    ## would escape the closing quote instead, leaving the whole macro call unparsed and displayed as text.
+    #set ($escapedValue = $services.rendering.escape($parameterValue, 'xwiki/2.1'))
+    #set ($parameters = "$parameters $parameterName='$escapedValue' ")
+    ## The same filters have to reach the other pages of this report, this time as request parameters, so they
+    ## travel unescaped: the escaping above belongs to the wiki syntax the value is written into, not to the value.
     #set ($filterQueryString = "$filterQueryString&amp;$parameterName=$escapetool.url($parameterValue)")
   #end
 #end
