@@ -36,6 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
+  <enforceRequiredRights>true</enforceRequiredRights>
   <content>{{velocity output="false"}}
 ## The report form submits one request parameter per filter. Forward those by name rather than whatever the
 ## request happens to carry, so that the string built here is always a list of known macro parameters.
@@ -99,4 +100,41 @@
 {{/html}}
 #end
 {{/velocity}}</content>
+  <object>
+    <name>ReleaseNotes.Code.Report</name>
+    <number>0</number>
+    <className>XWiki.RequiredRightClass</className>
+    <guid>f17af74a-865a-441a-8a4a-0966b28572d5</guid>
+    <class>
+      <name>XWiki.RequiredRightClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <level>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>level</name>
+        <number>1</number>
+        <prettyName>Level</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>edit|script|wiki_admin|programming</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </level>
+    </class>
+    <property>
+      <level>script</level>
+    </property>
+  </object>
 </xwikidoc>

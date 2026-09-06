@@ -36,6 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>plain/1.0</syntaxId>
   <hidden>true</hidden>
+  <enforceRequiredRights>true</enforceRequiredRights>
   <content># Administration section
 
 admin.releasenotes=Release Notes
@@ -229,6 +230,43 @@ releasenotes.entry.notReserved=Could not take a page for the new change. Please 
     </class>
     <property>
       <scope>WIKI</scope>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Code.Translations</name>
+    <number>0</number>
+    <className>XWiki.RequiredRightClass</className>
+    <guid>777518d8-c257-47ca-b4f6-ff48011c466a</guid>
+    <class>
+      <name>XWiki.RequiredRightClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <level>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>level</name>
+        <number>1</number>
+        <prettyName>Level</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>edit|script|wiki_admin|programming</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </level>
+    </class>
+    <property>
+      <level>wiki_admin</level>
     </property>
   </object>
 </xwikidoc>
