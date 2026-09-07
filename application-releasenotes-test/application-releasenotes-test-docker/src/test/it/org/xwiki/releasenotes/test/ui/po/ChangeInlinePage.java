@@ -45,6 +45,15 @@ public class ChangeInlinePage extends InlinePage
     }
 
     /**
+     * @return {@code true} when the form offers the attachment picker editing the screenshots, {@code false}
+     *         otherwise
+     */
+    public boolean hasScreenshotsPicker()
+    {
+        return !getDriver().findElementsWithoutWaiting(SCREENSHOTS_PICKER).isEmpty();
+    }
+
+    /**
      * @return the attachment picker editing the screenshots of the change
      */
     public SuggestInputElement getScreenshotsPicker()

@@ -20,32 +20,41 @@
 package org.xwiki.releasenotes.test.ui.po;
 
 import org.openqa.selenium.By;
+import org.xwiki.test.ui.po.InlinePage;
 import org.xwiki.test.ui.po.ViewPage;
 
 /**
- * The page of a change, as {@code ReleaseNotes.Code.Change.ChangeSheet} renders it.
+ * A release note, as the {@code releasenotechanges} and {@code releasenotecontributors} macros render it.
  *
  * @version $Id$
  */
-public class ChangeViewPage extends ViewPage
+public class ReleaseNotePage extends ViewPage
 {
     private static final By CONTENT = By.id("xwikicontent");
 
     /**
-     * @param fileName the file name of the medium, as stored in the {@code screenshots} property
-     * @return {@code true} when the page displays that medium as an image, {@code false} otherwise
+     * The button submitting the form that creates the contributors list. The form is located through the entry type
+     * it carries rather than through the label of its button, which is translated.
      */
-    public boolean hasScreenshot(String fileName)
+    private static final By ADD_CONTRIBUTORS_BUTTON =
+        By.xpath("//input[@name = 'type'][@value = 'Contributors']/ancestor::form//input[@type = 'submit']");
+
+    /**
+     * Creates the contributors list of the note, which the contributors macro offers while no such list exists.
+     *
+     * @return the inline edit form the button lands on, editing the contributors entry from its template
+     */
+    public InlinePage clickAddContributors()
     {
-        return !getDriver().findElementsWithoutWaiting(
-            By.cssSelector(String.format("img[src*='%s']", fileName))).isEmpty();
+        getDriver().findElementWithoutWaiting(ADD_CONTRIBUTORS_BUTTON).click();
+        return new InlinePage();
     }
 
     /**
-     * Unlike {@link #getContent()}, which returns the content as text, this keeps the markup the change sheet
-     * produced, which is what tells a rendered macro from one displayed inert.
+     * Unlike {@link #getContent()}, which returns the content as text, this keeps the markup the macros produced,
+     * which is what tells a rendered macro from one displayed inert.
      *
-     * @return the rendered content of the change, as HTML
+     * @return the rendered content of the note, as HTML
      */
     public String getContentHtml()
     {
