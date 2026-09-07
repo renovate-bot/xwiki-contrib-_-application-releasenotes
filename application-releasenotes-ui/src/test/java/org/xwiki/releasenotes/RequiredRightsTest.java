@@ -29,17 +29,13 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
-import org.xwiki.internal.document.DefaultSimpleDocumentCache;
-import org.xwiki.internal.document.DocumentRequiredRightsReader;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.security.authorization.Right;
-import org.xwiki.security.authorization.internal.DefaultDocumentRequiredRightsManager;
 import org.xwiki.security.authorization.requiredrights.DocumentRequiredRight;
 import org.xwiki.security.authorization.requiredrights.DocumentRequiredRights;
 import org.xwiki.security.authorization.requiredrights.DocumentRequiredRightsManager;
-import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.page.PageTest;
 
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -62,11 +58,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  *
  * @version $Id$
  */
-@ComponentList({
-    DefaultDocumentRequiredRightsManager.class,
-    DocumentRequiredRightsReader.class,
-    DefaultSimpleDocumentCache.class
-})
 class RequiredRightsTest extends PageTest
 {
     private static final String TOP_SPACE = "ReleaseNotes";
