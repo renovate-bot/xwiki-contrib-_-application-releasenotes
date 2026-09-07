@@ -26,8 +26,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
 import org.xwiki.livedata.test.po.LiveDataElement;
 import org.xwiki.livedata.test.po.TableLayoutElement;
 import org.xwiki.model.reference.DocumentReference;
@@ -35,9 +33,12 @@ import org.xwiki.model.reference.ObjectPropertyReference;
 import org.xwiki.model.reference.ObjectReference;
 import org.xwiki.rest.model.jaxb.Page;
 import org.xwiki.rest.model.jaxb.Property;
+import org.xwiki.releasenotes.test.ui.po.ChangeCardElement;
 import org.xwiki.releasenotes.test.ui.po.ChangeInlinePage;
 import org.xwiki.releasenotes.test.ui.po.ChangeViewPage;
+import org.xwiki.releasenotes.test.ui.po.ChangesGridElement;
 import org.xwiki.releasenotes.test.ui.po.PropertiesPanelElement;
+import org.xwiki.releasenotes.test.ui.po.ReleaseNotePage;
 import org.xwiki.releasenotes.test.ui.po.ReleaseNotesAdministrationSectionPage;
 import org.xwiki.releasenotes.test.ui.po.ScrollableTableLayoutElement;
 import org.xwiki.test.docker.junit5.UITest;
@@ -109,17 +110,15 @@ class ReleaseNotesIT
             "product", product, "version", "1.0", "released", "0");
 
         // Before any contributors list exists, the macro shows the warning and offers the button to an editor.
-        ViewPage beforePage = setup.gotoPage(releaseNote);
+        setup.gotoPage(releaseNote);
+        ReleaseNotePage beforePage = new ReleaseNotePage();
         assertTrue(beforePage.getContent().contains("The list of contributors has not been generated yet."),
             "Expected the not-generated-yet warning before the contributors list exists.");
-        WebElement addButton = setup.getDriver().findElementWithoutWaiting(
-            By.cssSelector("input.button[value='Add contributors']"));
 
         // Click "Add contributors": lands on the Contributors page in inline edit mode. The names are typed unsorted
         // and with mixed case to exercise the case-insensitive alphabetical ordering, and one of them carries bold
         // wiki syntax to exercise the escaping.
-        addButton.click();
-        InlinePage contributorsEditor = new InlinePage();
+        InlinePage contributorsEditor = beforePage.clickAddContributors();
         contributorsEditor.setValue("contributors", "bob jones\nAlice Smith\nCarol Nguyen\n**Robert Tables**");
         // Save through the page object, which waits for the asynchronous save to complete: navigating away straight
         // after a click on the save button races it and can abort the save.
@@ -151,7 +150,8 @@ class ReleaseNotesIT
         setup.gotoPage(releaseNote, "view",
             "action=useradd&template=ReleaseNotes.Code.Change.ChangeTemplate&product=" + product
                 + "&version=1.0&audience=user&form_token=" + setup.getSecretToken());
-        String currentUrl = setup.getDriver().getCurrentUrl();
+        ChangeInlinePage changeEditor = new ChangeInlinePage();
+        String currentUrl = changeEditor.getPageURL();
         assertTrue(currentUrl.contains("/edit/ReleaseNotes/Data/" + product + "/1.0/Entry001/WebHome"),
             "The new change must be numbered Entry001 despite the Contributors entry, landed on: " + currentUrl);
         // The redirect must go through the "edit" action and the inline editor, and not through the deprecated
@@ -159,8 +159,7 @@ class ReleaseNotesIT
         // the URL still names Entry001 but resolves to a view of a missing page in a space named "inline".
         assertTrue(currentUrl.contains("editor=inline"),
             "The new change must be opened with the inline editor, landed on: " + currentUrl);
-        assertFalse(setup.getDriver()
-            .findElementsWithoutWaiting(By.cssSelector("select.releasenotes-screenshots-picker")).isEmpty(),
+        assertTrue(changeEditor.hasScreenshotsPicker(),
             "The redirect must land on the edit form of the new change, filled in from the change template.");
     }
 
@@ -348,26 +347,24 @@ class ReleaseNotesIT
             "Grid page");
         setup.gotoPage(page);
 
-        List<WebElement> cards = setup.getDriver().findElementsWithoutWaiting(By.cssSelector(".rn-change-card"));
+        ChangesGridElement grid = new ChangesGridElement();
+        List<ChangeCardElement> cards = grid.getCards();
         assertEquals(2, cards.size(), "Each change must be rendered as its own card.");
 
         // The card is the enclosure: a title and a medium belong to the same change because they are inside it, so
         // every card carries the title of its own change, above its own media.
-        for (WebElement card : cards) {
-            WebElement title = setup.getDriver().findElementWithoutWaiting(card, By.cssSelector(".rn-change-title"));
-            WebElement media = setup.getDriver().findElementWithoutWaiting(card, By.cssSelector(".rn-change-media"));
-            assertTrue(List.of("A grid change", "A videos change").contains(title.getText()),
-                "A card must be titled after the change it displays, got: " + title.getText());
-            assertTrue(title.getLocation().getY() < media.getLocation().getY(),
-                "The media must be displayed after the title, in the card of: " + title.getText());
+        for (ChangeCardElement card : cards) {
+            assertTrue(List.of("A grid change", "A videos change").contains(card.getTitle()),
+                "A card must be titled after the change it displays, got: " + card.getTitle());
+            assertTrue(card.isMediaBelowTitle(),
+                "The media must be displayed after the title, in the card of: " + card.getTitle());
         }
 
         // Only one of the two changes carries videos, and its card displays the first of them alone.
-        List<WebElement> videos =
-            setup.getDriver().findElementsWithoutWaiting(By.cssSelector(".rn-change-media video"));
+        List<String> videos = grid.getVideoSources();
         assertEquals(1, videos.size(), "Only the first video of a change must be displayed.");
-        assertTrue(videos.get(0).getAttribute("src").contains("video1.mp4"),
-            "The displayed video must be the first one, got: " + videos.get(0).getAttribute("src"));
+        assertTrue(videos.get(0).contains("video1.mp4"),
+            "The displayed video must be the first one, got: " + videos.get(0));
     }
 
     /**
@@ -426,9 +423,8 @@ class ReleaseNotesIT
             "The report must render the changes, otherwise the layout below proves nothing.");
         // The grid displayer publishes its column count to its stylesheet as a custom property, so the default of
         // 2 columns is what must be found there rather than the 1 carried by the request.
-        WebElement grid = setup.getDriver().findElementWithoutWaiting(By.cssSelector(".rn-changes-grid"));
-        assertTrue(grid.getAttribute("style").contains("--rn-changes-grid-columns: 2"),
-            "The changes must keep the default column layout of the displayer, got: " + grid.getAttribute("style"));
+        assertEquals(2, new ChangesGridElement().getColumnCount(),
+            "The changes must keep the default column layout of the displayer.");
     }
 
     /**
@@ -681,12 +677,13 @@ class ReleaseNotesIT
         // The release note lists the change through the list displayer (the change carries no screenshot), so its
         // summary is rendered there.
         setup.gotoPage(releaseNote);
-        assertFieldRenderedInert(setup, "SUMMARYMARK");
+        assertFieldRenderedInert(new ReleaseNotePage().getContentHtml(), "SUMMARYMARK");
 
         // The change's own page renders both the summary and the description through the change sheet.
         setup.gotoPage(change);
-        assertFieldRenderedInert(setup, "SUMMARYMARK");
-        assertFieldRenderedInert(setup, "DESCRIPTIONMARK");
+        String changeContent = new ChangeViewPage().getContentHtml();
+        assertFieldRenderedInert(changeContent, "SUMMARYMARK");
+        assertFieldRenderedInert(changeContent, "DESCRIPTIONMARK");
 
         setup.rest().delete(change);
         setup.rest().delete(releaseNote);
@@ -697,13 +694,11 @@ class ReleaseNotesIT
      * Asserts that the rendered content holds the given marker, i.e. the field it identifies is displayed, but no
      * inline event handler, i.e. the macro the field also holds was rendered inert rather than executed.
      *
-     * @param setup the test utilities, whose driver is on the page to check
+     * @param content the rendered content of the page displaying the field, as HTML
      * @param marker the plain-text marker the field carries, to make sure the field itself is displayed
      */
-    private void assertFieldRenderedInert(TestUtils setup, String marker)
+    private void assertFieldRenderedInert(String content, String marker)
     {
-        String content = setup.getDriver()
-            .findElementWithoutWaiting(By.id("xwikicontent")).getAttribute("innerHTML");
         assertTrue(content.contains(marker),
             "Expected the change field carrying '" + marker + "' to be displayed, got: " + content);
         assertFalse(content.contains("onerror") || content.contains("onmouseover"),
