@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ReleaseNotes.Code.HTML5Video" locale="">
+<xwikidoc version="1.6" reference="ReleaseNotes.Code.HTML5Video" locale="">
   <web>ReleaseNotes.Code</web>
   <name>HTML5Video</name>
   <language/>
@@ -458,7 +458,7 @@
       </level>
     </class>
     <property>
-      <level>script</level>
+      <level>wiki_admin</level>
     </property>
   </object>
 </xwikidoc>

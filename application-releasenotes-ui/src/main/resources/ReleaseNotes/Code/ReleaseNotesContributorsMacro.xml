@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Code.ReleaseNotesContributorsMacro" locale="">
+<xwikidoc version="1.6" reference="ReleaseNotes.Code.ReleaseNotesContributorsMacro" locale="">
   <web>ReleaseNotes.Code</web>
   <name>ReleaseNotesContributorsMacro</name>
   <language/>
@@ -276,7 +276,7 @@
       </level>
     </class>
     <property>
-      <level>script</level>
+      <level>wiki_admin</level>
     </property>
   </object>
 </xwikidoc>
