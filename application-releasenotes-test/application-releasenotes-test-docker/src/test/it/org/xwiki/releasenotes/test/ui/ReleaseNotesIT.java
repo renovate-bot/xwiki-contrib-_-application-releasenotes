@@ -511,8 +511,18 @@ class ReleaseNotesIT
         // hidden behind the widget, so scroll to the block holding both.
         setup.getDriver().scrollTo(setup.getDriver().findElementWithoutWaiting(
             By.cssSelector("span.releasenotes-screenshots")));
+        // Opening the suggestions sometimes needs more than one click. The form is static by the time it is clicked,
+        // yet the pointer event the click sends can leave the widget without the focus, and an unfocused widget
+        // never loads any suggestion, so waiting for them then times out. Clicking a widget whose dropdown is
+        // already open would close it again, hence the condition on every attempt.
+        setup.getDriver().waitUntilCondition(driver -> {
+            if (!picker.isDropDownOpened()) {
+                picker.click();
+            }
+            return picker.isDropDownOpened();
+        });
         // The attachments of the change are the suggestions offered without typing anything.
-        picker.click().waitForNonTypedSuggestions().selectByValue("second.png");
+        picker.waitForNonTypedSuggestions().selectByValue("second.png");
         picker.hideSuggestions();
 
         // Save through the page object, which waits for the asynchronous save to complete: reading the saved value
