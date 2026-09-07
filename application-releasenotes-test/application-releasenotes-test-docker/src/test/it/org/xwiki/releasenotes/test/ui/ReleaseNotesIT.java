@@ -35,6 +35,8 @@ import org.xwiki.model.reference.ObjectPropertyReference;
 import org.xwiki.model.reference.ObjectReference;
 import org.xwiki.rest.model.jaxb.Page;
 import org.xwiki.rest.model.jaxb.Property;
+import org.xwiki.releasenotes.test.ui.po.ChangeInlinePage;
+import org.xwiki.releasenotes.test.ui.po.ChangeViewPage;
 import org.xwiki.releasenotes.test.ui.po.PropertiesPanelElement;
 import org.xwiki.releasenotes.test.ui.po.ReleaseNotesAdministrationSectionPage;
 import org.xwiki.releasenotes.test.ui.po.ScrollableTableLayoutElement;
@@ -496,28 +498,23 @@ class ReleaseNotesIT
         setup.attachFile(entry, "second.png", getClass().getResourceAsStream("/screenshot.png"), false);
 
         setup.gotoPage(entry, "edit", "editor=inline");
+        ChangeInlinePage changeEditor = new ChangeInlinePage();
 
         // The form is reached from the release note and used to be a dead end towards the change's own page.
-        assertFalse(setup.getDriver()
-            .findElementsWithoutWaiting(By.cssSelector("a.releasenotes-view-change")).isEmpty(),
+        assertTrue(changeEditor.hasViewChangeLink(),
             "The edit form must offer a link to view the change page.");
 
-        SuggestInputElement picker = new SuggestInputElement(setup.getDriver().findElementWithoutWaiting(
-            By.cssSelector("select.releasenotes-screenshots-picker")));
-        assertEquals(List.of("first.png"), picker.getValues(),
+        assertEquals(List.of("first.png"), changeEditor.getScreenshotsPicker().getValues(),
             "The media already stored must be preselected in the picker.");
 
-        // The widget is clicked through Selenium actions, which need it inside the viewport. The picker itself is
-        // hidden behind the widget, so scroll to the block holding both.
-        setup.getDriver().scrollTo(setup.getDriver().findElementWithoutWaiting(
-            By.cssSelector("span.releasenotes-screenshots")));
         // The attachments of the change are the suggestions offered without typing anything.
-        picker.click().waitForNonTypedSuggestions().selectByValue("second.png");
+        SuggestInputElement picker = changeEditor.openScreenshotSuggestions();
+        picker.selectByValue("second.png");
         picker.hideSuggestions();
 
         // Save through the page object, which waits for the asynchronous save to complete: reading the saved value
         // straight after a click on the button races it, and reads back the value from before the save.
-        new InlinePage().clickSaveAndView();
+        changeEditor.clickSaveAndView();
 
         Property screenshots = setup.rest().get(new ObjectPropertyReference("screenshots",
             new ObjectReference("ReleaseNotes.Code.Change.ChangeClass[0]", entry)));
@@ -528,13 +525,12 @@ class ReleaseNotesIT
         // Reopening the form must show both media, which is what closes the loop: the value the picker saved is a
         // value the picker itself reads back.
         setup.gotoPage(entry, "edit", "editor=inline");
-        SuggestInputElement reopened = new SuggestInputElement(setup.getDriver().findElementWithoutWaiting(
-            By.cssSelector("select.releasenotes-screenshots-picker")));
-        assertEquals(List.of("first.png", "second.png"), reopened.getValues());
+        assertEquals(List.of("first.png", "second.png"),
+            new ChangeInlinePage().getScreenshotsPicker().getValues());
 
         // The saved value must also still be understood by the displayers, which render the media of a change.
         setup.gotoPage(entry);
-        assertFalse(setup.getDriver().findElementsWithoutWaiting(By.cssSelector("img[src*='first.png']")).isEmpty(),
+        assertTrue(new ChangeViewPage().hasScreenshot("first.png"),
             "The change page must display the screenshots the picker saved.");
     }
 
