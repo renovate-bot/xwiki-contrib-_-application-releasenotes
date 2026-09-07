@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="ReleaseNotes.Code.HTML5Video" locale="">
+<xwikidoc version="1.6" reference="ReleaseNotes.Code.HTML5Video" locale="">
   <web>ReleaseNotes.Code</web>
   <name>HTML5Video</name>
   <language/>
@@ -36,6 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
+  <enforceRequiredRights>true</enforceRequiredRights>
   <content/>
   <object>
     <name>ReleaseNotes.Code.HTML5Video</name>
@@ -421,6 +422,43 @@
     </property>
     <property>
       <type/>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Code.HTML5Video</name>
+    <number>0</number>
+    <className>XWiki.RequiredRightClass</className>
+    <guid>04d74497-4081-402f-a346-a9e7fd6f2049</guid>
+    <class>
+      <name>XWiki.RequiredRightClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <level>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>level</name>
+        <number>1</number>
+        <prettyName>Level</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>edit|script|wiki_admin|programming</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </level>
+    </class>
+    <property>
+      <level>wiki_admin</level>
     </property>
   </object>
 </xwikidoc>

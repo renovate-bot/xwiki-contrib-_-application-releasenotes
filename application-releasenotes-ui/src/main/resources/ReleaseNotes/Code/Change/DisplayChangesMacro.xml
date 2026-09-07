@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Code.Change.DisplayChangesMacro" locale="">
+<xwikidoc version="1.6" reference="ReleaseNotes.Code.Change.DisplayChangesMacro" locale="">
   <web>ReleaseNotes.Code.Change</web>
   <name>DisplayChangesMacro</name>
   <language/>
@@ -36,6 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
+  <enforceRequiredRights>true</enforceRequiredRights>
   <content>= Example usage =
 
 ##{{{
@@ -489,6 +490,43 @@
     </property>
     <property>
       <name>contextVariable</name>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Code.Change.DisplayChangesMacro</name>
+    <number>0</number>
+    <className>XWiki.RequiredRightClass</className>
+    <guid>19ba8871-e9b2-4af6-96f4-f9c08cee2e0e</guid>
+    <class>
+      <name>XWiki.RequiredRightClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <level>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>level</name>
+        <number>1</number>
+        <prettyName>Level</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>edit|script|wiki_admin|programming</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </level>
+    </class>
+    <property>
+      <level>wiki_admin</level>
     </property>
   </object>
 </xwikidoc>

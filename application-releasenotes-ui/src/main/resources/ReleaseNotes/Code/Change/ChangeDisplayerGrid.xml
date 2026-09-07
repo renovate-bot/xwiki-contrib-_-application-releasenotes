@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Code.Change.ChangeDisplayerGrid" locale="">
+<xwikidoc version="1.6" reference="ReleaseNotes.Code.Change.ChangeDisplayerGrid" locale="">
   <web>ReleaseNotes.Code.Change</web>
   <name>ChangeDisplayerGrid</name>
   <language/>
@@ -36,6 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
+  <enforceRequiredRights>true</enforceRequiredRights>
   <content>{{include reference="ReleaseNotes.Code.Change.ChangeDisplayerVelocityMacros"/}}
 
 {{velocity}}
@@ -288,6 +289,43 @@
     </property>
     <property>
       <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Code.Change.ChangeDisplayerGrid</name>
+    <number>0</number>
+    <className>XWiki.RequiredRightClass</className>
+    <guid>f21d5cc4-dda6-4d11-bc7f-ff69dfe3cd03</guid>
+    <class>
+      <name>XWiki.RequiredRightClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <level>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>level</name>
+        <number>1</number>
+        <prettyName>Level</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>edit|script|wiki_admin|programming</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </level>
+    </class>
+    <property>
+      <level>script</level>
     </property>
   </object>
 </xwikidoc>

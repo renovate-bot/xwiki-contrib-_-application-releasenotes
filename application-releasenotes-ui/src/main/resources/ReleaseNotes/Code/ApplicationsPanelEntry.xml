@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.2" reference="ReleaseNotes.Code.ApplicationsPanelEntry" locale="">
+<xwikidoc version="1.6" reference="ReleaseNotes.Code.ApplicationsPanelEntry" locale="">
   <web>ReleaseNotes.Code</web>
   <name>ApplicationsPanelEntry</name>
   <language/>
@@ -36,6 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
+  <enforceRequiredRights>true</enforceRequiredRights>
   <content/>
   <object>
     <name>ReleaseNotes.Code.ApplicationsPanelEntry</name>
@@ -122,6 +123,43 @@ icon=icon:list</parameters>
     </property>
     <property>
       <scope>wiki</scope>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Code.ApplicationsPanelEntry</name>
+    <number>0</number>
+    <className>XWiki.RequiredRightClass</className>
+    <guid>ff8099fb-392e-4b81-a37c-2f2db1bef9cd</guid>
+    <class>
+      <name>XWiki.RequiredRightClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <level>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>level</name>
+        <number>1</number>
+        <prettyName>Level</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>edit|script|wiki_admin|programming</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </level>
+    </class>
+    <property>
+      <level>wiki_admin</level>
     </property>
   </object>
 </xwikidoc>
