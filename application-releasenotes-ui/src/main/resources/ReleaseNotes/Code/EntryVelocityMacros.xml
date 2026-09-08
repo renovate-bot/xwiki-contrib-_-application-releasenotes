@@ -59,23 +59,22 @@
   ; {{html clean="false"}}&lt;label for="$escapetool.xml($fieldId)"&gt;$escapetool.xml($fieldLabel)&lt;/label&gt;{{/html}}
   : $doc.display($propertyName, 'edit', $object)
 #end
-#macro (getShortVersion $fullVersion $result)
-  #set ($shortVersion = $stringtool.replaceChars($fullVersion, "-", ""))
-  #set ($shortVersion = $stringtool.upperCase($shortVersion))
-  #set ($shortVersion = $shortVersion.replace('MILESTONE', 'M'))
-  #set ($result = $NULL)
-  #setVariable ("$result", $shortVersion)
-#end
 #macro (handleAddAction $product $version $queryString)
   #if ("$!version" == '')
     {{error}}{{translation key="releasenotes.entry.versionRequired"/}}{{/error}}
 
   #else
-    #getShortVersion($version, $shortVersion)
-    #set ($versionSpaceReference = $services.model.createDocumentReference('', ['ReleaseNotes', 'Data', "$product", "$shortVersion"], 'WebHome').parent)
-    #set ($versionSpaceReferenceString = $services.model.serialize($versionSpaceReference))
-    #reserveEntryPage($versionSpaceReferenceString, $entryPageReference)
-    #if ("$!entryPageReference" == '')
+    ## The page is taken through the API, which refuses a product it cannot resolve and a page it cannot save. The
+    ## caller is a form, so a refusal is reported to its author as a message rather than left to break the page the
+    ## form sits on.
+    #try('reserveException')
+      #set ($entryPageReference = $services.releasenotes.reserveNextEntry($product, $version))
+      #set ($shortVersion = $services.releasenotes.getReleaseNoteReference($product, $version).parent.name)
+    #end
+    #if ($reserveException)
+      {{error}}{{translation key="releasenotes.entry.addFailed"/}}{{/error}}
+
+    #elseif ("$!entryPageReference" == '')
       {{error}}{{translation key="releasenotes.entry.notReserved"/}}{{/error}}
 
     #else
@@ -85,55 +84,7 @@
     #end
   #end
 #end
-## Creates, empty, the page of a new entry under the passed version space, using the format "Entry###" where ### is a
-## zero-padded number, and returns its reference in $result. Returns an empty string when no free page name could be
-## taken.
-##
-## The page is created here, before its author is sent to the editor, rather than left to that editor to create when
-## the author saves: the name of a new entry is derived from the entries that already exist, and an entry only starts
-## existing when it is saved, so two authors adding a change to the same release note at the same time would both be
-## handed that same name and the second save would silently overwrite the first. The window is not the round trip, it
-## is the whole editing session. Creating the page takes the name for one author only.
-##
-## The page is left empty rather than filled from the entry template, because the "edit" action the author is
-## redirected to applies that template to any page without content, existing or not. The objects of the entry are
-## thus still created by the template, once.
-#macro (reserveEntryPage $versionSpaceReferenceString $result)
-  ## Handle the case of MySQL which uses "\" as an escape character and we need to handle that
-  ## since that character is present in space references when there are dots in space names.
-  #set ($spaceLike = $versionSpaceReferenceString.replaceAll('([%_!])', '!$1').concat('.%'))
-  ## Every page of the version space is looked at, and not only the saved entries, so that a page taken by an author
-  ## who has not saved their entry yet is seen as taken.
-  #set ($pagesQuery = $services.query.xwql("where doc.space like :space escape '!'"))
-  #set ($pagesQuery = $pagesQuery.bindValue('space', $spaceLike))
-  ## The highest number in use is computed here rather than asked of the query, because a query can only order the
-  ## page names as strings, which sorts "Entry999" above "Entry1000" and hands the number 1000 out over and over.
-  #set ($highestNumber = 0)
-  #foreach ($pageReference in $pagesQuery.execute())
-    #set ($entryName = $services.model.resolveDocument($pageReference).parent.name)
-    #if ($entryName.matches('Entry\d+'))
-      #set ($entryNumber = $numbertool.toNumber($entryName.replaceFirst('^Entry', '')).intValue())
-      #if ($entryNumber &gt; $highestNumber)
-        #set ($highestNumber = $entryNumber)
-      #end
-    #end
-  #end
-  ## Every page of the version space has just been looked at, so the page of the next number is free unless another
-  ## author took it in the meantime. A few numbers are therefore tried, and not just one.
-  #set ($reservedPageReference = '')
-  #foreach ($candidateNumber in [$mathtool.add($highestNumber, 1)..$mathtool.add($highestNumber, 10)])
-    #set ($paddedNumber = $numbertool.format('000', $candidateNumber))
-    #set ($candidatePageReference = "${versionSpaceReferenceString}.Entry${paddedNumber}.WebHome")
-    #set ($candidatePage = $xwiki.getDocument($candidatePageReference))
-    #if ($candidatePage.isNew())
-      #set ($discard = $candidatePage.save('Take the page of a new release note entry'))
-      #set ($reservedPageReference = $candidatePageReference)
-      #break
-    #end
-  #end
-  #set ($result = $NULL)
-  #setVariable ("$result", $reservedPageReference)
-#end</content>
+</content>
   <object>
     <name>ReleaseNotes.Code.EntryVelocityMacros</name>
     <number>0</number>

@@ -41,48 +41,44 @@
 {{velocity}}
 $!xwiki.jsx.use("ReleaseNotes.Code.HomeReleaseNotes")
 #if ($hasEdit)
-  #set ($configDoc = $xwiki.getDocument("ReleaseNotes.Code.ReleaseNotesConfig"))
-  #set ($defaultProduct = $configDoc.getValue('product'))
-  #set ($defaultTemplateReferenceString = $configDoc.getValue('template'))
+  #set ($defaultProduct = $services.releasenotes.getDefaultProduct())
   #if ($request.action == 'addReleaseNotes' &amp;&amp; $services.csrf.isTokenValid($request.getParameter('form_token')))
-    #set ($product = $!request.product)
-    #set ($version = $!request.version)
-    #getShortVersion($version, $shortVersion)
-    ## Create page if it doesn't exist
-    #set ($rnPageReference = $services.model.createDocumentReference('', ['ReleaseNotes', 'Data', $product, $shortVersion], 'WebHome'))
-    #set ($rnDoc = $xwiki.getDocument($rnPageReference))
-    #if ($rnDoc.isNew())
-      #set ($rnObject = $rnDoc.newObject("ReleaseNotes.Code.ReleaseNoteClass"))
-      #set ($discard = $rnObject.set('product', $product))
-      #set ($discard = $rnObject.set('version', $version))
-      #set ($discard = $rnObject.set('released', '0'))
-      ## We set an empty release date so that the Live Data can see entries. For some reasons, otherwise, it won't
-      ## display entries that have no date set (this is related to the fact that we're sorting on the date).
-      #set ($discard = $rnObject.set('date', ''))
-      ## Copy the template content + title
-      #set ($templateDoc = $xwiki.getDocument($defaultTemplateReferenceString))
-      #set ($discard = $rnDoc.setContent($templateDoc.content))
-      #set ($discard = $rnDoc.setTitle($templateDoc.title))
-      ## Also copy the required rights of the template: a template whose content needs script right must lead to a
-      ## release note declaring and enforcing that right, otherwise the copied content won't execute.
-      #foreach ($templateRightObject in $templateDoc.getObjects('XWiki.RequiredRightClass'))
-        #set ($rnRightObject = $rnDoc.newObject('XWiki.RequiredRightClass'))
-        #set ($discard = $rnRightObject.set('level', $templateRightObject.getValue('level')))
-      #end
-      #set ($discard = $rnDoc.setEnforceRequiredRights($templateDoc.isEnforceRequiredRights()))
-      #set ($discard = $rnDoc.save('New Release note'))
-      ## Redirect in edit mode to edit the RN
-      $response.sendRedirect($xwiki.getURL($services.model.serialize($rnPageReference)))
+    #set ($product = "$!request.product")
+    #set ($version = "$!request.version")
+    ## The page a release note lives in is named after its product and its version, so a release note cannot be
+    ## created without a product. The field is pre-filled with the product configured for the wiki, and is empty
+    ## until an administrator configures one.
+    #if ($product == '' &amp;&amp; "$!defaultProduct" == '')
+      {{error}}{{translation key="releasenotes.releases.add.productRequired"/}}{{/error}}
+
     #else
+      #try('creationException')
+        #set ($rnPageReference = $services.releasenotes.getReleaseNoteReference($product, $version))
+        #set ($rnDoc = $xwiki.getDocument($rnPageReference))
+        ## Whether the version is taken is looked at here, rather than left to the creation to report, so that the
+        ## release note holding it can be named and linked to.
+        #if ($rnDoc.isNew())
+          #set ($discard = $services.releasenotes.createReleaseNote({'product': $product, 'version': $version}))
+          ## Redirect in edit mode to edit the RN
+          $response.sendRedirect($xwiki.getURL($services.model.serialize($rnPageReference)))
+        #else
+          #set ($versionIsTaken = true)
+        #end
+      #end
+      #if ($versionIsTaken)
 
-      ## The message names the release note that already exists and links to it: an author who lands here has typed
-      ## a version by hand and needs to see which note that version is taken by. The link sits in the middle of the
-      ## sentence, so its markup is built here and passed as parameters rather than left in the translation value,
-      ## where it would be escaped instead of rendered.
-      #set ($alreadyExistsParameters = [$services.rendering.escape($version, 'xwiki/2.1'), '[[',
-        "&gt;&gt;path:$rnDoc.getURL('view')]]"])
-      {{error}}$services.localization.render('releasenotes.releases.add.alreadyExists', $alreadyExistsParameters){{/error}}
+        ## The message names the release note that already exists and links to it: an author who lands here has typed
+        ## a version by hand and needs to see which note that version is taken by. The link sits in the middle of the
+        ## sentence, so its markup is built here and passed as parameters rather than left in the translation value,
+        ## where it would be escaped instead of rendered.
+        #set ($alreadyExistsParameters = [$services.rendering.escape($version, 'xwiki/2.1'), '[[',
+          "&gt;&gt;path:$rnDoc.getURL('view')]]"])
+        {{error}}$services.localization.render('releasenotes.releases.add.alreadyExists', $alreadyExistsParameters){{/error}}
 
+      #elseif ($creationException)
+        {{error}}{{translation key="releasenotes.releases.add.failed"/}}{{/error}}
+
+      #end
     #end
   #end
   ## Both prompts are placeholder attributes and not the inputs' own value: as a value a prompt would give the field

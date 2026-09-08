@@ -97,6 +97,8 @@ releasenotes.releases.add.version.label=Version
 releasenotes.releases.add.version.placeholder=e.g. 8.3-milestone-1
 releasenotes.releases.add.submit=Add Release Note
 releasenotes.releases.add.alreadyExists=A release note already exists for version {0}. {1}Open it{2}.
+releasenotes.releases.add.productRequired=A product is required to create a release note. Either type one, or configure a default product for this wiki.
+releasenotes.releases.add.failed=The release note could not be created. Please check the version you asked for and the release note configuration of this wiki.
 
 # Release notes Live Data, on the application home page
 
@@ -196,7 +198,8 @@ releasenotes.change.video.notSupported=Sorry, your browser doesn't support embed
 # Creation of a release note entry
 
 releasenotes.entry.versionRequired=A version is required to create a new release note entry.
-releasenotes.entry.notReserved=Could not take a page for the new change. Please try again.</content>
+releasenotes.entry.notReserved=Could not take a page for the new change. Please try again.
+releasenotes.entry.addFailed=The change could not be added. Please check the product and the version you asked for, and the release note configuration of this wiki.</content>
   <object>
     <name>ReleaseNotes.Code.Translations</name>
     <number>0</number>

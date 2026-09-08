@@ -1,0 +1,80 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+package org.xwiki.contrib.releasenotes;
+
+import org.xwiki.component.annotation.Role;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.stability.Unstable;
+
+/**
+ * Creates and reads the changes of a release note.
+ * <p>
+ * A change lives in a page named {@code Entry###}, where {@code ###} is a zero-padded number, under the page of the
+ * release note it belongs to.
+ *
+ * @version $Id$
+ * @since 2.7
+ */
+@Role
+@Unstable
+public interface ChangeManager
+{
+    /**
+     * Creates a change: allocates the page of a new entry, fills it from the change template and saves it once.
+     * <p>
+     * This is not what the "Add Change" buttons of the application do, which is {@link #reserveNextEntry(String,
+     * String)}: a change created here is complete when it is saved, and is therefore never left half created.
+     *
+     * @param change the change to create, which needs at least a version and a title, and a product unless one is
+     *            configured for the wiki
+     * @return the page the change was created in
+     * @throws ReleaseNotesException when the change carries no version or no title, no product could be determined,
+     *             the current user or the author of the calling script cannot edit the page, no page name was free,
+     *             or the save failed
+     */
+    DocumentReference createChange(Change change) throws ReleaseNotesException;
+
+    /**
+     * Takes the page of a new entry of a release note, saving it empty, and returns it. This is what the "Add Change"
+     * buttons of the application do before sending their author to the editor.
+     * <p>
+     * The page is taken before its author starts editing, and not left to the editor to create when that author
+     * saves, because the name of a new entry is derived from the entries that already exist and an entry only starts
+     * existing when it is saved: two authors adding a change to the same release note at the same time would
+     * otherwise be handed that same page and the second save would silently overwrite the first.
+     * <p>
+     * It is left empty on purpose: the {@code edit} action the author is sent to applies the change template to any
+     * page without content, so the objects of the change are created there, once.
+     *
+     * @param product the product of the release note to add an entry to
+     * @param version the version of the release note to add an entry to, in its long form
+     * @return the page that was taken, or {@code null} when no page name was free
+     * @throws ReleaseNotesException when the current user or the author of the calling script cannot edit the page,
+     *             the existing entries could not be looked up, or the save failed
+     */
+    DocumentReference reserveNextEntry(String product, String version) throws ReleaseNotesException;
+
+    /**
+     * @param reference the page of a change
+     * @return the change that page holds
+     * @throws ReleaseNotesException when that page holds no change
+     */
+    Change getChange(DocumentReference reference) throws ReleaseNotesException;
+}

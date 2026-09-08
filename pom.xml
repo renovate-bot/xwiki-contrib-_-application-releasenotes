@@ -51,6 +51,7 @@
     </developer>
   </developers>
   <modules>
+    <module>application-releasenotes-api</module>
     <module>application-releasenotes-demo</module>
     <module>application-releasenotes-ui</module>
   </modules>

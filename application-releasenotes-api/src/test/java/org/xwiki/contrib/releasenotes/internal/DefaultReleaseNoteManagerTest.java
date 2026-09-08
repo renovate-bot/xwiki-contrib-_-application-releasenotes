@@ -1,0 +1,404 @@
+/*
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+package org.xwiki.contrib.releasenotes.internal;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.xwiki.bridge.DocumentAccessBridge;
+import org.xwiki.contrib.releasenotes.ReleaseNote;
+import org.xwiki.contrib.releasenotes.ReleaseNoteAlreadyExistsException;
+import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
+import org.xwiki.contrib.releasenotes.ReleaseNotesException;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.observation.ObservationManager;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryException;
+import org.xwiki.query.QueryManager;
+import org.xwiki.security.authorization.Right;
+import org.xwiki.test.annotation.ComponentList;
+import org.xwiki.test.junit5.mockito.InjectMockComponents;
+import org.xwiki.test.junit5.mockito.MockComponent;
+
+import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
+import com.xpn.xwiki.test.MockitoOldcore;
+import com.xpn.xwiki.test.junit5.mockito.InjectMockitoOldcore;
+import com.xpn.xwiki.test.junit5.mockito.OldcoreTest;
+import com.xpn.xwiki.test.reference.ReferenceComponentList;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+/**
+ * Unit tests for {@link DefaultReleaseNoteManager}.
+ *
+ * @version $Id$
+ */
+@OldcoreTest
+@ReferenceComponentList
+// The product defaulting, the right checks and the save are part of what creating a release note is, so the
+// components performing them are the real ones.
+@ComponentList({ ProductResolver.class, ReleaseNotesDocumentWriter.class })
+class DefaultReleaseNoteManagerTest
+{
+    private static final String PRODUCT = "XWiki";
+
+    private static final DocumentReference AUTHOR = new DocumentReference("xwiki", "XWiki", "Author");
+
+    private static final DocumentReference TEMPLATE =
+        new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "ReleaseNoteTemplate");
+
+    /**
+     * The title of the shipped template, which is Velocity: it has to be copied raw so that it is evaluated against
+     * the release note it lands on, and thus names that note's own product and version.
+     */
+    private static final String TEMPLATE_TITLE = "#if (\"$!doc.getValue('product')\" != '')Release Notes for "
+        + "$doc.getValue('product') $doc.getValue('version')#{else}Release Note Template#end";
+
+    private static final String TEMPLATE_CONTENT = "{{releasenotechanges/}}";
+
+    @InjectMockComponents
+    private DefaultReleaseNoteManager manager;
+
+    @InjectMockitoOldcore
+    private MockitoOldcore oldcore;
+
+    @MockComponent
+    private ReleaseNotesConfiguration configuration;
+
+    @MockComponent
+    private QueryManager queryManager;
+
+    /**
+     * Saving a page gives the listeners that watch what a user writes a chance to cancel it, which needs an
+     * observation manager to notify.
+     */
+    @MockComponent
+    private ObservationManager observationManager;
+
+    @MockComponent
+    private Query query;
+
+    @BeforeEach
+    void setUp() throws Exception
+    {
+        ReleaseNotesXClasses.install(this.oldcore);
+
+        DocumentAccessBridge documentAccessBridge = this.oldcore.getMocker().getInstance(DocumentAccessBridge.class);
+        when(documentAccessBridge.getCurrentAuthorReference()).thenReturn(AUTHOR);
+        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
+            .thenReturn(true);
+        when(this.oldcore.getMockAuthorizationManager().hasAccess(any(Right.class), any(), any())).thenReturn(true);
+
+        when(this.queryManager.createQuery(anyString(), anyString())).thenReturn(this.query);
+        when(this.query.bindValue(anyString(), any())).thenReturn(this.query);
+        when(this.query.execute()).thenReturn(List.of());
+    }
+
+    /**
+     * The page of a release note is named after the version with its separators taken out, and that name is what
+     * the changes of a milestone or of a release candidate are aggregated from, so it is derived and never chosen.
+     */
+    @ParameterizedTest
+    @CsvSource({
+        "8.3-milestone-1, 8.3M1",
+        "8.3-rc-1, 8.3RC1",
+        "8.3, 8.3",
+        "18.0-MILESTONE-2, 18.0M2",
+        "8.3.1, 8.3.1"
+    })
+    void theVersionNamesThePageOfItsReleaseNote(String version, String expectedName)
+    {
+        assertEquals(new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", PRODUCT, expectedName),
+            "WebHome"), this.manager.getReleaseNoteReference(PRODUCT, version));
+    }
+
+    @Test
+    void aReleaseNoteIsNotLocatedWithoutAProductAndAVersion()
+    {
+        assertThrows(IllegalArgumentException.class, () -> this.manager.getReleaseNoteReference(PRODUCT, " "));
+        assertThrows(IllegalArgumentException.class, () -> this.manager.getReleaseNoteReference("", "8.3"));
+    }
+
+    @Test
+    void aReleaseNoteWithoutAVersionIsRefused()
+    {
+        ReleaseNotesException exception =
+            assertThrows(ReleaseNotesException.class, () -> this.manager.createReleaseNote(note(PRODUCT, " ")));
+
+        assertEquals("A release note needs the version it is about.", exception.getMessage());
+    }
+
+    /**
+     * A release note that names no product uses the product the administrator has configured for the wiki, which is
+     * what lets a wiki that is about one product only leave it out everywhere.
+     */
+    @Test
+    void aReleaseNoteWithoutAProductUsesTheConfiguredProduct() throws Exception
+    {
+        when(this.configuration.getDefaultProduct()).thenReturn(PRODUCT);
+
+        assertEquals(reference("8.3"), this.manager.createReleaseNote(note(null, "8.3")));
+        assertEquals(PRODUCT, this.manager.getReleaseNote(reference("8.3")).getProduct());
+    }
+
+    /**
+     * The page of a release note is named after its product, so a release note that names none and lands on a wiki
+     * that configures none is refused rather than created under a nameless product.
+     */
+    @Test
+    void aReleaseNoteWithoutAProductAndWithoutAConfiguredOneIsRefused()
+    {
+        ReleaseNotesException exception =
+            assertThrows(ReleaseNotesException.class, () -> this.manager.createReleaseNote(note(null, "8.3")));
+
+        assertEquals("No product was given, and this wiki has no default product configured.",
+            exception.getMessage());
+    }
+
+    /**
+     * A version that already has a release note is refused, and the release note that has it is named: returning it
+     * instead would let a caller add its changes to a release note written for another product.
+     */
+    @Test
+    void aVersionThatAlreadyHasAReleaseNoteIsRefused() throws Exception
+    {
+        this.manager.createReleaseNote(note(PRODUCT, "8.3"));
+
+        ReleaseNoteAlreadyExistsException exception = assertThrows(ReleaseNoteAlreadyExistsException.class,
+            () -> this.manager.createReleaseNote(note(PRODUCT, "8.3")));
+
+        assertEquals(reference("8.3"), exception.getReleaseNoteReference());
+    }
+
+    /**
+     * A release note is created with an empty release date, and not with no release date at all: the Live Data
+     * listing the release notes sorts them on their date and leaves out the ones that have no value for it.
+     */
+    @Test
+    void aReleaseNoteIsCreatedWithAnEmptyReleaseDate() throws Exception
+    {
+        this.manager.createReleaseNote(note(PRODUCT, "8.3"));
+
+        BaseObject object = load("8.3").getXObject(ReleaseNotesReferences.RELEASE_NOTE_CLASS);
+        assertNotNull(object.getField("date"), "The release date must be stored, so that the Live Data sees it.");
+        assertNull(object.getDateValue("date"));
+        assertNull(this.manager.getReleaseNote(reference("8.3")).getDate());
+    }
+
+    @Test
+    void theReleaseDateAndTheReleasedFlagAreStoredWhenTheyAreGiven() throws Exception
+    {
+        Date date = new SimpleDateFormat("dd/MM/yyyy").parse("15/09/2016");
+        ReleaseNote note = note(PRODUCT, "8.3");
+        note.setDate(date);
+        note.setReleased(true);
+
+        this.manager.createReleaseNote(note);
+
+        ReleaseNote created = this.manager.getReleaseNote(reference("8.3"));
+        assertEquals(date, created.getDate());
+        assertTrue(created.isReleased());
+    }
+
+    /**
+     * The content and the title of the template are copied raw, so that the Velocity a title carries is evaluated
+     * against the release note itself, and the rights the template's content needs are copied along with it: content
+     * copied without them would not execute.
+     */
+    @Test
+    void creatingAReleaseNoteCopiesTheContentTheTitleAndTheRequiredRightsOfItsTemplate() throws Exception
+    {
+        installTemplate();
+        when(this.configuration.getDefaultTemplate()).thenReturn(TEMPLATE);
+
+        this.manager.createReleaseNote(note(PRODUCT, "8.3-milestone-1"));
+
+        XWikiDocument created = load("8.3M1");
+        assertEquals(TEMPLATE_CONTENT, created.getContent());
+        assertEquals(TEMPLATE_TITLE, created.getTitle());
+        assertTrue(created.isEnforceRequiredRights());
+        assertEquals("script", created.getXObject(ReleaseNotesReferences.REQUIRED_RIGHT_CLASS)
+            .getStringValue("level"));
+    }
+
+    /**
+     * A release note names the template it wants, and only falls back on the one configured for the wiki.
+     */
+    @Test
+    void aReleaseNoteMayNameItsOwnTemplate() throws Exception
+    {
+        installTemplate();
+        ReleaseNote note = note(PRODUCT, "8.3");
+        note.setTemplate(TEMPLATE);
+
+        this.manager.createReleaseNote(note);
+
+        assertEquals(TEMPLATE_CONTENT, load("8.3").getContent());
+    }
+
+    /**
+     * A template that is not there is reported, rather than silently creating an empty release note: an
+     * administrator who has misspelled the configured template has to hear about it.
+     */
+    @Test
+    void aTemplateThatDoesNotExistIsReported() throws Exception
+    {
+        when(this.configuration.getDefaultTemplate()).thenReturn(TEMPLATE);
+
+        ReleaseNotesException exception =
+            assertThrows(ReleaseNotesException.class, () -> this.manager.createReleaseNote(note(PRODUCT, "8.3")));
+
+        assertEquals("The release note template [xwiki:ReleaseNotes.Code.ReleaseNoteTemplate] does not exist.",
+            exception.getMessage());
+        assertTrue(load("8.3").isNew(), "A release note whose template is missing must not have been created.");
+    }
+
+    @Test
+    void aUserWhoCannotEditThePageCreatesNoReleaseNote() throws Exception
+    {
+        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
+            .thenReturn(false);
+
+        assertThrows(ReleaseNotesException.class, () -> this.manager.createReleaseNote(note(PRODUCT, "8.3")));
+
+        assertTrue(load("8.3").isNew());
+    }
+
+    @Test
+    void aScriptAuthorWhoCannotEditThePageCreatesNoReleaseNote() throws Exception
+    {
+        when(this.oldcore.getMockAuthorizationManager().hasAccess(any(Right.class), any(), any())).thenReturn(false);
+
+        assertThrows(ReleaseNotesException.class, () -> this.manager.createReleaseNote(note(PRODUCT, "8.3")));
+
+        assertTrue(load("8.3").isNew());
+    }
+
+    @Test
+    void aPageHoldingNoReleaseNoteIsReported()
+    {
+        ReleaseNotesException exception =
+            assertThrows(ReleaseNotesException.class, () -> this.manager.getReleaseNote(reference("8.3")));
+
+        assertEquals("The page [xwiki:ReleaseNotes.Data.XWiki.8\\.3.WebHome] holds no release note.",
+            exception.getMessage());
+    }
+
+    @Test
+    void theReleaseNotesOfOneProductAreLookedUpByThatProduct() throws Exception
+    {
+        this.manager.createReleaseNote(note(PRODUCT, "8.3"));
+        // The page names a query gives back are serialized references, in which the dot of a space name is escaped.
+        when(this.query.execute()).thenReturn(List.of("ReleaseNotes.Data.XWiki.8\\.3.WebHome"));
+
+        List<ReleaseNote> notes = this.manager.getReleaseNotes(PRODUCT);
+
+        assertEquals(1, notes.size());
+        assertEquals("8.3", notes.get(0).getVersion());
+        verify(this.queryManager).createQuery(
+            "from doc.object(ReleaseNotes.Code.ReleaseNoteClass) as note where note.product = :product order by "
+                + "doc.fullName", Query.XWQL);
+        verify(this.query).bindValue("product", PRODUCT);
+    }
+
+    @Test
+    void theReleaseNotesOfEveryProductAreLookedUpWithoutAProductFilter() throws Exception
+    {
+        assertTrue(this.manager.getReleaseNotes(null).isEmpty());
+
+        verify(this.queryManager).createQuery(
+            "from doc.object(ReleaseNotes.Code.ReleaseNoteClass) as note order by doc.fullName", Query.XWQL);
+        verify(this.query, never()).bindValue(anyString(), any());
+    }
+
+    @Test
+    void aFailureToLookUpTheReleaseNotesIsReported() throws Exception
+    {
+        when(this.query.execute()).thenThrow(new QueryException("Down", null, null));
+
+        ReleaseNotesException exception =
+            assertThrows(ReleaseNotesException.class, () -> this.manager.getReleaseNotes(PRODUCT));
+
+        assertEquals("Failed to look up the release notes of this wiki.", exception.getMessage());
+    }
+
+    /**
+     * A final release note also displays the changes of its milestones and of its release candidates, which it
+     * matches by pattern since their numbers are not known; a milestone or a release candidate displays only its
+     * own.
+     */
+    @ParameterizedTest
+    @CsvSource({
+        "8.3M1, 8.3-milestone-1",
+        "8.3RC1, 8.3-rc-1",
+        "8.3, '8.3|8.3-milestone%|8.3-rc%'"
+    })
+    void theVersionsAReleaseNoteDisplaysAreDerivedFromItsPageName(String pageName, String expectedVersions)
+    {
+        assertEquals(List.of(expectedVersions.split("\\|")),
+            this.manager.getAggregatedVersions(reference(pageName)));
+    }
+
+    private ReleaseNote note(String product, String version)
+    {
+        ReleaseNote note = new ReleaseNote();
+        note.setProduct(product);
+        note.setVersion(version);
+
+        return note;
+    }
+
+    private DocumentReference reference(String pageName)
+    {
+        return new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", PRODUCT, pageName), "WebHome");
+    }
+
+    private XWikiDocument load(String pageName) throws Exception
+    {
+        return this.oldcore.getSpyXWiki().getDocument(reference(pageName), this.oldcore.getXWikiContext());
+    }
+
+    private void installTemplate() throws Exception
+    {
+        XWikiDocument template =
+            this.oldcore.getSpyXWiki().getDocument(TEMPLATE, this.oldcore.getXWikiContext());
+        template.setTitle(TEMPLATE_TITLE);
+        template.setContent(TEMPLATE_CONTENT);
+        template.setEnforceRequiredRights(true);
+        template.newXObject(ReleaseNotesReferences.REQUIRED_RIGHT_CLASS, this.oldcore.getXWikiContext())
+            .setStringValue("level", "script");
+        this.oldcore.getSpyXWiki().saveDocument(template, this.oldcore.getXWikiContext());
+    }
+}
