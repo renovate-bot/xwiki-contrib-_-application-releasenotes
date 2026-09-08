@@ -36,9 +36,12 @@ import org.mockito.Mock;
 import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.script.ModelScriptService;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryManager;
 import org.xwiki.query.internal.ScriptQuery;
 import org.xwiki.query.script.QueryManagerScriptService;
 import org.xwiki.rendering.syntax.Syntax;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.rendering.wikimacro.internal.WikiMacroFactoryComponentClass;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.script.service.ScriptService;
@@ -58,6 +61,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -71,8 +75,9 @@ import static org.mockito.Mockito.when;
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
 @WikiMacroFactoryComponentClass
-// The pages under test display their strings with the translation macro, and reserve the page of a new change
-// through $services.model.
+// The pages under test display their strings with the translation macro, address the media of a change through
+// $services.model, and take the page of a new change through the application's Java API.
+@ReleaseNotesApiComponentList
 @ComponentList({ TranslationMacro.class, ModelScriptService.class })
 class ReleaseNotesChangesMacroPageTest extends PageTest
 {
@@ -114,6 +119,13 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
     @Mock
     private QueryManagerScriptService queryManagerScriptService;
 
+    /** The query the application's Java API looks the pages of a release note up with, when taking a new one. */
+    @Mock
+    private Query entryPagesQuery;
+
+    @Mock
+    private QueryManager queryManager;
+
     /** The statement of each query the rendered release note built, in the order the sections built them. */
     private final List<String> statements = new ArrayList<>();
 
@@ -145,6 +157,10 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
         // is what these tests assert on.
         this.componentManager.registerComponent(ScriptService.class, "rendering",
             new RenderingScriptServiceStub(RenderingScriptServiceStub.xwikiSyntaxEscaper()));
+
+        this.componentManager.registerComponent(QueryManager.class, this.queryManager);
+        when(this.queryManager.createQuery(anyString(), anyString())).thenReturn(this.entryPagesQuery);
+        when(this.entryPagesQuery.bindValue(anyString(), any())).thenReturn(this.entryPagesQuery);
 
         WikiMacroSetup.loadWikiMacro(this, this.componentManager, GET_CHANGES_MACRO);
         WikiMacroSetup.loadWikiMacro(this, this.componentManager, RELEASE_NOTES_CHANGES_MACRO);
@@ -381,6 +397,11 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
         });
         // No change exists yet, so a handled action reserves the first one.
         when(this.query.execute()).thenReturn(List.of());
+        when(this.entryPagesQuery.execute()).thenReturn(List.of());
+        // Taking the page of a new change saves it, which both its author and the author of the calling page need
+        // the edit right for.
+        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(eq(Right.EDIT), any())).thenReturn(true);
+        when(this.oldcore.getMockAuthorizationManager().hasAccess(eq(Right.EDIT), any(), any())).thenReturn(true);
 
         // The action is handled by #handleAddAction, which the macro includes from this page.
         loadPage(new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "EntryVelocityMacros"));

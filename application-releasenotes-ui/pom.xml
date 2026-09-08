@@ -38,6 +38,14 @@
     <xwiki.extension.category>application</xwiki.extension.category>
   </properties>
   <dependencies>
+    <!-- The Java API the pages of the application create their release notes and their changes through, and the
+         $services.releasenotes script service they reach it by. -->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>application-releasenotes-api</artifactId>
+      <version>${project.version}</version>
+      <scope>runtime</scope>
+    </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-rendering-macro-velocity</artifactId>

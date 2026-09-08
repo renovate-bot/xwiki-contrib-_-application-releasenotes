@@ -28,11 +28,10 @@ import org.mockito.Mock;
 import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.script.ModelScriptService;
-import org.xwiki.query.internal.ScriptQuery;
-import org.xwiki.query.script.QueryManagerScriptService;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryManager;
 import org.xwiki.rendering.syntax.Syntax;
-import org.xwiki.script.service.ScriptService;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.page.HTML50ComponentList;
 import org.xwiki.test.page.PageTest;
@@ -47,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -57,9 +57,10 @@ import static org.mockito.Mockito.when;
  */
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
-// The macro addresses the pages of the release note through $services.model, and displays its error messages
-// with the translation macro.
-@ComponentList({ ModelScriptService.class, TranslationMacro.class })
+// The macro displays its error messages with the translation macro, and takes the page of a new entry through the
+// application's Java API.
+@ReleaseNotesApiComponentList
+@ComponentList(TranslationMacro.class)
 class AddChangePageTest extends PageTest
 {
     private static final DocumentReference ENTRY_VELOCITY_MACROS =
@@ -76,10 +77,10 @@ class AddChangePageTest extends PageTest
     private static final List<String> VERSION_SPACES = List.of("ReleaseNotes", "Data", "XWiki", "8.3M1");
 
     @Mock
-    private ScriptQuery query;
+    private Query query;
 
     @Mock
-    private QueryManagerScriptService queryManagerScriptService;
+    private QueryManager queryManager;
 
     /**
      * The location the author is sent to, as passed to {@code $response.sendRedirect}.
@@ -89,16 +90,16 @@ class AddChangePageTest extends PageTest
     @BeforeEach
     void setUp() throws Exception
     {
-        this.componentManager.registerComponent(ScriptService.class, "query", this.queryManagerScriptService);
-        when(this.queryManagerScriptService.xwql(anyString())).thenReturn(this.query);
+        this.componentManager.registerComponent(QueryManager.class, this.queryManager);
+        when(this.queryManager.createQuery(anyString(), anyString())).thenReturn(this.query);
         when(this.query.bindValue(anyString(), any())).thenReturn(this.query);
         when(this.query.execute()).thenReturn(List.of());
 
-        // Taking the page of a new entry saves it, which its author needs the edit right for, and which the
-        // application pages are allowed to do on their behalf.
-        when(this.oldcore.getMockRightService().hasAccessLevel(anyString(), anyString(), anyString(), any()))
+        // Taking the page of a new entry saves it, which both its author and the author of the calling page need the
+        // edit right for.
+        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(eq(Right.EDIT), any()))
             .thenReturn(true);
-        when(this.oldcore.getMockRightService().hasProgrammingRights(any())).thenReturn(true);
+        when(this.oldcore.getMockAuthorizationManager().hasAccess(eq(Right.EDIT), any(), any())).thenReturn(true);
 
         this.context.setResponse(new XWikiServletResponseStub()
         {

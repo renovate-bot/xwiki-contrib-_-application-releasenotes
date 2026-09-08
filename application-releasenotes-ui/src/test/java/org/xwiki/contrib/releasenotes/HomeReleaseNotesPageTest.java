@@ -25,9 +25,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.xwiki.localization.macro.internal.TranslationMacro;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.script.ModelScriptService;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.page.HTML50ComponentList;
 import org.xwiki.test.page.PageTest;
@@ -42,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
@@ -52,8 +54,10 @@ import static org.mockito.Mockito.when;
  */
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
-// Creating a release note resolves its reference through $services.model.
-@ComponentList(ModelScriptService.class)
+// Creating a release note goes through the application's Java API, and the page serializes the reference it gets
+// back with $services.model.
+@ReleaseNotesApiComponentList
+@ComponentList({ ModelScriptService.class, TranslationMacro.class })
 class HomeReleaseNotesPageTest extends PageTest
 {
     private static final List<String> CODE_SPACE = List.of("ReleaseNotes", "Code");
@@ -79,10 +83,15 @@ class HomeReleaseNotesPageTest extends PageTest
         this.componentManager.registerComponent(ScriptService.class, "csrf",
             new CSRFTokenScriptServiceStub(VALID_TOKEN));
 
-        // Creating the release note saves it, which the application pages are allowed to do on the author's behalf.
-        when(this.oldcore.getMockRightService().hasAccessLevel(anyString(), anyString(), anyString(), any()))
-            .thenReturn(true);
-        when(this.oldcore.getMockRightService().hasProgrammingRights(any())).thenReturn(true);
+        // Creating the release note saves it, which both its author and the author of the calling page need the edit
+        // right for.
+        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(eq(Right.EDIT), any())).thenReturn(true);
+        when(this.oldcore.getMockAuthorizationManager().hasAccess(eq(Right.EDIT), any(), any())).thenReturn(true);
+
+        // A page test does not register $services.rendering, which the page escapes the version it names in its
+        // error messages with.
+        this.componentManager.registerComponent(ScriptService.class, "rendering",
+            new RenderingScriptServiceStub(RenderingScriptServiceStub.xwikiSyntaxEscaper()));
 
         this.context.setResponse(new XWikiServletResponseStub()
         {
@@ -132,6 +141,50 @@ class HomeReleaseNotesPageTest extends PageTest
         assertFalse(releaseNote("9.0").isNew(),
             "A request carrying a valid form token must create the release note.");
         assertNotNull(this.redirect, "The author must be redirected to the release note that was created.");
+    }
+
+    /**
+     * A version that already has a release note is reported, and that release note is left as it is: an author who
+     * lands here has typed a version by hand, and the changes already written against it are not theirs to replace.
+     */
+    @Test
+    void aVersionThatAlreadyHasAReleaseNoteIsLeftAsItIs() throws Exception
+    {
+        XWikiDocument existing = releaseNote("9.0");
+        existing.setContent("The release note that is already there.");
+        this.xwiki.saveDocument(existing, this.context);
+
+        submitCreationRequest("XWiki", "9.0");
+
+        assertEquals("The release note that is already there.", releaseNote("9.0").getContent());
+        assertNull(this.redirect, "A request that created nothing must not redirect to the new release note.");
+    }
+
+    /**
+     * The page a release note lives in is named after its product, so a request that names none, on a wiki that
+     * configures none, creates nothing. The form pre-fills the field with the configured product, and this wiki
+     * configures none.
+     */
+    @Test
+    void aCreationRequestWithoutAProductCreatesNoReleaseNote() throws Exception
+    {
+        submitCreationRequest("", "9.0");
+
+        assertTrue(releaseNote("9.0").isNew(), "A request naming no product must not create a release note.");
+        assertNull(this.redirect, "A request that created nothing must not redirect to the new release note.");
+    }
+
+    /**
+     * Submits the creation request the page's own form submits, by a user who can edit and with a valid form token.
+     */
+    private void submitCreationRequest(String product, String version) throws Exception
+    {
+        this.request.put("action", "addReleaseNotes");
+        this.request.put("product", product);
+        this.request.put("version", version);
+        this.request.put("form_token", VALID_TOKEN);
+
+        renderHTMLPage(HOME_RELEASE_NOTES);
     }
 
     private XWikiDocument releaseNote(String shortVersion) throws Exception
