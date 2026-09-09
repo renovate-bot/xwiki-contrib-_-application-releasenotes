@@ -54,6 +54,20 @@
       <version>${platform.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- The representations the endpoints of the application are called with and answer, which the test posts and
+         reads back the way a client does. -->
+    <dependency>
+      <groupId>org.xwiki.contrib.releasenotes</groupId>
+      <artifactId>application-releasenotes-rest</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Writes those representations as JSON, and reads the answers back. -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!-- Page objects for the Live Data instances listing the release notes and the release changes. -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>

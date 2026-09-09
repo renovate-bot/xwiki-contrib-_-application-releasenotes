@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.xwiki.contrib.releasenotes</groupId>
+    <artifactId>application-releasenotes</artifactId>
+    <version>2.7-SNAPSHOT</version>
+  </parent>
+  <artifactId>application-releasenotes-rest</artifactId>
+  <name>Release Notes Application - REST</name>
+  <packaging>jar</packaging>
+  <description>REST endpoints to create and list the release notes and the changes of a wiki</description>
+  <properties>
+    <!-- Name to display by the Extension Manager -->
+    <xwiki.extension.name>Release Notes Application - REST</xwiki.extension.name>
+    <!-- Extension Manager category -->
+    <xwiki.extension.category>api</xwiki.extension.category>
+    <!-- The instructions that are not covered are the setters and the constructors the representations carry for
+         the JSON reader of a client, which the endpoints themselves never call. -->
+    <xwiki.jacoco.instructionRatio>0.97</xwiki.jacoco.instructionRatio>
+  </properties>
+  <dependencies>
+    <!-- The Java API the endpoints expose. -->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>application-releasenotes-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <!-- The JAX-RS annotations the endpoints are declared with. Despite the artifact name, this is JAX-RS 2.1,
+         whose packages are still javax.ws.rs, which is what the REST module of the platform is written against. -->
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!-- The XWikiRestComponent role that makes a JAX-RS resource part of the REST API of the wiki, and the URI
+         builder the created page is pointed to with. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-rest-server</artifactId>
+      <version>${platform.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Whether the release note a change is posted to exists is read from the store. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
+      <version>${platform.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- The wiki of the request is made the current one for the duration of the request. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-model-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-tool-test-component</artifactId>
+      <version>${commons.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- The JAX-RS implementation building the responses the tests assert on, which an application server brings at
+         runtime: the annotations alone only declare them. -->
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-common</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <executions>
+          <execution>
+            <!-- The id of the execution the build defines, so that this configuration adds to it rather than
+                 registering a second run of the checks. -->
+            <id>default</id>
+            <configuration>
+              <suppressionsLocation>${basedir}/src/checkstyle/checkstyle-suppressions.xml</suppressionsLocation>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -25,6 +25,7 @@ import jakarta.inject.Singleton;
 
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
 import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
@@ -78,21 +79,21 @@ public class ReleaseNotesDocumentWriter
      * write on behalf of whoever happens to be reading the page it is on.
      *
      * @param reference the page about to be written
-     * @throws ReleaseNotesException when either of them may not edit that page
+     * @throws ReleaseNotesAccessDeniedException when either of them may not edit that page
      */
-    public void checkEditRight(DocumentReference reference) throws ReleaseNotesException
+    public void checkEditRight(DocumentReference reference) throws ReleaseNotesAccessDeniedException
     {
         if (!this.contextualAuthorization.hasAccess(Right.EDIT, reference)) {
-            throw new ReleaseNotesException(
-                String.format("The current user is not allowed to edit the page [%s].", reference));
+            throw new ReleaseNotesAccessDeniedException(
+                String.format("The current user is not allowed to edit the page [%s].", reference), reference);
         }
 
         DocumentReference author = this.documentAccessBridge.getCurrentAuthorReference();
 
         if (!this.authorization.hasAccess(Right.EDIT, author, reference)) {
-            throw new ReleaseNotesException(String
+            throw new ReleaseNotesAccessDeniedException(String
                 .format("The author [%s] of the calling script is not allowed to edit the page [%s].", author,
-                    reference));
+                    reference), reference);
         }
     }
 
