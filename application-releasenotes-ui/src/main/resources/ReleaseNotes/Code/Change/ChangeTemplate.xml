@@ -229,7 +229,7 @@
       <description/>
     </property>
     <property>
-      <importance/>
+      <importance>1</importance>
     </property>
     <property>
       <screenshots/>

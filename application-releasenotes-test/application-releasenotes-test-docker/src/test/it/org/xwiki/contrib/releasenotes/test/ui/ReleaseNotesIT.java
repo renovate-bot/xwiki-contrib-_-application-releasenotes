@@ -163,6 +163,16 @@ class ReleaseNotesIT
             "The new change must be opened with the inline editor, landed on: " + currentUrl);
         assertTrue(changeEditor.hasScreenshotsPicker(),
             "The redirect must land on the edit form of the new change, filled in from the change template.");
+
+        // Saved without touching the Importance field, the change must still be displayed on its release note: the
+        // sections of the note filter on importance, so a change left without one is stored and shown nowhere.
+        changeEditor.setValue("title", "A change of no stated importance");
+        changeEditor.clickSaveAndView();
+
+        String noteContent = setup.gotoPage(releaseNote).getContent();
+        assertTrue(noteContent.contains("A change of no stated importance"),
+            "A change saved without choosing an importance must be displayed on its release note, got: "
+                + noteContent);
     }
 
     /**
