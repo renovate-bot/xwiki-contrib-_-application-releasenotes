@@ -39,6 +39,7 @@ import org.xwiki.contrib.releasenotes.ChangeManager;
 import org.xwiki.contrib.releasenotes.ChangeQuery;
 import org.xwiki.contrib.releasenotes.ChangeQueryParser;
 import org.xwiki.contrib.releasenotes.ChangeSearchResult;
+import org.xwiki.contrib.releasenotes.Importance;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
 import org.xwiki.contrib.releasenotes.rest.model.ChangeRepresentation;
@@ -206,6 +207,7 @@ class DefaultChangesResourceTest
     void aCreatedChangeIsAnsweredWithThePageItLivesIn() throws Exception
     {
         when(this.changeManager.createChange(any())).thenReturn(ENTRY);
+        when(this.changeManager.getChange(ENTRY)).thenReturn(change());
 
         ChangeRepresentation posted = new ChangeRepresentation();
         posted.setTitle("The title");
@@ -227,6 +229,34 @@ class DefaultChangesResourceTest
         // The change is stored against the release note of the URL, whatever the posted change says about it.
         assertEquals(PRODUCT, captor.getValue().getProduct());
         assertEquals(VERSION, captor.getValue().getVersion());
+    }
+
+    /**
+     * Creation is template-driven, so a property the client left out is stored with the value the change template
+     * gives it. A client that recorded what it posted would hold a value the wiki does not.
+     */
+    @Test
+    void aCreatedChangeIsAnsweredWithWhatWasStoredAndNotWithWhatWasPosted() throws Exception
+    {
+        Change stored = change();
+        stored.setImportance(Importance.MEDIUM);
+
+        when(this.changeManager.createChange(any())).thenReturn(ENTRY);
+        when(this.changeManager.getChange(ENTRY)).thenReturn(stored);
+
+        ChangeRepresentation posted = new ChangeRepresentation();
+        posted.setTitle("The title");
+
+        Response response = this.resource.createChange(this.uriInfo, "xwiki", PRODUCT, VERSION, posted);
+
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        assertNull(posted.getImportance(), "The change was posted without an importance.");
+        assertEquals("medium", ((ChangeRepresentation) response.getEntity()).getImportance());
+
+        ArgumentCaptor<Change> captor = ArgumentCaptor.forClass(Change.class);
+        verify(this.changeManager).createChange(captor.capture());
+        // The importance is left unset rather than defaulted here, so that the template is what decides it.
+        assertNull(captor.getValue().getImportance());
     }
 
     /**

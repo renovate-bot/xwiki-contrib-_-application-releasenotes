@@ -67,12 +67,16 @@ public interface ReleaseNotesResource
      * A release note that already exists is answered with a {@code 409}, carrying the page it lives in, rather than
      * returned: it may be about another product than the one asked for, and a client that took it for its own would
      * add its changes to somebody else's release note.
+     * <p>
+     * The release note is answered as it was stored, which is not necessarily as it was posted: one posted without a
+     * product holds the product configured for the wiki.
      *
      * @param uriInfo where the created release note is pointed to from
      * @param wikiName the wiki to create the release note in
      * @param note the release note to create, which needs at least a version, and a product unless one is configured
      *            for the wiki
-     * @return {@code 201} with the page of the release note, {@code 400} when the release note is not usable,
+     * @return {@code 201} with the stored release note and the page it lives in, {@code 400} when the release note
+     *         is not usable,
      *         {@code 401} or {@code 403} when the release note may not be written, or {@code 409} when it already
      *         exists
      * @throws ReleaseNotesException when the release note could not be created

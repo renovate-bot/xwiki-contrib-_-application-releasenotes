@@ -132,6 +132,7 @@ class DefaultReleaseNotesResourceTest
     {
         when(this.releaseNoteManager.createReleaseNote(any()))
             .thenReturn(RELEASE_NOTE);
+        when(this.releaseNoteManager.getReleaseNote(RELEASE_NOTE)).thenReturn(note("XWiki", "8.3-milestone-1"));
 
         Response response = this.resource.createReleaseNote(this.uriInfo, "xwiki", posted("8.3-milestone-1"));
 
@@ -145,6 +146,26 @@ class DefaultReleaseNotesResourceTest
 
         assertEquals("8.3-milestone-1", created.getVersion());
         assertEquals("ReleaseNotes.Data.XWiki.8\\.3M1.WebHome", created.getReference());
+    }
+
+    /**
+     * A release note posted without a product is created with the product configured for the wiki, so that is the
+     * product it is answered with. A client that recorded what it posted would hold no product at all.
+     */
+    @Test
+    void aCreatedReleaseNoteIsAnsweredWithWhatWasStoredAndNotWithWhatWasPosted() throws Exception
+    {
+        when(this.releaseNoteManager.createReleaseNote(any())).thenReturn(RELEASE_NOTE);
+        when(this.releaseNoteManager.getReleaseNote(RELEASE_NOTE)).thenReturn(note("XWiki", "8.3-milestone-1"));
+
+        ReleaseNoteRepresentation posted = new ReleaseNoteRepresentation();
+        posted.setVersion("8.3-milestone-1");
+
+        Response response = this.resource.createReleaseNote(this.uriInfo, "xwiki", posted);
+
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        assertNull(posted.getProduct(), "The release note was posted without a product.");
+        assertEquals("XWiki", ((ReleaseNoteRepresentation) response.getEntity()).getProduct());
     }
 
     @Test
