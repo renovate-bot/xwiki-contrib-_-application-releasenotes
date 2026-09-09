@@ -176,24 +176,10 @@
 {{/velocity}}
 
 {{velocity}}
-## For final release notes, aggregate all changes from milestones and rcs.
-## Use the page name to extract the version. The page has to be named using the short version syntax, e.g. "8.3M1"
-#set ($shortVersion = $doc.documentReference.parent.name)
-#set ($position = $shortVersion.indexOf('M'))
-#if ($position &gt; -1)
-  #set ($prefix = $shortVersion.substring(0, $position))
-  #set ($suffix = $shortVersion.substring($mathtool.add($position, 1)))
-  #set ($versionsParameter = "${prefix}-milestone-${suffix}")
-#else
-  #set ($position = $shortVersion.indexOf('RC'))
-  #if ($position &gt; -1)
-    #set ($prefix = $shortVersion.substring(0, $position))
-    #set ($suffix = $shortVersion.substring($mathtool.add($position, 2)))
-    #set ($versionsParameter = "${prefix}-rc-${suffix}")
-  #else
-    #set ($versionsParameter =  "${shortVersion},${shortVersion}-milestone%,${shortVersion}-rc%")
-  #end
-#end
+## The versions the changes are gathered from: a milestone or a release candidate gathers its own changes, whereas
+## a final release note also gathers the ones of its milestones and of its release candidates. They are derived
+## from the page name, which has to be named using the short version syntax, e.g. "8.3M1".
+#set ($versionsParameter = $stringtool.join($services.releasenotes.getAggregatedVersions($doc.documentReference), ','))
 ## Extract product + version + released info from xobject
 #set ($product = $!doc.getValue('product'))
 #set ($version = $!doc.getValue('version'))

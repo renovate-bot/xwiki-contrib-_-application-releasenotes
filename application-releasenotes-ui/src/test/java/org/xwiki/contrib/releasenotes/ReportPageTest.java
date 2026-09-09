@@ -28,8 +28,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.query.internal.ScriptQuery;
-import org.xwiki.query.script.QueryManagerScriptService;
+import org.xwiki.query.Query;
+import org.xwiki.query.QueryManager;
 import org.xwiki.rendering.wikimacro.internal.WikiMacroFactoryComponentClass;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.test.page.HTML50ComponentList;
@@ -53,6 +53,8 @@ import static org.mockito.Mockito.when;
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
 @WikiMacroFactoryComponentClass
+// The getChanges macro the report calls looks for the changes through the application's Java API.
+@ReleaseNotesApiComponentList
 class ReportPageTest extends PageTest
 {
     private static final DocumentReference REPORT =
@@ -70,16 +72,16 @@ class ReportPageTest extends PageTest
     private static final int PAGE_SIZE = 20;
 
     @Mock
-    private ScriptQuery query;
+    private Query query;
 
     @Mock
-    private QueryManagerScriptService queryManagerScriptService;
+    private QueryManager queryManager;
 
     @BeforeEach
     void setUp() throws Exception
     {
-        this.componentManager.registerComponent(ScriptService.class, "query", this.queryManagerScriptService);
-        when(this.queryManagerScriptService.xwql(anyString())).thenReturn(this.query);
+        this.componentManager.registerComponent(QueryManager.class, this.queryManager);
+        when(this.queryManager.createQuery(anyString(), anyString())).thenReturn(this.query);
         when(this.query.bindValue(anyString(), any())).thenReturn(this.query);
 
         // The report escapes each filter value into the macro parameter it writes it to. The stand-in escapes the

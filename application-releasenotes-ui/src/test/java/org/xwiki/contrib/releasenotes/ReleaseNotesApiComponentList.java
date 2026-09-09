@@ -26,9 +26,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.xwiki.contrib.releasenotes.internal.ChangeSearcher;
 import org.xwiki.contrib.releasenotes.internal.DefaultChangeManager;
+import org.xwiki.contrib.releasenotes.internal.DefaultChangeQueryParser;
 import org.xwiki.contrib.releasenotes.internal.DefaultReleaseNoteManager;
 import org.xwiki.contrib.releasenotes.internal.DefaultReleaseNotesConfiguration;
+import org.xwiki.contrib.releasenotes.internal.EntryPageAllocator;
 import org.xwiki.contrib.releasenotes.internal.ProductResolver;
 import org.xwiki.contrib.releasenotes.internal.ReleaseNotesDocumentWriter;
 import org.xwiki.contrib.releasenotes.internal.converter.ChangeConverter;
@@ -50,7 +53,10 @@ import org.xwiki.test.annotation.ComponentList;
     ReleaseNotesScriptService.class,
     DefaultReleaseNoteManager.class,
     DefaultChangeManager.class,
+    DefaultChangeQueryParser.class,
+    ChangeSearcher.class,
     DefaultReleaseNotesConfiguration.class,
+    EntryPageAllocator.class,
     ProductResolver.class,
     ReleaseNotesDocumentWriter.class,
     ChangeConverter.class,

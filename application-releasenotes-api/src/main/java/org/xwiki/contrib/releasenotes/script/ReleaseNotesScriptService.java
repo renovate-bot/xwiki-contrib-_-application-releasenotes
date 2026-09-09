@@ -20,6 +20,7 @@
 package org.xwiki.contrib.releasenotes.script;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -28,6 +29,9 @@ import jakarta.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.releasenotes.Change;
 import org.xwiki.contrib.releasenotes.ChangeManager;
+import org.xwiki.contrib.releasenotes.ChangeQuery;
+import org.xwiki.contrib.releasenotes.ChangeQueryParser;
+import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
@@ -69,6 +73,9 @@ public class ReleaseNotesScriptService implements ScriptService
 
     @Inject
     private ChangeManager changeManager;
+
+    @Inject
+    private ChangeQueryParser changeQueryParser;
 
     @Inject
     private ReleaseNotesConfiguration configuration;
@@ -159,6 +166,33 @@ public class ReleaseNotesScriptService implements ScriptService
     public Change getChange(DocumentReference reference) throws ReleaseNotesException
     {
         return this.changeManager.getChange(reference);
+    }
+
+    /**
+     * Reads a change search written as text, e.g. the parameters of a macro call or of a URL:
+     * <pre>{@code
+     * #set ($query = $services.releasenotes.parseQuery({'products': 'XWiki', 'versions': '>=9.0',
+     *   'audience': 'User', 'limit': 20}))
+     * }</pre>
+     *
+     * @param parameters the filters and the page to return
+     * @return the query those parameters ask for
+     * @see ChangeQueryParser#parse(Map)
+     */
+    public ChangeQuery parseQuery(Map<String, ?> parameters)
+    {
+        return this.changeQueryParser.parse(parameters);
+    }
+
+    /**
+     * @param query the changes to look for
+     * @return the page of the matching changes the query asks for, and whether more of them matched
+     * @throws ReleaseNotesException when the changes could not be looked up
+     * @see ChangeManager#search(ChangeQuery)
+     */
+    public ChangeSearchResult search(ChangeQuery query) throws ReleaseNotesException
+    {
+        return this.changeManager.search(query);
     }
 
     /**
