@@ -104,9 +104,13 @@ public class DefaultChangeQueryParser implements ChangeQueryParser
         List<ChangeFilter> filters = new ArrayList<>();
 
         for (String value : StringUtils.split(listAsString, VALUE_SEPARATOR)) {
-            ChangeFilter.Operator operator = getOperator(value);
+            // The spacing a filter is written with belongs to the filter and not to the values it holds, and an
+            // operator is read from the characters its value starts with, so a value is trimmed before its operator
+            // is looked for rather than only after.
+            String written = value.trim();
+            ChangeFilter.Operator operator = getOperator(written);
             filters.add(new ChangeFilter(operator,
-                normalizer.apply(value.substring(getPrefixLength(operator)).trim())));
+                normalizer.apply(written.substring(getPrefixLength(operator)).trim())));
         }
 
         setter.accept(filters);
