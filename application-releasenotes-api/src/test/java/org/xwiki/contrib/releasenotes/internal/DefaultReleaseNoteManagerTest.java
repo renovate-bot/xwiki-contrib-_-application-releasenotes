@@ -32,6 +32,7 @@ import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteAlreadyExistsException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.ObservationManager;
 import org.xwiki.query.Query;
@@ -56,6 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -79,12 +81,9 @@ class DefaultReleaseNoteManagerTest
     private static final DocumentReference TEMPLATE =
         new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "ReleaseNoteTemplate");
 
-    /**
-     * The title of the shipped template, which is Velocity: it has to be copied raw so that it is evaluated against
-     * the release note it lands on, and thus names that note's own product and version.
-     */
-    private static final String TEMPLATE_TITLE = "#if (\"$!doc.getValue('product')\" != '')Release Notes for "
-        + "$doc.getValue('product') $doc.getValue('version')#{else}Release Note Template#end";
+    private static final String TEMPLATE_TITLE = "Release Note Template";
+
+    private static final String TITLE_KEY = "releasenotes.releasenote.title";
 
     private static final String TEMPLATE_CONTENT = "{{releasenotechanges/}}";
 
@@ -108,6 +107,9 @@ class DefaultReleaseNoteManagerTest
     private ObservationManager observationManager;
 
     @MockComponent
+    private ContextualLocalizationManager localization;
+
+    @MockComponent
     private Query query;
 
     @BeforeEach
@@ -120,6 +122,10 @@ class DefaultReleaseNoteManagerTest
         when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
             .thenReturn(true);
         when(this.oldcore.getMockAuthorizationManager().hasAccess(any(Right.class), any(), any())).thenReturn(true);
+
+        when(this.localization.getTranslationPlain(eq(TITLE_KEY), any(), any()))
+            .thenAnswer(invocation -> String.format("Release Notes for %s %s", invocation.getArgument(1),
+                invocation.getArgument(2)));
 
         when(this.queryManager.createQuery(anyString(), anyString())).thenReturn(this.query);
         when(this.query.bindValue(anyString(), any())).thenReturn(this.query);
@@ -233,12 +239,11 @@ class DefaultReleaseNoteManagerTest
     }
 
     /**
-     * The content and the title of the template are copied raw, so that the Velocity a title carries is evaluated
-     * against the release note itself, and the rights the template's content needs are copied along with it: content
+     * The content of the template is copied raw, and the rights that content needs are copied along with it: content
      * copied without them would not execute.
      */
     @Test
-    void creatingAReleaseNoteCopiesTheContentTheTitleAndTheRequiredRightsOfItsTemplate() throws Exception
+    void creatingAReleaseNoteCopiesTheContentAndTheRequiredRightsOfItsTemplate() throws Exception
     {
         installTemplate();
         when(this.configuration.getDefaultTemplate()).thenReturn(TEMPLATE);
@@ -247,10 +252,39 @@ class DefaultReleaseNoteManagerTest
 
         XWikiDocument created = load("8.3M1");
         assertEquals(TEMPLATE_CONTENT, created.getContent());
-        assertEquals(TEMPLATE_TITLE, created.getTitle());
         assertTrue(created.isEnforceRequiredRights());
         assertEquals("script", created.getXObject(ReleaseNotesReferences.REQUIRED_RIGHT_CLASS)
             .getStringValue("level"));
+    }
+
+    /**
+     * The title names the product and the version, and is written out at creation rather than taken from the
+     * template: a title taken from a template that writes it in Velocity would only display on a release note whose
+     * author holds the script right.
+     */
+    @Test
+    void aReleaseNoteIsTitledAfterItsProductAndItsVersion() throws Exception
+    {
+        installTemplate();
+        when(this.configuration.getDefaultTemplate()).thenReturn(TEMPLATE);
+
+        this.manager.createReleaseNote(note(PRODUCT, "8.3-milestone-1"));
+
+        assertEquals("Release Notes for XWiki 8.3-milestone-1", load("8.3M1").getTitle());
+    }
+
+    /**
+     * A wiki that has the jar of the application but not the pages holding its translations still gets a titled
+     * release note.
+     */
+    @Test
+    void aReleaseNoteIsTitledEvenWithoutTheTranslationOfItsTitle() throws Exception
+    {
+        when(this.localization.getTranslationPlain(eq(TITLE_KEY), any(), any())).thenReturn(null);
+
+        this.manager.createReleaseNote(note(PRODUCT, "8.3"));
+
+        assertEquals("Release Notes for XWiki 8.3", load("8.3").getTitle());
     }
 
     /**

@@ -63,12 +63,6 @@ class RequiredRightsTest extends PageTest
     private static final String TOP_SPACE = "ReleaseNotes";
 
     /**
-     * A page that does not enforce: its author's rights are whatever the author happens to hold, so declaring
-     * anything on it would change nothing.
-     */
-    private static final DocumentRequiredRights NOT_ENFORCED = DocumentRequiredRights.EMPTY;
-
-    /**
      * Enforcing with no required right at all is the strongest setting: it stops a later editor from introducing
      * script into the page.
      */
@@ -115,7 +109,9 @@ class RequiredRightsTest extends PageTest
         EXPECTED_RIGHTS.put("Code/EntryVelocityMacros", SCRIPT);
         EXPECTED_RIGHTS.put("Code/HomeCustomReport", SCRIPT);
         EXPECTED_RIGHTS.put("Code/HomeReleaseChanges", SCRIPT);
+        EXPECTED_RIGHTS.put("Code/HomeReleaseNotes", SCRIPT);
         EXPECTED_RIGHTS.put("Code/Report", SCRIPT);
+        EXPECTED_RIGHTS.put("Data/WebHome", SCRIPT);
 
         EXPECTED_RIGHTS.put("Code/Change/ChangeTemplate", NOTHING);
         EXPECTED_RIGHTS.put("Code/Change/WebHome", NOTHING);
@@ -123,21 +119,17 @@ class RequiredRightsTest extends PageTest
         EXPECTED_RIGHTS.put("Code/ContributorsTemplate", NOTHING);
         EXPECTED_RIGHTS.put("Code/EntryClass", NOTHING);
         EXPECTED_RIGHTS.put("Code/ReleaseNoteClass", NOTHING);
+        // The template is copied onto every release note created from it, so what it asks for is what a release note
+        // asks for: a template written in Velocity would make the script right a condition of a release note
+        // displaying its own title. It is plain text, and so are the notes made from it.
+        EXPECTED_RIGHTS.put("Code/ReleaseNoteTemplate", NOTHING);
         EXPECTED_RIGHTS.put("Code/ReleaseNotesConfig", NOTHING);
         EXPECTED_RIGHTS.put("Code/ReleaseNotesConfigClass", NOTHING);
         EXPECTED_RIGHTS.put("Code/WebHome", NOTHING);
         EXPECTED_RIGHTS.put("Code/WebPreferences", NOTHING);
-
-        // Creating a release note copies Code/ReleaseNoteTemplate, and a document saved by an enforcing page's script
-        // is forced to enforce too. Enforcing here would therefore either leave the created note enforcing while
-        // requiring nothing — so the template's Velocity stops running and the note renders its own title as Velocity
-        // source — or, once the template declares script, make script right a condition of authoring a release note.
-        // These four pages are restricted by the rights object on ReleaseNotes.Code instead, and the two outside that
-        // space carry no script of their own. RN-112 covers making them enforce.
-        EXPECTED_RIGHTS.put("WebHome", NOT_ENFORCED);
-        EXPECTED_RIGHTS.put("Data/WebHome", NOT_ENFORCED);
-        EXPECTED_RIGHTS.put("Code/HomeReleaseNotes", NOT_ENFORCED);
-        EXPECTED_RIGHTS.put("Code/ReleaseNoteTemplate", NOT_ENFORCED);
+        // The application home only includes the page below it, and an included page is judged on the rights it
+        // declares itself rather than on those of the page including it, so nothing here has to run.
+        EXPECTED_RIGHTS.put("WebHome", NOTHING);
     }
 
     @Test

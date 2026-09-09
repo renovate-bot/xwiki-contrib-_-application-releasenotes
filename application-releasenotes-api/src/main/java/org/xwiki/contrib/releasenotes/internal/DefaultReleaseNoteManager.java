@@ -34,6 +34,7 @@ import org.xwiki.contrib.releasenotes.ReleaseNoteAlreadyExistsException;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -81,6 +82,11 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
 
     private static final String LEVEL = "level";
 
+    /**
+     * The key of the title a release note is given, which names the product and the version it is about.
+     */
+    private static final String TITLE_KEY = "releasenotes.releasenote.title";
+
     @Inject
     private Provider<XWikiContext> xcontextProvider;
 
@@ -95,6 +101,9 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
 
     @Inject
     private QueryManager queryManager;
+
+    @Inject
+    private ContextualLocalizationManager localization;
 
     @Inject
     @Named("current")
@@ -130,6 +139,7 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
 
         try {
             applyTemplate(document, template, xcontext);
+            document.setTitle(getTitle(product, version));
 
             BaseObject object = document.newXObject(ReleaseNotesReferences.RELEASE_NOTE_CLASS, xcontext);
             object.set(PRODUCT, product, xcontext);
@@ -264,9 +274,24 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
     }
 
     /**
-     * Copies into the new release note what its template holds: the content and the title, raw, so that the Velocity
-     * a title carries is evaluated against the release note itself and not against the template, and the rights the
-     * content of the template needs, since content copied without them would not execute.
+     * @param product the product the release note is about
+     * @param version the version the release note is about
+     * @return the title to give that release note, in the language of the user creating it
+     */
+    private String getTitle(String product, String version)
+    {
+        String title = this.localization.getTranslationPlain(TITLE_KEY, product, version);
+
+        // The bundle holding that translation is a page of the application, so a wiki running the jar alone has no
+        // value for it, and a release note is still better off with a title than with none.
+        return title != null ? title : String.format("Release Notes for %s %s", product, version);
+    }
+
+    /**
+     * Copies into the new release note what its template holds: the content, and the rights that content needs,
+     * since content copied without them would not execute. The title is not copied but built, by
+     * {@link #getTitle(String, String)}: a release note that took a title written in Velocity would need the script
+     * right to display its own title.
      */
     private void applyTemplate(XWikiDocument document, DocumentReference templateReference, XWikiContext xcontext)
         throws XWikiException, ReleaseNotesException
@@ -283,7 +308,6 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
         }
 
         document.setContent(template.getContent());
-        document.setTitle(template.getTitle());
         document.setSyntax(template.getSyntax());
 
         for (BaseObject requiredRight : template.getXObjects(ReleaseNotesReferences.REQUIRED_RIGHT_CLASS)) {

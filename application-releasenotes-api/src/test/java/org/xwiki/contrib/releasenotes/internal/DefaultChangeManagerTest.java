@@ -32,6 +32,7 @@ import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.Importance;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
+import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.observation.ObservationManager;
@@ -88,6 +89,11 @@ class DefaultChangeManagerTest
 
     @InjectMockitoOldcore
     private MockitoOldcore oldcore;
+
+    // Creating the release note a change belongs to is not what these tests are about, but the manager doing it is
+    // a real component here, and it titles a release note with a translation.
+    @MockComponent
+    private ContextualLocalizationManager localization;
 
     @MockComponent
     private ReleaseNotesConfiguration configuration;
