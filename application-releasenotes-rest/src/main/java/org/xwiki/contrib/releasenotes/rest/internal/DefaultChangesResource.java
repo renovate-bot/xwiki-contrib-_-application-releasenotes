@@ -151,8 +151,12 @@ public class DefaultChangesResource extends AbstractReleaseNotesResource
 
             DocumentReference reference = this.changeManager.createChange(created);
 
+            // The change is read back rather than echoed, because creation is template-driven: a property the client
+            // left out holds the value the change template gives it, and not the null the request carried.
             return Response.created(getPageUri(uriInfo, reference))
-                .entity(this.representationFactory.toRepresentation(created, reference)).build();
+                .entity(this.representationFactory.toRepresentation(this.changeManager.getChange(reference),
+                    reference))
+                .build();
         });
     }
 

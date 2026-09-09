@@ -89,6 +89,9 @@ public interface ChangesResource
      * <p>
      * Changes are not deduplicated: posting the same change twice creates it twice. A client that may be re-running
      * asks what the release note already holds first.
+     * <p>
+     * The change is answered as it was stored, which is not necessarily as it was posted: a property the request
+     * leaves out holds the value the change template gives it.
      *
      * @param uriInfo where the created change is pointed to from
      * @param wikiName the wiki holding the release note
@@ -96,7 +99,8 @@ public interface ChangesResource
      * @param version the version the release note is about, in its long form, which is the version the change is
      *            stored against
      * @param change the change to add, which needs at least a title
-     * @return {@code 201} with the page of the change, {@code 400} when the change is not usable, {@code 401} or
+     * @return {@code 201} with the stored change and the page it lives in, {@code 400} when the change is not
+     *         usable, {@code 401} or
      *         {@code 403} when the change may not be written, or {@code 404} when that release note does not exist
      * @throws ReleaseNotesException when the change could not be created
      */

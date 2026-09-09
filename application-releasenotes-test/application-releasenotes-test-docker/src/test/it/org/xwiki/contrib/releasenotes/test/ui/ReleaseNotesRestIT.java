@@ -56,6 +56,9 @@ class ReleaseNotesRestIT
     private static final DocumentReference FIRST_CHANGE = new DocumentReference("xwiki",
         List.of("ReleaseNotes", "Data", PRODUCT, "1.0M1", "Entry001"), "WebHome");
 
+    private static final DocumentReference THIRD_CHANGE = new DocumentReference("xwiki",
+        List.of("ReleaseNotes", "Data", PRODUCT, "1.0M1", "Entry003"), "WebHome");
+
     /**
      * Walks what the endpoints exist for: one call creates the release note of a version, in the page its version
      * says, and one call per change fills it, each change page carrying both of the objects that make an entry
@@ -69,6 +72,9 @@ class ReleaseNotesRestIT
         setup.rest().delete(FIRST_CHANGE);
         setup.rest().delete(new DocumentReference("xwiki",
             List.of("ReleaseNotes", "Data", PRODUCT, "1.0M1", "Entry002"), "WebHome"));
+        // An entry left behind would be counted when the next one is numbered, so every page this test creates is
+        // deleted before it runs again.
+        setup.rest().delete(THIRD_CHANGE);
         setup.rest().delete(RELEASE_NOTE);
 
         ReleaseNotesRestClient client = new ReleaseNotesRestClient(setup);
@@ -165,6 +171,18 @@ class ReleaseNotesRestIT
         assertEquals(409, conflict.getStatus(), conflict.getBody());
         assertEquals("ReleaseNotes.Data.RestProduct.1\\.0M1.WebHome",
             conflict.as(ErrorRepresentation.class).getReference());
+
+        // A change is answered as it was stored and not as it was posted: creation is template-driven, so the
+        // importance this one leaves out is the one the change template gives it, and a client that recorded what it
+        // posted would hold no importance at all.
+        ChangeRepresentation withoutImportance = new ChangeRepresentation();
+        withoutImportance.setTitle("A change with no importance");
+
+        JsonResponse defaulted = client.post(changesPath(), withoutImportance);
+
+        assertEquals(201, defaulted.getStatus(), defaulted.getBody());
+        assertEquals("medium", defaulted.as(ChangeRepresentation.class).getImportance());
+        assertEquals("1", propertyValue(setup, THIRD_CHANGE, "ReleaseNotes.Code.Change.ChangeClass", "importance"));
 
         // A change posted to a release note that does not exist would land in a page tree no release note gathers.
         JsonResponse notFound = client.post("/releasenotes/" + PRODUCT + "/9.9/changes", change);

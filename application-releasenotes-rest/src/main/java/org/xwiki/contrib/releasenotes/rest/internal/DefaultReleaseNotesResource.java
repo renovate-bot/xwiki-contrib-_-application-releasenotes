@@ -103,8 +103,12 @@ public class DefaultReleaseNotesResource extends AbstractReleaseNotesResource
             // status code.
             DocumentReference reference = this.releaseNoteManager.createReleaseNote(created);
 
+            // The release note is read back rather than echoed, because the values the request left out are supplied
+            // during the creation: a release note posted without a product holds the one configured for the wiki.
             return Response.created(getPageUri(uriInfo, reference))
-                .entity(this.representationFactory.toRepresentation(created, reference)).build();
+                .entity(this.representationFactory.toRepresentation(this.releaseNoteManager.getReleaseNote(reference),
+                    reference))
+                .build();
         });
     }
 
