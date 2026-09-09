@@ -200,168 +200,26 @@ beside them, in the context variable named after ##contextVariable## suffixed wi
     </class>
     <property>
       <code>{{velocity}}
-  #macro (addClause $name $class $listAsString $xwql)
-    #set ($clauses = [])
-    #foreach ($item in $stringtool.split($listAsString, ','))
-      ## If the item starts with a comparison prefix then use a matching HQL operator. The two-character prefixes
-      ## are tested first since "&gt;=" and "&lt;=" also start with "&gt;" and "&lt;".
-      #if ($item.startsWith('&gt;='))
-        #set ($discard = $clauses.add("${class}.${name} &gt;= :${name}${foreach.count}"))
-      #elseif ($item.startsWith('&lt;='))
-        #set ($discard = $clauses.add("${class}.${name} &lt;= :${name}${foreach.count}"))
-      #elseif ($item.startsWith('&gt;'))
-        #set ($discard = $clauses.add("${class}.${name} &gt; :${name}${foreach.count}"))
-      #elseif ($item.startsWith('&lt;'))
-        #set ($discard = $clauses.add("${class}.${name} &lt; :${name}${foreach.count}"))
-      #elseif ($item.startsWith('='))
-        #set ($discard = $clauses.add("${class}.${name} = :${name}${foreach.count}"))
-      #else
-        #set ($discard = $clauses.add("${class}.${name} like :${name}${foreach.count}"))
-      #end
-    #end
-    ## An empty filter matches nothing. Say it explicitly since joining an empty clause list would generate "()" and
-    ## make the whole query invalid.
-    #if ($clauses.isEmpty())
-      #set ($discard = $clauses.add('1 = 0'))
-    #end
-    #set ($xwql = "$xwql (${stringtool.join($clauses, ' or ')})")
-  #end
-  #macro (addBinding $name $listAsString $query)
-    #foreach ($item in $stringtool.split($listAsString, ','))
-      #if ($item.startsWith('&gt;=') || $item.startsWith('&lt;='))
-        #set ($query = $query.bindValue("${name}${foreach.count}", $item.substring(2).trim()))
-      #elseif ($item.startsWith('&gt;') || $item.startsWith('&lt;') || $item.startsWith('='))
-        #set ($query = $query.bindValue("${name}${foreach.count}", $item.substring(1).trim()))
-      #else
-        #set ($query = $query.bindValue("${name}${foreach.count}", $item.trim()))
-      #end
-    #end
-  #end
-  ## Lists the versions the wiki holds a release note for, in the form the entries store them. They are read from the
-  ## release notes rather than from the entries because a query may only select documents: selecting a property value
-  ## needs programming right, which this application does not require.
-  ## Sets $existingVersions.
-  #macro (getExistingVersions)
-    #set ($existingVersions = [])
-    #set ($releaseNotesQuery = 'from doc.object(ReleaseNotes.Code.ReleaseNoteClass) as note')
-    #foreach ($releaseNote in $services.query.xwql($releaseNotesQuery).execute())
-      #set ($releaseNoteObject = $xwiki.getDocument($releaseNote).getObject('ReleaseNotes.Code.ReleaseNoteClass'))
-      #set ($releaseNoteVersion = "$!releaseNoteObject.getValue('version')")
-      #if ($releaseNoteVersion != '' &amp;&amp; !$existingVersions.contains($releaseNoteVersion))
-        #set ($discard = $existingVersions.add($releaseNoteVersion))
-      #end
-    #end
-  #end
-  ## The version comparison filters cannot be evaluated by the database: EntryClass.version is a string column, so
-  ## "&gt;=9.0" would exclude 10.0 and the outcome would depend on the database collation on top of that. Replace each
-  ## comparison filter by the explicit list of the existing versions it matches, compared with the extension version
-  ## scheme (the Maven ordering, which knows that 9.0 &lt; 10.0 and that 8.3-milestone-1 &lt; 8.3-rc-1 &lt; 8.3), so that
-  ## the query itself only ever tests equality. Sets $versions.
-  #macro (resolveVersionComparisons $listAsString)
-    #set ($items = $stringtool.split($listAsString, ','))
-    #set ($hasComparison = false)
-    #foreach ($item in $items)
-      #if ($item.startsWith('&gt;') || $item.startsWith('&lt;'))
-        #set ($hasComparison = true)
-        #break
-      #end
-    #end
-    #if ($hasComparison)
-      #getExistingVersions()
-      #set ($resolvedItems = [])
-      #foreach ($item in $items)
-        ## The two-character prefixes are tested first since "&gt;=" and "&lt;=" also start with "&gt;" and "&lt;".
-        #if ($item.startsWith('&gt;=') || $item.startsWith('&lt;='))
-          #set ($operator = $item.substring(0, 2))
-          #set ($bound = $services.extension.parseVersion($item.substring(2).trim()))
-        #elseif ($item.startsWith('&gt;') || $item.startsWith('&lt;'))
-          #set ($operator = $item.substring(0, 1))
-          #set ($bound = $services.extension.parseVersion($item.substring(1).trim()))
-        #else
-          #set ($operator = '')
-        #end
-        #if ($operator == '')
-          #set ($discard = $resolvedItems.add($item))
-        #else
-          #foreach ($existingVersion in $existingVersions)
-            #set ($comparison = $services.extension.parseVersion($existingVersion).compareTo($bound))
-            #if (($operator == '&gt;=' &amp;&amp; $comparison &gt;= 0) || ($operator == '&lt;=' &amp;&amp; $comparison &lt;= 0)
-              || ($operator == '&gt;' &amp;&amp; $comparison &gt; 0) || ($operator == '&lt;' &amp;&amp; $comparison &lt; 0))
-              #set ($discard = $resolvedItems.add("=${existingVersion}"))
-            #end
-          #end
-        #end
-      #end
-      #set ($versions = $stringtool.join($resolvedItems, ','))
-    #end
-  #end
-  #set ($xvariable = $xcontext.macro.params.contextVariable)
-  #set ($audience = $xcontext.macro.params.audience)
-  ## Since audience is saved as "user", "developer", "administrator" in the DB and to make it simple for users we support uppercase
-  #set ($audience = $audience.toLowerCase())
-  #set ($products = $xcontext.macro.params.products)
-  #set ($versions = $xcontext.macro.params.versions)
-  #set ($categories = $xcontext.macro.params.categories)
-  #set ($importance = $xcontext.macro.params.importance)
-  ## Since importance is saved as 0, 1, 2 in the DB and to make it simple for users, we support High, Medium, low too. We also support uppercase.
-  #set ($importance = $importance.toLowerCase())
-  #set ($importance = $importance.replaceAll('high', 2))
-  #set ($importance = $importance.replaceAll('medium', 1))
-  #set ($importance = $importance.replaceAll('low', 0))
-  #set ($containsScreenshots = $xcontext.macro.params.containsScreenshots)
-  ## Find all Release Notes Changes matching the passed parameters
-  #resolveVersionComparisons($versions)
-  #set ($xwql = "from doc.object(ReleaseNotes.Code.EntryClass) as entries, doc.object(ReleaseNotes.Code.Change.ChangeClass) as changes where ")
-  #addClause("product", "entries", $products, $xwql)
-  #addClause("audience", "changes", $audience, "$xwql and ")
-  #addClause("version", "entries", $versions, "$xwql and ")
-  #addClause("category", "changes", $categories, "$xwql and ")
-  #addClause("importance", "changes", $importance, "$xwql and ")
-  #if ("$!containsScreenshots" == 'true')
-    #set ($xwql = "$xwql and (changes.screenshots &lt;&gt; '' or (changes.screenshots is not null and '' is null))")
-  #elseif ("$!containsScreenshots" == 'false')
-    #set ($xwql = "$xwql and not (changes.screenshots &lt;&gt; '' or (changes.screenshots is not null and '' is null))")
-  #end
-  ## Order on the document name too: importance only has three values, so it leaves most of the result set
-  ## unordered, and a page of an unordered result set may repeat or skip changes.
-  #set ($query = $services.query.xwql("$xwql order by changes.importance desc, doc.fullName"))
-  #addBinding("product", $products, $query)
-  #addBinding("audience", $audience, $query)
-  #addBinding("version", $versions, $query)
-  #addBinding("category", $categories, $query)
-  #addBinding("importance", $importance, $query)
-  ## Ask for a single page of changes rather than for the whole result set: the filters can match every change ever
-  ## recorded, since their defaults are wildcards and the report page fills them from the request, and each row
-  ## returned here costs a full document load in the displayers.
-  #set ($limit = $numbertool.toNumber("$!xcontext.macro.params.limit"))
-  #if (!$limit || $limit.intValue() &lt; 1)
-    #set ($limit = 100)
-  #else
-    #set ($limit = $limit.intValue())
-  #end
-  #set ($offset = $numbertool.toNumber("$!xcontext.macro.params.offset"))
-  #if (!$offset || $offset.intValue() &lt; 0)
-    #set ($offset = 0)
-  #else
-    #set ($offset = $offset.intValue())
-  #end
-  ## One row beyond the page is fetched, which tells whether a next page exists without a second, counting query.
-  #set ($discard = $query.setLimit($mathtool.add($limit, 1)))
-  #set ($discard = $query.setOffset($offset))
-  #set ($changeItems = $query.execute())
-  ## Copy the page out rather than trimming the result in place: that extra row must never be displayed, and
-  ## callers remove their own exclusions from the list they are given, so it has to stay modifiable.
-  #set ($pageItems = [])
-  #foreach ($item in $changeItems)
-    #if ($foreach.count &lt;= $limit)
-      #set ($discard = $pageItems.add($item))
-    #end
-  #end
-  #set ($hasMore = ($changeItems.size() &gt; $limit))
-  #setVariable("$xvariable", $pageItems)
-  ## Publish the existence of a next page alongside the changes, under a name derived from the same context
-  ## variable, so that a caller can offer a way to reach it instead of silently dropping the rest.
-  #setVariable("${xvariable}HasMore", $hasMore)
+## The search itself is done by the Java API of the application: this macro only reads the filters from the
+## parameters of the call, which are the lenient, comma-separated form a macro call and a URL write them in.
+#set ($changeQuery = $services.releasenotes.parseQuery({
+  'products': $xcontext.macro.params.products,
+  'versions': $xcontext.macro.params.versions,
+  'audience': $xcontext.macro.params.audience,
+  'categories': $xcontext.macro.params.categories,
+  'importance': $xcontext.macro.params.importance,
+  'containsScreenshots': $xcontext.macro.params.containsScreenshots,
+  'limit': $xcontext.macro.params.limit,
+  'offset': $xcontext.macro.params.offset
+}))
+#set ($changeResult = $services.releasenotes.search($changeQuery))
+#set ($xvariable = $xcontext.macro.params.contextVariable)
+## The changes are published as the names of the pages they live in, and not as references, because a caller
+## takes its own exclusions out of that list and writes those as names.
+#setVariable("$xvariable", $changeResult.changeNames)
+## Publish the existence of a next page alongside the changes, under a name derived from the same context
+## variable, so that a caller can offer a way to reach it instead of silently dropping the rest.
+#setVariable("${xvariable}HasMore", $changeResult.hasMore())
 {{/velocity}}
 </code>
     </property>

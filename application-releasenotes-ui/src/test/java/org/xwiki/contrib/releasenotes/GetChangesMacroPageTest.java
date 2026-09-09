@@ -28,22 +28,18 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.xwiki.extension.script.ExtensionManagerScriptService;
-import org.xwiki.extension.version.internal.DefaultVersion;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
-import org.xwiki.query.internal.ScriptQuery;
-import org.xwiki.query.script.QueryManagerScriptService;
+import org.xwiki.query.QueryManager;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.rendering.wikimacro.internal.WikiMacroFactoryComponentClass;
-import org.xwiki.script.service.ScriptService;
 import org.xwiki.test.page.HTML50ComponentList;
 import org.xwiki.test.page.PageTest;
 import org.xwiki.test.page.WikiMacroSetup;
 import org.xwiki.test.page.XWikiSyntax21ComponentList;
 
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.BaseObject;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -52,6 +48,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -64,6 +61,8 @@ import static org.mockito.Mockito.when;
 @HTML50ComponentList
 @XWikiSyntax21ComponentList
 @WikiMacroFactoryComponentClass
+// The macro looks for the changes through the application's Java API.
+@ReleaseNotesApiComponentList
 class GetChangesMacroPageTest extends PageTest
 {
     private static final DocumentReference GET_CHANGES_MACRO =
@@ -71,9 +70,6 @@ class GetChangesMacroPageTest extends PageTest
 
     private static final DocumentReference TEST_PAGE =
         new DocumentReference("xwiki", List.of("ReleaseNotes", "Data"), "TestPage");
-
-    private static final DocumentReference RELEASE_NOTE_CLASS =
-        new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "ReleaseNoteClass");
 
     /**
      * The versions the wiki holds a release note for. They deliberately span the 9 to 10 jump, where the alphabetical
@@ -83,7 +79,17 @@ class GetChangesMacroPageTest extends PageTest
     private static final List<String> EXISTING_VERSIONS =
         List.of("1.0", "2.0", "8.3-milestone-1", "8.3-rc-1", "8.3", "9.0", "10.0");
 
-    private static final String RELEASE_NOTES_STATEMENT = "from doc.object(ReleaseNotes.Code.ReleaseNoteClass)";
+    /**
+     * The beginning of the statement of the query reading the versions the wiki holds a release note for, which
+     * tells that query apart from the one looking for the changes.
+     */
+    private static final String EXISTING_VERSIONS_STATEMENT = "select distinct note.version";
+
+    /**
+     * The beginning of the statement of the query looking for the changes, which tells it apart from every other
+     * query the rendering of a page happens to run.
+     */
+    private static final String CHANGES_STATEMENT = "from doc.object(ReleaseNotes.Code.EntryClass)";
 
     /**
      * The clause selecting the changes that do have a screenshot. It is spelled out by hand rather than with a
@@ -94,58 +100,28 @@ class GetChangesMacroPageTest extends PageTest
         "(changes.screenshots <> '' or (changes.screenshots is not null and '' is null))";
 
     @Mock
-    private ScriptQuery query;
+    private Query query;
 
     @Mock
-    private ScriptQuery releaseNotesQuery;
+    private Query existingVersionsQuery;
 
     @Mock
-    private QueryManagerScriptService queryManagerScriptService;
-
-    @Mock
-    private ExtensionManagerScriptService extensionScriptService;
+    private QueryManager queryManager;
 
     @BeforeEach
     void setUp() throws Exception
     {
-        this.componentManager.registerComponent(ScriptService.class, "query", this.queryManagerScriptService);
-        when(this.queryManagerScriptService.xwql(anyString())).thenAnswer(invocation -> {
+        this.componentManager.registerComponent(QueryManager.class, this.queryManager);
+        when(this.queryManager.createQuery(anyString(), anyString())).thenAnswer(invocation -> {
             String statement = invocation.getArgument(0);
-            return statement.startsWith(RELEASE_NOTES_STATEMENT) ? this.releaseNotesQuery : this.query;
+            return statement.startsWith(EXISTING_VERSIONS_STATEMENT) ? this.existingVersionsQuery : this.query;
         });
         when(this.query.bindValue(anyString(), any())).thenReturn(this.query);
         when(this.query.execute()).thenReturn(List.of());
-        createReleaseNotes();
-
-        // The macro compares versions through the extension version scheme rather than alphabetically.
-        this.componentManager.registerComponent(ScriptService.class, "extension", this.extensionScriptService);
-        when(this.extensionScriptService.parseVersion(anyString()))
-            .thenAnswer(invocation -> new DefaultVersion((String) invocation.getArgument(0)));
+        // The versions a comparison filter is resolved against are read from the release notes the wiki holds.
+        doReturn(EXISTING_VERSIONS).when(this.existingVersionsQuery).execute();
 
         WikiMacroSetup.loadWikiMacro(this, this.componentManager, GET_CHANGES_MACRO);
-    }
-
-    /**
-     * Creates one release note page per {@link #EXISTING_VERSIONS} entry, since that is where the macro reads the
-     * versions the wiki holds, and makes the query looking for them return those pages.
-     */
-    private void createReleaseNotes() throws Exception
-    {
-        XWikiDocument classDocument = this.xwiki.getDocument(RELEASE_NOTE_CLASS, this.context);
-        classDocument.getXClass().addTextField("version", "Version", 30);
-        this.xwiki.saveDocument(classDocument, this.context);
-
-        List<String> references = new ArrayList<>();
-        for (String version : EXISTING_VERSIONS) {
-            String name = "Note" + (references.size() + 1);
-            XWikiDocument releaseNote = this.xwiki.getDocument(
-                new DocumentReference("xwiki", List.of("ReleaseNotes", "Data"), name), this.context);
-            BaseObject releaseNoteObject = releaseNote.newXObject(RELEASE_NOTE_CLASS, this.context);
-            releaseNoteObject.setStringValue("version", version);
-            this.xwiki.saveDocument(releaseNote, this.context);
-            references.add("ReleaseNotes.Data." + name);
-        }
-        when(this.releaseNotesQuery.execute()).thenAnswer(invocation -> references);
     }
 
     /**
@@ -166,7 +142,7 @@ class GetChangesMacroPageTest extends PageTest
             String.format("Expected the \"%s\" filter to use the \"%s\" operator, got: %s", versions,
                 expectedOperator, mainStatement()));
         assertEquals(List.of(expectedBoundValue), boundVersions());
-        verify(this.queryManagerScriptService, never()).xwql(startsWith(RELEASE_NOTES_STATEMENT));
+        verify(this.queryManager, never()).createQuery(startsWith(EXISTING_VERSIONS_STATEMENT), anyString());
     }
 
     /**
@@ -227,9 +203,9 @@ class GetChangesMacroPageTest extends PageTest
     private String mainStatement() throws QueryException
     {
         ArgumentCaptor<String> statement = ArgumentCaptor.forClass(String.class);
-        verify(this.queryManagerScriptService, atLeastOnce()).xwql(statement.capture());
+        verify(this.queryManager, atLeastOnce()).createQuery(statement.capture(), anyString());
         return statement.getAllValues().stream()
-            .filter(value -> !value.startsWith(RELEASE_NOTES_STATEMENT))
+            .filter(value -> value.startsWith(CHANGES_STATEMENT))
             .reduce((first, second) -> second)
             .orElseThrow();
     }
@@ -437,10 +413,8 @@ class GetChangesMacroPageTest extends PageTest
     {
         renderGetChanges("%");
 
-        ArgumentCaptor<String> statement = ArgumentCaptor.forClass(String.class);
-        verify(this.queryManagerScriptService).xwql(statement.capture());
-        assertTrue(statement.getValue().endsWith("order by changes.importance desc, doc.fullName"),
-            "Expected the order to be fully determined, got: " + statement.getValue());
+        assertTrue(mainStatement().endsWith("order by changes.importance desc, doc.fullName"),
+            "Expected the order to be fully determined, got: " + mainStatement());
     }
 
     /**

@@ -77,4 +77,18 @@ public interface ChangeManager
      * @throws ReleaseNotesException when that page holds no change
      */
     Change getChange(DocumentReference reference) throws ReleaseNotesException;
+
+    /**
+     * Looks for the changes matching a query, one page of them at a time: the filters of a query default to matching
+     * everything, so a search can match every change the wiki holds, and each change it returns costs a document
+     * load in the pages displaying them.
+     * <p>
+     * No right is checked: the changes a release note displays are what this returns, and those are not filtered by
+     * right either.
+     *
+     * @param query the changes to look for
+     * @return the page of the matching changes the query asks for, and whether more of them matched
+     * @throws ReleaseNotesException when the changes could not be looked up
+     */
+    ChangeSearchResult search(ChangeQuery query) throws ReleaseNotesException;
 }

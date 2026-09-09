@@ -38,8 +38,6 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.script.ModelScriptService;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryManager;
-import org.xwiki.query.internal.ScriptQuery;
-import org.xwiki.query.script.QueryManagerScriptService;
 import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.rendering.wikimacro.internal.WikiMacroFactoryComponentClass;
@@ -98,6 +96,12 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
     private static final String HAS_SCREENSHOTS =
         "(changes.screenshots <> '' or (changes.screenshots is not null and '' is null))";
 
+    /**
+     * The beginning of the statement of the query looking for the changes, which tells it apart from every other
+     * query the rendering of the release note runs.
+     */
+    private static final String CHANGES_STATEMENT = "from doc.object(ReleaseNotes.Code.EntryClass)";
+
     private static final String WITH_SCREENSHOTS = "and " + HAS_SCREENSHOTS;
 
     private static final String WITHOUT_SCREENSHOTS = "and not " + HAS_SCREENSHOTS;
@@ -114,14 +118,11 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
     private static final int AUDIENCE_COUNT = 3;
 
     @Mock
-    private ScriptQuery query;
+    private Query query;
 
+    /** Every other query the rendering runs, e.g. the pages of the release note, when a new entry is taken. */
     @Mock
-    private QueryManagerScriptService queryManagerScriptService;
-
-    /** The query the application's Java API looks the pages of a release note up with, when taking a new one. */
-    @Mock
-    private Query entryPagesQuery;
+    private Query otherQuery;
 
     @Mock
     private QueryManager queryManager;
@@ -138,12 +139,19 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
     @BeforeEach
     void setUp() throws Exception
     {
-        this.componentManager.registerComponent(ScriptService.class, "query", this.queryManagerScriptService);
-        when(this.queryManagerScriptService.xwql(anyString())).thenAnswer(invocation -> {
-            this.statements.add(invocation.getArgument(0));
+        this.componentManager.registerComponent(QueryManager.class, this.queryManager);
+        when(this.queryManager.createQuery(anyString(), anyString())).thenAnswer(invocation -> {
+            String statement = invocation.getArgument(0);
+
+            if (!statement.startsWith(CHANGES_STATEMENT)) {
+                return this.otherQuery;
+            }
+
+            this.statements.add(statement);
             this.bindings.add(new LinkedHashMap<>());
             return this.query;
         });
+        when(this.otherQuery.bindValue(anyString(), any())).thenReturn(this.otherQuery);
         // A query is built and then bound before the next one is built, so a bound value belongs to the last
         // statement recorded above. That is what makes a filter attributable to the section that applied it.
         when(this.query.bindValue(anyString(), any())).thenAnswer(invocation -> {
@@ -157,10 +165,6 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
         // is what these tests assert on.
         this.componentManager.registerComponent(ScriptService.class, "rendering",
             new RenderingScriptServiceStub(RenderingScriptServiceStub.xwikiSyntaxEscaper()));
-
-        this.componentManager.registerComponent(QueryManager.class, this.queryManager);
-        when(this.queryManager.createQuery(anyString(), anyString())).thenReturn(this.entryPagesQuery);
-        when(this.entryPagesQuery.bindValue(anyString(), any())).thenReturn(this.entryPagesQuery);
 
         WikiMacroSetup.loadWikiMacro(this, this.componentManager, GET_CHANGES_MACRO);
         WikiMacroSetup.loadWikiMacro(this, this.componentManager, RELEASE_NOTES_CHANGES_MACRO);
@@ -397,7 +401,7 @@ class ReleaseNotesChangesMacroPageTest extends PageTest
         });
         // No change exists yet, so a handled action reserves the first one.
         when(this.query.execute()).thenReturn(List.of());
-        when(this.entryPagesQuery.execute()).thenReturn(List.of());
+        when(this.otherQuery.execute()).thenReturn(List.of());
         // Taking the page of a new change saves it, which both its author and the author of the calling page need
         // the edit right for.
         when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(eq(Right.EDIT), any())).thenReturn(true);

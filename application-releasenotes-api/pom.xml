@@ -36,7 +36,7 @@
     <xwiki.extension.name>Release Notes Application - API</xwiki.extension.name>
     <!-- The instructions that are not covered are the ones wrapping a store or a query failure, which the test
          store does not fail on. -->
-    <xwiki.jacoco.instructionRatio>0.94</xwiki.jacoco.instructionRatio>
+    <xwiki.jacoco.instructionRatio>0.96</xwiki.jacoco.instructionRatio>
   </properties>
   <dependencies>
     <dependency>
@@ -67,6 +67,12 @@
       <artifactId>xwiki-platform-oldcore</artifactId>
       <version>${platform.version}</version>
       <scope>provided</scope>
+    </dependency>
+    <!-- The version ordering the version filters of a change search are compared with. -->
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-extension-api</artifactId>
+      <version>${commons.version}</version>
     </dependency>
     <!-- The pages of a release note are looked up with a query. -->
     <dependency>

@@ -27,6 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.contrib.releasenotes.Audience;
 import org.xwiki.contrib.releasenotes.Change;
+import org.xwiki.contrib.releasenotes.ChangeQuery;
+import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.Importance;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
@@ -51,6 +53,7 @@ import com.xpn.xwiki.test.reference.ReferenceComponentList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -65,9 +68,10 @@ import static org.mockito.Mockito.when;
  */
 @OldcoreTest
 @ReferenceComponentList
-// Locating the release note, defaulting the product, checking the rights and saving are part of what creating a
-// change is, so the components performing them are the real ones.
-@ComponentList({ DefaultReleaseNoteManager.class, ProductResolver.class, ReleaseNotesDocumentWriter.class })
+// Locating the release note, taking the page of a new entry, defaulting the product, checking the rights and
+// saving are part of what creating a change is, so the components performing them are the real ones.
+@ComponentList({ DefaultReleaseNoteManager.class, EntryPageAllocator.class, ProductResolver.class,
+    ReleaseNotesDocumentWriter.class })
 class DefaultChangeManagerTest
 {
     private static final String PRODUCT = "XWiki";
@@ -90,6 +94,13 @@ class DefaultChangeManagerTest
 
     @MockComponent
     private QueryManager queryManager;
+
+    /**
+     * Looking for changes is a search of its own, and this is the component performing it.
+     */
+    @MockComponent
+    private ChangeSearcher changeSearcher;
+
 
     @MockComponent
     private Query query;
@@ -369,6 +380,20 @@ class DefaultChangeManagerTest
 
         assertEquals("The page [xwiki:ReleaseNotes.Data.XWiki.8\\.3M1.Entry001.WebHome] holds no change.",
             exception.getMessage());
+    }
+
+    /**
+     * Looking for changes is the one thing this hands over as it is: the search has its own component, and a rule
+     * added here would be a rule a REST caller escapes.
+     */
+    @Test
+    void aSearchIsHandedToTheSearcher() throws Exception
+    {
+        ChangeQuery query = new ChangeQuery();
+        ChangeSearchResult result = new ChangeSearchResult(List.of(), List.of(), false);
+        when(this.changeSearcher.search(query)).thenReturn(result);
+
+        assertSame(result, this.manager.search(query));
     }
 
     /**

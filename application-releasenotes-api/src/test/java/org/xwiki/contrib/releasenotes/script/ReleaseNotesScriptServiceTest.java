@@ -20,10 +20,14 @@
 package org.xwiki.contrib.releasenotes.script;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.xwiki.contrib.releasenotes.Change;
 import org.xwiki.contrib.releasenotes.ChangeManager;
+import org.xwiki.contrib.releasenotes.ChangeQuery;
+import org.xwiki.contrib.releasenotes.ChangeQueryParser;
+import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
@@ -62,6 +66,9 @@ class ReleaseNotesScriptServiceTest
     private ChangeManager changeManager;
 
     @MockComponent
+    private ChangeQueryParser changeQueryParser;
+
+    @MockComponent
     private ReleaseNotesConfiguration configuration;
 
     @Test
@@ -93,6 +100,19 @@ class ReleaseNotesScriptServiceTest
         assertEquals(ENTRY, this.service.createChange(change));
         assertEquals(ENTRY, this.service.reserveNextEntry("XWiki", "8.3"));
         assertSame(change, this.service.getChange(ENTRY));
+    }
+
+    @Test
+    void theSearchesAreHandedToTheParserAndToTheChangeManager() throws Exception
+    {
+        Map<String, String> parameters = Map.of("versions", "8.3");
+        ChangeQuery query = new ChangeQuery();
+        ChangeSearchResult result = new ChangeSearchResult(List.of(), List.of(), false);
+        when(this.changeQueryParser.parse(parameters)).thenReturn(query);
+        when(this.changeManager.search(query)).thenReturn(result);
+
+        assertSame(query, this.service.parseQuery(parameters));
+        assertSame(result, this.service.search(query));
     }
 
     @Test

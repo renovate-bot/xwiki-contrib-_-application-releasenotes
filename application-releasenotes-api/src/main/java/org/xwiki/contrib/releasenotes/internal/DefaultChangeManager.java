@@ -21,11 +21,8 @@ package org.xwiki.contrib.releasenotes.internal;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 
@@ -34,17 +31,11 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.releasenotes.Audience;
 import org.xwiki.contrib.releasenotes.Change;
 import org.xwiki.contrib.releasenotes.ChangeManager;
+import org.xwiki.contrib.releasenotes.ChangeQuery;
+import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.Importance;
-import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.SpaceReference;
-import org.xwiki.model.reference.WikiReference;
-import org.xwiki.query.Query;
-import org.xwiki.query.QueryException;
-import org.xwiki.query.QueryManager;
 import org.xwiki.stability.Unstable;
 
 import com.xpn.xwiki.XWikiContext;
@@ -64,24 +55,6 @@ import com.xpn.xwiki.objects.BaseObject;
 @Unstable
 public class DefaultChangeManager implements ChangeManager
 {
-    /**
-     * The name of the page an entry of a release note lives in, whose number is zero-padded so that the entries of a
-     * release note are displayed in the order they were added in.
-     */
-    private static final String ENTRY_NAME_FORMAT = "Entry%03d";
-
-    /**
-     * The pages of the entries of a release note, which is what the number of a new entry is derived from.
-     */
-    private static final Pattern ENTRY_NAME_PATTERN = Pattern.compile("Entry(\\d+)");
-
-    /**
-     * How many page names are tried before giving up. Every page of the release note has just been looked at, so the
-     * page of the next number is free unless another author took it in the meantime, which is why more than one is
-     * tried.
-     */
-    private static final int CANDIDATE_COUNT = 10;
-
     /**
      * The value the {@code type} property of an entry holds when that entry is a change and not the contributors of
      * the release note. Every query looking for changes filters on it.
@@ -116,24 +89,16 @@ public class DefaultChangeManager implements ChangeManager
     private Provider<XWikiContext> xcontextProvider;
 
     @Inject
-    private ReleaseNoteManager releaseNoteManager;
-
-    @Inject
     private ProductResolver productResolver;
 
     @Inject
     private ReleaseNotesDocumentWriter documentWriter;
 
     @Inject
-    private QueryManager queryManager;
+    private EntryPageAllocator entryPageAllocator;
 
     @Inject
-    @Named("current")
-    private DocumentReferenceResolver<String> documentReferenceResolver;
-
-    @Inject
-    @Named("local")
-    private EntityReferenceSerializer<String> localEntityReferenceSerializer;
+    private ChangeSearcher changeSearcher;
 
     @Override
     public DocumentReference createChange(Change change) throws ReleaseNotesException
@@ -154,7 +119,7 @@ public class DefaultChangeManager implements ChangeManager
 
         String product = this.productResolver.resolve(change.getProduct());
         XWikiContext xcontext = this.xcontextProvider.get();
-        XWikiDocument document = takeNextEntryPage(product, version, xcontext);
+        XWikiDocument document = this.entryPageAllocator.takeNextEntryPage(product, version, xcontext);
 
         if (document == null) {
             throw new ReleaseNotesException(
@@ -165,7 +130,7 @@ public class DefaultChangeManager implements ChangeManager
             // The objects of a change are created by the change template, and not here, so that a template an
             // administrator has customised is what a change is made of, whichever way it was created.
             DocumentReference templateReference = new DocumentReference(ReleaseNotesReferences.CHANGE_TEMPLATE,
-                new WikiReference(xcontext.getWikiId()));
+                document.getDocumentReference().getWikiReference());
             document.readFromTemplate(templateReference, xcontext);
             // A change enforces its required rights when its template does. That is set here because applying a
             // template does not carry the setting over on every XWiki version the application supports.
@@ -210,8 +175,8 @@ public class DefaultChangeManager implements ChangeManager
     public DocumentReference reserveNextEntry(String product, String version) throws ReleaseNotesException
     {
         XWikiContext xcontext = this.xcontextProvider.get();
-        XWikiDocument document =
-            takeNextEntryPage(this.productResolver.resolve(product), version, xcontext);
+        XWikiDocument document = this.entryPageAllocator
+            .takeNextEntryPage(this.productResolver.resolve(product), version, xcontext);
 
         if (document == null) {
             return null;
@@ -248,72 +213,10 @@ public class DefaultChangeManager implements ChangeManager
         return change;
     }
 
-    /**
-     * Gives the page of the next entry of a release note, loaded and not yet saved, so that the caller decides what
-     * that page holds when it is saved.
-     *
-     * @return that page, or {@code null} when no page name was free
-     */
-    private XWikiDocument takeNextEntryPage(String product, String version, XWikiContext xcontext)
-        throws ReleaseNotesException
+    @Override
+    public ChangeSearchResult search(ChangeQuery query) throws ReleaseNotesException
     {
-        DocumentReference noteReference = this.releaseNoteManager.getReleaseNoteReference(product, version);
-
-        this.documentWriter.checkEditRight(noteReference);
-
-        SpaceReference versionSpace = noteReference.getLastSpaceReference();
-        int highestNumber = getHighestEntryNumber(versionSpace);
-
-        for (int number = highestNumber + 1; number <= highestNumber + CANDIDATE_COUNT; number++) {
-            DocumentReference candidate = new DocumentReference("WebHome",
-                new SpaceReference(String.format(ENTRY_NAME_FORMAT, number), versionSpace));
-            XWikiDocument document = loadDocument(candidate, xcontext);
-
-            if (document.isNew()) {
-                return document;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Gives the highest number an entry of the passed release note is using.
-     * <p>
-     * Every page of the release note is looked at, and not only the entries that hold a change, so that a page taken
-     * by an author who has not saved their change yet is seen as taken. The highest number is computed here rather
-     * than asked of the query, because a query can only order the page names as strings, which sorts
-     * {@code Entry999} above {@code Entry1000} and hands the number 1000 out over and over.
-     */
-    private int getHighestEntryNumber(SpaceReference versionSpace) throws ReleaseNotesException
-    {
-        String spaceName = this.localEntityReferenceSerializer.serialize(versionSpace);
-        // MySQL uses "\" as an escape character, and that character is what separates the spaces of a space
-        // reference whose space names hold a dot, so another escape character is asked for.
-        String spaceLike = spaceName.replaceAll("([%_!])", "!$1") + ".%";
-        List<String> pages;
-
-        try {
-            Query query = this.queryManager.createQuery("where doc.space like :space escape '!'", Query.XWQL);
-            pages = query.bindValue("space", spaceLike).execute();
-        } catch (QueryException e) {
-            throw new ReleaseNotesException(
-                String.format("Failed to look up the entries of the release note [%s].", spaceName), e);
-        }
-
-        int highestNumber = 0;
-
-        for (String page : pages) {
-            String entryName =
-                this.documentReferenceResolver.resolve(page).getLastSpaceReference().getName();
-            Matcher matcher = ENTRY_NAME_PATTERN.matcher(entryName);
-
-            if (matcher.matches()) {
-                highestNumber = Math.max(highestNumber, Integer.parseInt(matcher.group(1)));
-            }
-        }
-
-        return highestNumber;
+        return this.changeSearcher.search(query);
     }
 
     private List<String> splitScreenshots(String screenshots)
