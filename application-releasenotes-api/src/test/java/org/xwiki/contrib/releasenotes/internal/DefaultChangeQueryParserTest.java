@@ -103,7 +103,31 @@ class DefaultChangeQueryParserTest
     void theSpacingAroundAValueIsNotPartOfIt()
     {
         assertEquals(List.of(new ChangeFilter(Operator.LIKE, "8.3%"), new ChangeFilter(Operator.GTE, "9.0")),
-            parse(ChangeQueryParser.VERSIONS, " 8.3% ,>=9.0 ").getVersions());
+            parse(ChangeQueryParser.VERSIONS, " 8.3% , >=9.0 ").getVersions());
+    }
+
+    /**
+     * The spacing a filter is written with is not part of the operator either: a value whose operator is preceded by
+     * a space is the comparison it reads as, and not a pattern of the text of that comparison. That spelling is what
+     * a reader listing the filters of a custom report naturally writes, and a pattern of it matches no change at all.
+     * The operator is asserted on its own because a pattern of a comparison is written the same way as the
+     * comparison itself.
+     */
+    @ParameterizedTest
+    @CsvSource({
+        "' >=9.0',  GTE,    9.0",
+        "'>= 9.0',  GTE,    9.0",
+        "' >= 9.0', GTE,    9.0",
+        "' = 10.0', EQUALS, 10.0",
+        "' 9.0',    LIKE,   9.0"
+    })
+    void theOperatorOfAValueIsReadThroughTheSpacingBeforeIt(String written, Operator expectedOperator,
+        String expectedValue)
+    {
+        ChangeFilter filter = parse(ChangeQueryParser.VERSIONS, written).getVersions().get(0);
+
+        assertEquals(expectedOperator, filter.getOperator());
+        assertEquals(expectedValue, filter.getValue());
     }
 
     /**
