@@ -31,6 +31,8 @@ import org.xwiki.livedata.test.po.TableLayoutElement;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.ObjectPropertyReference;
 import org.xwiki.model.reference.ObjectReference;
+import org.xwiki.model.reference.SpaceReference;
+import org.xwiki.model.reference.WikiReference;
 import org.xwiki.rest.model.jaxb.Page;
 import org.xwiki.rest.model.jaxb.Property;
 import org.xwiki.contrib.releasenotes.test.ui.po.ChangeCardElement;
@@ -194,8 +196,9 @@ class ReleaseNotesIT
     }
 
     /**
-     * Creates a release note through the home page form and checks that the configured template is applied: its title,
-     * its content and its required rights are copied over to the newly created page.
+     * Creates a release note through the home page form and checks that the configured template is applied: its
+     * content and its required rights are copied over to the newly created page, which is titled after the product
+     * and the version it is about.
      */
     @Test
     @Order(3)
@@ -210,10 +213,9 @@ class ReleaseNotesIT
         DocumentReference template =
             new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "ReleaseNoteTemplate");
 
-        // The template holds no release note xobject, so its title falls back to a name instead of displaying the
-        // unresolved script that it hands to the release notes created from it.
         assertEquals("Release Note Template", setup.gotoPage(template).getDocumentTitle(),
-            "The template page must not display raw Velocity as its title.");
+            "The template must be titled by a plain name, since a title written in Velocity would need the script "
+                + "right to display.");
 
         // Make the template require and enforce script right, the way a template holding scripts does.
         ObjectReference templateRight = new ObjectReference("XWiki.RequiredRightClass[0]", template);
@@ -230,9 +232,9 @@ class ReleaseNotesIT
             assertTrue(createdPage.getContent().contains("New and Noteworthy"),
                 "The content of the template must have been copied to the created release note.");
 
-            // The template hands its title over as written, so it resolves against the release note's own xobject.
+            // The title is written out at creation, so it displays whatever right the note's author holds.
             assertEquals("Release Notes for TplProduct 9.0", createdPage.getDocumentTitle(),
-                "The title of the template must have been copied and evaluated on the created release note.");
+                "The created release note must be titled after the product and the version it is about.");
 
             Page createdRestPage = setup.rest().get(releaseNote);
             assertEquals(Boolean.TRUE, createdRestPage.isEnforceRequiredRights(),
@@ -245,7 +247,7 @@ class ReleaseNotesIT
             // Leave the template as the application ships it for the other tests.
             setup.rest().delete(releaseNote);
             setup.rest().delete(templateRight);
-            setEnforceRequiredRights(setup, template, false);
+            setEnforceRequiredRights(setup, template, true);
         }
     }
 
@@ -614,8 +616,8 @@ class ReleaseNotesIT
     {
         Page page = setup.rest().get(reference);
         page.setEnforceRequiredRights(enforce);
-        // The REST API fills Page#title with the *rendered* title and stores whatever it is given back as the raw
-        // title, which would flatten a page whose title holds Velocity. A null title leaves the stored one alone.
+        // The REST API fills Page#title with the rendered title and stores whatever it is given back as the raw
+        // title. A null title leaves the stored one alone.
         page.setTitle(null);
         setup.rest().save(page);
     }
@@ -688,6 +690,62 @@ class ReleaseNotesIT
         setup.rest().delete(change);
         setup.rest().delete(releaseNote);
         setup.rest().delete(contributor);
+    }
+
+    /**
+     * Checks that authoring a release note takes no more than the edit right: the note is titled after its product
+     * and its version rather than by a script, and the macros of the template it is made from render on it even
+     * though it enforces required rights and declares none. A note whose author holds only the edit right would
+     * otherwise display the title it was given as source.
+     */
+    @Test
+    @Order(11)
+    void aReleaseNoteIsAuthoredWithTheEditRightAlone(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+
+        String product = "NoScriptProduct";
+        DocumentReference releaseNote =
+            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", product, "7.0"), "WebHome");
+        DocumentReference author = new DocumentReference("xwiki", "XWiki", "RnAuthor");
+        SpaceReference dataSpace =
+            new SpaceReference("Data", new SpaceReference("ReleaseNotes", new WikiReference("xwiki")));
+        DocumentReference dataPreferences = new DocumentReference("WebPreferences", dataSpace);
+        setup.rest().delete(releaseNote);
+        setup.rest().delete(author);
+
+        // An ordinary registered user, holding the edit right on the space the release notes are stored in and no
+        // Script right anywhere.
+        setup.createUser("RnAuthor", "rnauthorpass", "");
+        setup.setRightsOnSpace(dataSpace, "XWiki.RnAuthor", "", "edit", true);
+
+        try {
+            setup.login("RnAuthor", "rnauthorpass");
+
+            // The creation form is a GET form passing the product, the version and the form token to the
+            // application home page.
+            setup.gotoPage("ReleaseNotes", "WebHome", "view",
+                "action=addReleaseNotes&product=" + product + "&version=7.0&form_token=" + setup.getSecretToken());
+
+            ViewPage createdPage = setup.gotoPage(releaseNote);
+            assertEquals("Release Notes for " + product + " 7.0", createdPage.getDocumentTitle(),
+                "A release note must display its title whatever right its author holds.");
+
+            String content = createdPage.getContent();
+            assertTrue(content.contains("New and Noteworthy"),
+                "The content of the template must have been copied to the created release note.");
+            assertFalse(content.contains("Unknown macro"),
+                "The macros of the release note must render on a note declaring no required right.");
+            assertFalse(content.contains("$doc"),
+                "The release note must hold no Velocity of its own.");
+        } finally {
+            setup.loginAsSuperAdmin();
+            setup.rest().delete(releaseNote);
+            setup.rest().delete(author);
+            // The rule granted above allows and is therefore exclusive: left behind, it would deny the edit right on
+            // the release notes to everybody else.
+            setup.rest().delete(dataPreferences);
+        }
     }
 
     /**

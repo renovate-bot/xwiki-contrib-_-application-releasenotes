@@ -100,6 +100,11 @@ releasenotes.releases.add.alreadyExists=A release note already exists for versio
 releasenotes.releases.add.productRequired=A product is required to create a release note. Either type one, or configure a default product for this wiki.
 releasenotes.releases.add.failed=The release note could not be created. Please check the version you asked for and the release note configuration of this wiki.
 
+# Title given to a release note when it is created. It is written into the page, so an author is free to change it
+# afterwards.
+
+releasenotes.releasenote.title=Release Notes for {0} {1}
+
 # Release notes Live Data, on the application home page
 
 releasenotes.releases.livedata.product=Product

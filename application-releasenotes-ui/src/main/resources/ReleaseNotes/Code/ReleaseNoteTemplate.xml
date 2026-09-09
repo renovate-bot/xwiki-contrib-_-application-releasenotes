@@ -31,18 +31,19 @@
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>#if ("$!doc.getValue('product')" != '')Release Notes for $doc.getValue('product') $doc.getValue('version')#{else}Release Note Template#end</title>
+  <title>Release Note Template</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
+  <enforceRequiredRights>true</enforceRequiredRights>
   <content>{{box cssClass="floatinginfobox" title="**Contents**"}}
 {{toc/}}
 {{/box}}
 
 &lt;insert summary description of release here&gt;
 
-= New and Noteworthy (since {{velocity}}$doc.getValue('product'){{/velocity}} &lt;version - 1&gt;) =
+= New and Noteworthy (since &lt;product&gt; &lt;version - 1&gt;) =
 
 {{releasenotechanges/}}
 

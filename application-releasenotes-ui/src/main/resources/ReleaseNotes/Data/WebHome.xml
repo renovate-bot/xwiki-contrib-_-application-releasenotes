@@ -36,6 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
+  <enforceRequiredRights>true</enforceRequiredRights>
   <content>{{velocity}}
 #set ($xwql = "from doc.object(ReleaseNotes.Code.ChangesClass) as changes")
 #if ($services.query.xwql($xwql).count() &gt; 0)
@@ -181,6 +182,43 @@
     </property>
     <property>
       <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>ReleaseNotes.Data.WebHome</name>
+    <number>0</number>
+    <className>XWiki.RequiredRightClass</className>
+    <guid>0327b18c-78e5-4018-8d4f-d2575f04242d</guid>
+    <class>
+      <name>XWiki.RequiredRightClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <level>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>level</name>
+        <number>1</number>
+        <prettyName>Level</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators> ,|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>edit|script|wiki_admin|programming</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </level>
+    </class>
+    <property>
+      <level>script</level>
     </property>
   </object>
 </xwikidoc>

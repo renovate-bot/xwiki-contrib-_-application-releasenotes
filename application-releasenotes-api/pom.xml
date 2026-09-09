@@ -86,6 +86,12 @@
       <artifactId>xwiki-platform-security-authorization-api</artifactId>
       <version>${platform.version}</version>
     </dependency>
+    <!-- The title a new release note is given is a translated one. -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-localization-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.xwiki.platform</groupId>
