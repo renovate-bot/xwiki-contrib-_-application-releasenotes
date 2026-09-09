@@ -49,8 +49,10 @@ public interface ReleaseNoteManager
      *            for the wiki
      * @return the page the release note was created in
      * @throws ReleaseNoteAlreadyExistsException when a release note already exists for that product and version
-     * @throws ReleaseNotesException when the release note carries no version, no product could be determined, the
-     *             current user or the author of the calling script cannot edit the page, or the save failed
+     * @throws ReleaseNotesAccessDeniedException when the current user or the author of the calling script cannot
+     *             edit the page
+     * @throws ReleaseNotesException when the release note carries no version, no product could be determined, or the
+     *             save failed
      */
     DocumentReference createReleaseNote(ReleaseNote note) throws ReleaseNotesException;
 

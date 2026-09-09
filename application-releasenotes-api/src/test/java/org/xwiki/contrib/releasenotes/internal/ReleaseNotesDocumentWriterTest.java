@@ -24,6 +24,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.xwiki.bridge.DocumentAccessBridge;
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
 import org.xwiki.model.document.DocumentAuthors;
 import org.xwiki.model.reference.DocumentReference;
@@ -89,11 +90,14 @@ class ReleaseNotesDocumentWriterTest
     {
         allowAuthor();
 
-        ReleaseNotesException exception =
-            assertThrows(ReleaseNotesException.class, () -> this.writer.checkEditRight(RELEASE_NOTE));
+        ReleaseNotesAccessDeniedException exception = assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.writer.checkEditRight(RELEASE_NOTE));
 
         assertEquals("The current user is not allowed to edit the page [xwiki:ReleaseNotes.Data.XWiki.8\\.3.WebHome].",
             exception.getMessage());
+        // The page is carried by the exception so that the caller reporting the refusal, such as a REST resource, can
+        // name it without working it out again.
+        assertEquals(RELEASE_NOTE, exception.getReference());
     }
 
     /**
@@ -106,11 +110,12 @@ class ReleaseNotesDocumentWriterTest
     {
         allowUser();
 
-        ReleaseNotesException exception =
-            assertThrows(ReleaseNotesException.class, () -> this.writer.checkEditRight(RELEASE_NOTE));
+        ReleaseNotesAccessDeniedException exception = assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.writer.checkEditRight(RELEASE_NOTE));
 
         assertEquals("The author [xwiki:XWiki.Author] of the calling script is not allowed to edit the page "
             + "[xwiki:ReleaseNotes.Data.XWiki.8\\.3.WebHome].", exception.getMessage());
+        assertEquals(RELEASE_NOTE, exception.getReference());
     }
 
     @Test

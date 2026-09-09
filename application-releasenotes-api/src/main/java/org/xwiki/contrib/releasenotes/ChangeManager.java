@@ -45,9 +45,10 @@ public interface ChangeManager
      * @param change the change to create, which needs at least a version and a title, and a product unless one is
      *            configured for the wiki
      * @return the page the change was created in
+     * @throws ReleaseNotesAccessDeniedException when the current user or the author of the calling script cannot
+     *             edit the page
      * @throws ReleaseNotesException when the change carries no version or no title, no product could be determined,
-     *             the current user or the author of the calling script cannot edit the page, no page name was free,
-     *             or the save failed
+     *             no page name was free, or the save failed
      */
     DocumentReference createChange(Change change) throws ReleaseNotesException;
 
@@ -66,8 +67,9 @@ public interface ChangeManager
      * @param product the product of the release note to add an entry to
      * @param version the version of the release note to add an entry to, in its long form
      * @return the page that was taken, or {@code null} when no page name was free
-     * @throws ReleaseNotesException when the current user or the author of the calling script cannot edit the page,
-     *             the existing entries could not be looked up, or the save failed
+     * @throws ReleaseNotesAccessDeniedException when the current user or the author of the calling script cannot
+     *             edit the page
+     * @throws ReleaseNotesException when the existing entries could not be looked up, or the save failed
      */
     DocumentReference reserveNextEntry(String product, String version) throws ReleaseNotesException;
 
