@@ -1,4 +1,6 @@
+org.xwiki.contrib.releasenotes.rest.internal.DefaultChangeResource
 org.xwiki.contrib.releasenotes.rest.internal.DefaultChangesResource
+org.xwiki.contrib.releasenotes.rest.internal.DefaultReleaseNoteResource
 org.xwiki.contrib.releasenotes.rest.internal.DefaultReleaseNotesResource
 org.xwiki.contrib.releasenotes.rest.internal.ReleaseNotesExceptionMapper
 org.xwiki.contrib.releasenotes.rest.internal.RepresentationFactory

@@ -33,6 +33,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.releasenotes.ReleaseNoteAlreadyExistsException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
+import org.xwiki.contrib.releasenotes.ReleaseNotesNotFoundException;
 import org.xwiki.contrib.releasenotes.rest.model.ErrorRepresentation;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -75,6 +76,11 @@ public class ReleaseNotesExceptionMapper implements ExceptionMapper<ReleaseNotes
             // re-running knows at its first call, and not at its two hundredth change, that it has run before.
             status = Response.Status.CONFLICT;
             reference = alreadyExists.getReleaseNoteReference();
+        } else if (exception instanceof ReleaseNotesNotFoundException notFound) {
+            // A page that holds no release note and no page at all are the same thing to a client: what it asked
+            // about is not there.
+            status = Response.Status.NOT_FOUND;
+            reference = notFound.getReference();
         } else if (exception instanceof ReleaseNotesAccessDeniedException accessDenied) {
             // A caller that has not said who it is is asked to, the way the generic resources of the wiki answer a
             // write it may not do; a caller that has, and still may not write, is refused.

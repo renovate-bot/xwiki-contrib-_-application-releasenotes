@@ -114,6 +114,18 @@ public class ReleaseNotesScriptService implements ScriptService
     }
 
     /**
+     * @param note the release note to replace, located by its product and its version
+     * @return the release note as it is stored once replaced
+     * @throws ReleaseNotesException when it could not be replaced
+     * @see ReleaseNoteManager#updateReleaseNote(ReleaseNote)
+     * @since 2.8
+     */
+    public ReleaseNote updateReleaseNote(ReleaseNote note) throws ReleaseNotesException
+    {
+        return this.releaseNoteManager.updateReleaseNote(note);
+    }
+
+    /**
      * @param product the product to list the release notes of, or {@code null} to list them all
      * @return the release notes of that product
      * @throws ReleaseNotesException when they could not be looked up
@@ -143,6 +155,19 @@ public class ReleaseNotesScriptService implements ScriptService
     public DocumentReference createChange(Change change) throws ReleaseNotesException
     {
         return this.changeManager.createChange(change);
+    }
+
+    /**
+     * @param reference the page of the change to replace
+     * @param change the change that page is to hold
+     * @return the change as it is stored once replaced
+     * @throws ReleaseNotesException when it could not be replaced
+     * @see ChangeManager#updateChange(DocumentReference, Change)
+     * @since 2.8
+     */
+    public Change updateChange(DocumentReference reference, Change change) throws ReleaseNotesException
+    {
+        return this.changeManager.updateChange(reference, change);
     }
 
     /**

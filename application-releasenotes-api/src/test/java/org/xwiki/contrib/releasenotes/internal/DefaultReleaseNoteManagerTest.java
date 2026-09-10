@@ -30,8 +30,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteAlreadyExistsException;
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
+import org.xwiki.contrib.releasenotes.ReleaseNotesNotFoundException;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.ObservationManager;
@@ -51,6 +53,7 @@ import com.xpn.xwiki.test.junit5.mockito.OldcoreTest;
 import com.xpn.xwiki.test.reference.ReferenceComponentList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -338,6 +341,102 @@ class DefaultReleaseNoteManagerTest
         assertThrows(ReleaseNotesException.class, () -> this.manager.createReleaseNote(note(PRODUCT, "8.3")));
 
         assertTrue(load("8.3").isNew());
+    }
+
+    /**
+     * Marking a version released on the day it ships is what replacing a release note is for: neither value could
+     * be written once its page existed.
+     */
+    @Test
+    void aReleaseNoteIsMarkedReleasedOnTheDayItShips() throws Exception
+    {
+        Date date = new SimpleDateFormat("dd/MM/yyyy").parse("15/09/2016");
+        this.manager.createReleaseNote(note(PRODUCT, "8.3"));
+
+        ReleaseNote replacement = note(PRODUCT, "8.3");
+        replacement.setDate(date);
+        replacement.setReleased(true);
+
+        ReleaseNote stored = this.manager.updateReleaseNote(replacement);
+
+        assertEquals(date, stored.getDate());
+        assertTrue(stored.isReleased());
+        // What was replaced is what the wiki now holds, and not only what was answered.
+        assertEquals(date, this.manager.getReleaseNote(reference("8.3")).getDate());
+        assertTrue(this.manager.getReleaseNote(reference("8.3")).isReleased());
+    }
+
+    /**
+     * The properties a replacement leaves out are emptied rather than kept, and the date is emptied the way it is
+     * when a release note is created: with a value, so that the Live Data listing the release notes still sees it.
+     */
+    @Test
+    void replacingAReleaseNoteEmptiesTheDateItLeavesOut() throws Exception
+    {
+        ReleaseNote note = note(PRODUCT, "8.3");
+        note.setDate(new SimpleDateFormat("dd/MM/yyyy").parse("15/09/2016"));
+        note.setReleased(true);
+        this.manager.createReleaseNote(note);
+
+        ReleaseNote stored = this.manager.updateReleaseNote(note(PRODUCT, "8.3"));
+
+        assertNull(stored.getDate());
+        assertFalse(stored.isReleased());
+        assertNotNull(load("8.3").getXObject(ReleaseNotesReferences.RELEASE_NOTE_CLASS).getField("date"),
+            "The release date must be stored, so that the Live Data sees it.");
+    }
+
+    /**
+     * The content, the title and the template are what a release note is created with, and an administrator is free
+     * to have edited that content since: a replacement is about the two properties that change over its life.
+     */
+    @Test
+    void replacingAReleaseNoteLeavesItsContentAndItsTitleAlone() throws Exception
+    {
+        installTemplate();
+        when(this.configuration.getDefaultTemplate()).thenReturn(TEMPLATE);
+        this.manager.createReleaseNote(note(PRODUCT, "8.3"));
+
+        ReleaseNote replacement = note(PRODUCT, "8.3");
+        replacement.setReleased(true);
+        this.manager.updateReleaseNote(replacement);
+
+        assertEquals(TEMPLATE_CONTENT, load("8.3").getContent());
+        assertEquals("Release Notes for XWiki 8.3", load("8.3").getTitle());
+    }
+
+    @Test
+    void aVersionThatHasNoReleaseNoteIsNotReplaced()
+    {
+        ReleaseNotesNotFoundException exception = assertThrows(ReleaseNotesNotFoundException.class,
+            () -> this.manager.updateReleaseNote(note(PRODUCT, "8.3")));
+
+        assertEquals(reference("8.3"), exception.getReference());
+        assertEquals("The page [xwiki:ReleaseNotes.Data.XWiki.8\\.3.WebHome] holds no release note.",
+            exception.getMessage());
+    }
+
+    @Test
+    void aReleaseNoteReplacedWithoutAVersionIsRefused()
+    {
+        ReleaseNotesException exception = assertThrows(ReleaseNotesException.class,
+            () -> this.manager.updateReleaseNote(note(PRODUCT, " ")));
+
+        assertEquals("A release note needs the version it is about.", exception.getMessage());
+    }
+
+    @Test
+    void aUserWhoCannotEditThePageReplacesNoReleaseNote() throws Exception
+    {
+        this.manager.createReleaseNote(note(PRODUCT, "8.3"));
+        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
+            .thenReturn(false);
+
+        ReleaseNote replacement = note(PRODUCT, "8.3");
+        replacement.setReleased(true);
+
+        assertThrows(ReleaseNotesAccessDeniedException.class, () -> this.manager.updateReleaseNote(replacement));
+        assertFalse(this.manager.getReleaseNote(reference("8.3")).isReleased());
     }
 
     @Test

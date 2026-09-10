@@ -57,6 +57,27 @@ public interface ReleaseNoteManager
     DocumentReference createReleaseNote(ReleaseNote note) throws ReleaseNotesException;
 
     /**
+     * Replaces a release note: the release note of that product and version becomes the one passed, and a property
+     * the passed release note leaves out is emptied rather than kept. This is how a version is marked released on
+     * the day it ships.
+     * <p>
+     * The product and the version locate the release note rather than being replaced by this, since they are what
+     * its page is named after. The content, the title and the template are not touched either: they are what a
+     * release note is created with, and an administrator is free to have edited the content since.
+     *
+     * @param note the release note to replace, located by its version and by its product, or by the product
+     *            configured for the wiki when it carries none
+     * @return the release note as it is stored once replaced
+     * @throws ReleaseNotesNotFoundException when there is no release note for that product and version
+     * @throws ReleaseNotesAccessDeniedException when the current user or the author of the calling script cannot
+     *             edit the page
+     * @throws ReleaseNotesException when the release note carries no version, no product could be determined, or the
+     *             save failed
+     * @since 2.8
+     */
+    ReleaseNote updateReleaseNote(ReleaseNote note) throws ReleaseNotesException;
+
+    /**
      * Gives the page a release note lives in, whether or not that page exists. The name of the last space of that
      * page is the short version, which is the form the version is displayed in.
      *
@@ -69,7 +90,8 @@ public interface ReleaseNoteManager
     /**
      * @param reference the page of a release note
      * @return the release note that page holds
-     * @throws ReleaseNotesException when that page holds no release note
+     * @throws ReleaseNotesNotFoundException when that page holds no release note
+     * @throws ReleaseNotesException when that page could not be loaded
      */
     ReleaseNote getReleaseNote(DocumentReference reference) throws ReleaseNotesException;
 

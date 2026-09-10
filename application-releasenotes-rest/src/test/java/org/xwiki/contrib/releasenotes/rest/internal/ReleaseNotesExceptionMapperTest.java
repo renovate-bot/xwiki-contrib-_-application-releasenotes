@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.xwiki.contrib.releasenotes.ReleaseNoteAlreadyExistsException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
+import org.xwiki.contrib.releasenotes.ReleaseNotesNotFoundException;
 import org.xwiki.contrib.releasenotes.rest.model.ErrorRepresentation;
 import org.xwiki.model.internal.reference.DefaultSymbolScheme;
 import org.xwiki.model.internal.reference.LocalStringEntityReferenceSerializer;
@@ -95,6 +96,22 @@ class ReleaseNotesExceptionMapperTest
         assertEquals("ReleaseNotes.Data.XWiki.8\\.3.WebHome", error(response).getReference());
         assertEquals("The release note [xwiki:ReleaseNotes.Data.XWiki.8\\.3.WebHome] already exists.",
             error(response).getMessage());
+    }
+
+    /**
+     * A page that holds no release note and no page at all are the same thing to a client, and the page it asked
+     * about is named so that it can tell which of the three parts of the URL was wrong.
+     */
+    @Test
+    void aPageThatHoldsNeitherIsNotFoundNamingIt()
+    {
+        Response response = this.mapper
+            .toResponse(new ReleaseNotesNotFoundException("The page [x] holds no change.", RELEASE_NOTE));
+
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
+        assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
+        assertEquals("The page [x] holds no change.", error(response).getMessage());
+        assertEquals("ReleaseNotes.Data.XWiki.8\\.3.WebHome", error(response).getReference());
     }
 
     @Test

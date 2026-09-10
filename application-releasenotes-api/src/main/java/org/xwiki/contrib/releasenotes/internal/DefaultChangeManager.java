@@ -35,6 +35,7 @@ import org.xwiki.contrib.releasenotes.ChangeQuery;
 import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.Importance;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
+import org.xwiki.contrib.releasenotes.ReleaseNotesNotFoundException;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 
@@ -85,6 +86,18 @@ public class DefaultChangeManager implements ChangeManager
 
     private static final String SCREENSHOTS = "screenshots";
 
+    /**
+     * What a caller is told about a page it asked to read or to replace the change of, and that holds none.
+     */
+    private static final String NO_CHANGE = "The page [%s] holds no change.";
+
+    /**
+     * What a change with no title is refused with, both when it is created and when it is replaced: a change with no
+     * title is displayed as an empty line by every displayer, which makes it look like the change is missing rather
+     * than like its title is.
+     */
+    private static final String NO_TITLE = "A change needs a title.";
+
     @Inject
     private Provider<XWikiContext> xcontextProvider;
 
@@ -112,9 +125,7 @@ public class DefaultChangeManager implements ChangeManager
         String title = StringUtils.trimToNull(change.getTitle());
 
         if (title == null) {
-            // A change with no title is displayed as an empty line by every displayer, which makes it look like the
-            // change is missing rather than like its title is.
-            throw new ReleaseNotesException("A change needs a title.");
+            throw new ReleaseNotesException(NO_TITLE);
         }
 
         String product = this.productResolver.resolve(change.getProduct());
@@ -172,6 +183,51 @@ public class DefaultChangeManager implements ChangeManager
     }
 
     @Override
+    public Change updateChange(DocumentReference reference, Change change) throws ReleaseNotesException
+    {
+        String title = StringUtils.trimToNull(change.getTitle());
+
+        if (title == null) {
+            throw new ReleaseNotesException(NO_TITLE);
+        }
+
+        XWikiContext xcontext = this.xcontextProvider.get();
+        // The page exists, and the instance the store answers with for a page that exists is the one it holds in its
+        // cache, which a caller must not write into: what is modified here is a copy of it, and the save is what
+        // makes the wiki hold it.
+        XWikiDocument document = loadDocument(reference, xcontext).clone();
+        BaseObject entry = document.getXObject(ReleaseNotesReferences.ENTRY_CLASS);
+        BaseObject changeObject = document.getXObject(ReleaseNotesReferences.CHANGE_CLASS);
+
+        if (entry == null || changeObject == null) {
+            throw new ReleaseNotesNotFoundException(String.format(NO_CHANGE, reference), reference);
+        }
+
+        try {
+            // Every property is written, and not only the ones the passed change carries: this replaces the change,
+            // so what the caller left out is emptied rather than kept. The change template has no say here either,
+            // for the same reason.
+            changeObject.set(TITLE, title, xcontext);
+            changeObject.set(SUMMARY, StringUtils.defaultString(change.getSummary()), xcontext);
+            changeObject.set(DESCRIPTION, StringUtils.defaultString(change.getDescription()), xcontext);
+            changeObject.set(CATEGORY, StringUtils.defaultString(change.getCategory()), xcontext);
+            changeObject.set(AUDIENCE,
+                change.getAudience() == null ? "" : change.getAudience().getStoredValue(), xcontext);
+            changeObject.set(IMPORTANCE,
+                change.getImportance() == null ? "" : change.getImportance().getStoredValue(), xcontext);
+            changeObject.set(SCREENSHOTS, change.getScreenshots() == null ? ""
+                : String.join(SCREENSHOT_SEPARATOR, change.getScreenshots()), xcontext);
+        } catch (XWikiException e) {
+            throw new ReleaseNotesException(
+                String.format("Failed to write the change of the page [%s].", reference), e);
+        }
+
+        this.documentWriter.save(document, "Updated change");
+
+        return toChange(entry, changeObject);
+    }
+
+    @Override
     public DocumentReference reserveNextEntry(String product, String version) throws ReleaseNotesException
     {
         XWikiContext xcontext = this.xcontextProvider.get();
@@ -196,9 +252,25 @@ public class DefaultChangeManager implements ChangeManager
         BaseObject changeObject = document.getXObject(ReleaseNotesReferences.CHANGE_CLASS);
 
         if (entry == null || changeObject == null) {
-            throw new ReleaseNotesException(String.format("The page [%s] holds no change.", reference));
+            throw new ReleaseNotesNotFoundException(String.format(NO_CHANGE, reference), reference);
         }
 
+        return toChange(entry, changeObject);
+    }
+
+    @Override
+    public ChangeSearchResult search(ChangeQuery query) throws ReleaseNotesException
+    {
+        return this.changeSearcher.search(query);
+    }
+
+    /**
+     * @param entry the entry object of the page of a change, which says which release note it belongs to
+     * @param changeObject the change object of that page, which says what the change is
+     * @return the change those two objects hold
+     */
+    private Change toChange(BaseObject entry, BaseObject changeObject)
+    {
         Change change = new Change();
         change.setProduct(entry.getStringValue(PRODUCT));
         change.setVersion(entry.getStringValue(VERSION));
@@ -211,12 +283,6 @@ public class DefaultChangeManager implements ChangeManager
         change.setScreenshots(splitScreenshots(changeObject.getStringValue(SCREENSHOTS)));
 
         return change;
-    }
-
-    @Override
-    public ChangeSearchResult search(ChangeQuery query) throws ReleaseNotesException
-    {
-        return this.changeSearcher.search(query);
     }
 
     private List<String> splitScreenshots(String screenshots)

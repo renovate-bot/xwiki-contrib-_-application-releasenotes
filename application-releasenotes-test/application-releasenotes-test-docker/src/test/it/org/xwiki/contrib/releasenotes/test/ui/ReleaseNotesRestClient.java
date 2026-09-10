@@ -86,6 +86,18 @@ public class ReleaseNotesRestClient
             .POST(HttpRequest.BodyPublishers.ofString(this.objectMapper.writeValueAsString(body))));
     }
 
+    /**
+     * @param path the endpoint to call, from the wiki of the URL onwards
+     * @param body what to replace what is there with, which is written as JSON
+     * @return what it answered
+     * @throws Exception when the request could not be made
+     */
+    public JsonResponse put(String path, Object body) throws Exception
+    {
+        return send(request(path).header("Content-Type", "application/json")
+            .PUT(HttpRequest.BodyPublishers.ofString(this.objectMapper.writeValueAsString(body))));
+    }
+
     private HttpRequest.Builder request(String path)
     {
         return HttpRequest.newBuilder(URI.create(this.baseURL + "/wikis/xwiki" + path))

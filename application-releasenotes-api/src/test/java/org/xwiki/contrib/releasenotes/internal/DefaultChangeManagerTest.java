@@ -30,8 +30,10 @@ import org.xwiki.contrib.releasenotes.Change;
 import org.xwiki.contrib.releasenotes.ChangeQuery;
 import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.Importance;
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
+import org.xwiki.contrib.releasenotes.ReleaseNotesNotFoundException;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -376,6 +378,116 @@ class DefaultChangeManagerTest
         assertThrows(ReleaseNotesException.class, () -> this.manager.createChange(change()));
 
         assertTrue(load(entry("Entry001")).isNew());
+    }
+
+    /**
+     * Replacing a change writes every property, and not only the ones the passed change carries: what the caller
+     * left out is emptied rather than kept, and the template has no say in a replacement either.
+     */
+    @Test
+    void replacingAChangeEmptiesThePropertiesItLeavesOut() throws Exception
+    {
+        Change change = change();
+        change.setSummary("Starting a wiki now takes half the time.");
+        change.setDescription("The long story.");
+        change.setCategory("Performance");
+        change.setAudience(Audience.DEVELOPER);
+        change.setImportance(Importance.HIGH);
+        this.manager.createChange(change);
+
+        Change replacement = new Change();
+        replacement.setTitle("Even faster startup");
+
+        Change stored = this.manager.updateChange(entry("Entry001"), replacement);
+
+        assertEquals("Even faster startup", stored.getTitle());
+        assertEquals("", stored.getSummary());
+        assertEquals("", stored.getDescription());
+        assertEquals("", stored.getCategory());
+        assertNull(stored.getAudience());
+        assertNull(stored.getImportance());
+        assertTrue(stored.getScreenshots().isEmpty());
+        // What was replaced is what the wiki now holds, and not only what was answered.
+        assertEquals("Even faster startup", this.manager.getChange(entry("Entry001")).getTitle());
+    }
+
+    /**
+     * The media of a change name attachments of its own page, which cannot exist before that page does, so naming
+     * them is what a replacement is needed for.
+     */
+    @Test
+    void theMediaOfAChangeCanBeNamedAfterItWasCreated() throws Exception
+    {
+        this.manager.createChange(change());
+
+        Change replacement = change();
+        replacement.setScreenshots(List.of("before.png", "after.png"));
+
+        assertEquals(List.of("before.png", "after.png"),
+            this.manager.updateChange(entry("Entry001"), replacement).getScreenshots());
+        assertEquals("before.png,after.png", load(entry("Entry001"))
+            .getXObject(ReleaseNotesReferences.CHANGE_CLASS).getStringValue("screenshots"));
+    }
+
+    /**
+     * The release note a change belongs to is the page tree it lives in, so a replacement leaves the entry xobject
+     * saying what it said: moving a change to another release note is a move of its page.
+     */
+    @Test
+    void replacingAChangeLeavesItAnEntryOfTheSameReleaseNote() throws Exception
+    {
+        this.manager.createChange(change());
+        this.manager.updateChange(entry("Entry001"), change());
+
+        BaseObject entry = load(entry("Entry001")).getXObject(ReleaseNotesReferences.ENTRY_CLASS);
+        assertEquals("Change", entry.getStringValue("type"));
+        assertEquals(PRODUCT, entry.getStringValue("product"));
+        assertEquals(VERSION, entry.getStringValue("version"));
+    }
+
+    /**
+     * An entry that holds no change is reported as such, and not filled with one: the contributors of a release
+     * note are an entry too, and a page that was never created is one more thing a caller can name.
+     */
+    @Test
+    void anEntryHoldingNoChangeIsNotReplaced()
+    {
+        ReleaseNotesNotFoundException exception = assertThrows(ReleaseNotesNotFoundException.class,
+            () -> this.manager.updateChange(entry("Entry001"), change()));
+
+        assertEquals(entry("Entry001"), exception.getReference());
+        assertEquals("The page [xwiki:ReleaseNotes.Data.XWiki.8\\.3M1.Entry001.WebHome] holds no change.",
+            exception.getMessage());
+    }
+
+    @Test
+    void aChangeReplacedWithoutATitleIsRefused() throws Exception
+    {
+        this.manager.createChange(change());
+
+        Change replacement = new Change();
+        replacement.setTitle(" ");
+
+        ReleaseNotesException exception = assertThrows(ReleaseNotesException.class,
+            () -> this.manager.updateChange(entry("Entry001"), replacement));
+
+        assertEquals("A change needs a title.", exception.getMessage());
+        assertEquals("Faster startup", this.manager.getChange(entry("Entry001")).getTitle());
+    }
+
+    @Test
+    void aUserWhoCannotEditThePageReplacesNoChange() throws Exception
+    {
+        this.manager.createChange(change());
+        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
+            .thenReturn(false);
+
+        Change replacement = change();
+        replacement.setTitle("Even faster startup");
+
+        assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.manager.updateChange(entry("Entry001"), replacement));
+        assertEquals("Faster startup", this.manager.getChange(entry("Entry001")).getTitle());
     }
 
     @Test
