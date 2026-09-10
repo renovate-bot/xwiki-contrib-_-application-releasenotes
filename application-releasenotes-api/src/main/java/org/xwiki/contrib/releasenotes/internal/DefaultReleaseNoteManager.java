@@ -34,6 +34,7 @@ import org.xwiki.contrib.releasenotes.ReleaseNoteAlreadyExistsException;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
+import org.xwiki.contrib.releasenotes.ReleaseNotesNotFoundException;
 import org.xwiki.localization.ContextualLocalizationManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -87,6 +88,17 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
      */
     private static final String TITLE_KEY = "releasenotes.releasenote.title";
 
+    /**
+     * What a caller is told about a page it asked to read or to replace the release note of, and that holds none.
+     */
+    private static final String NO_RELEASE_NOTE = "The page [%s] holds no release note.";
+
+    /**
+     * What a release note with no version is refused with, both when it is created and when it is replaced: the
+     * version is what its page is named after.
+     */
+    private static final String NO_VERSION = "A release note needs the version it is about.";
+
     @Inject
     private Provider<XWikiContext> xcontextProvider;
 
@@ -119,7 +131,7 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
         String version = StringUtils.trimToNull(note.getVersion());
 
         if (version == null) {
-            throw new ReleaseNotesException("A release note needs the version it is about.");
+            throw new ReleaseNotesException(NO_VERSION);
         }
 
         String product = this.productResolver.resolve(note.getProduct());
@@ -144,15 +156,7 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
             BaseObject object = document.newXObject(ReleaseNotesReferences.RELEASE_NOTE_CLASS, xcontext);
             object.set(PRODUCT, product, xcontext);
             object.set(VERSION, version, xcontext);
-            object.set(RELEASED, note.isReleased() ? "1" : "0", xcontext);
-
-            if (note.getDate() == null) {
-                // An empty release date, and not no release date at all: the Live Data listing the release notes
-                // sorts them on their date and leaves out the ones that have no value for it.
-                object.set(DATE, "", xcontext);
-            } else {
-                object.set(DATE, note.getDate(), xcontext);
-            }
+            setReleaseState(object, note, xcontext);
         } catch (XWikiException e) {
             throw new ReleaseNotesException(
                 String.format("Failed to fill the page [%s] of the new release note.", reference), e);
@@ -161,6 +165,42 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
         this.documentWriter.save(document, "New Release note");
 
         return reference;
+    }
+
+    @Override
+    public ReleaseNote updateReleaseNote(ReleaseNote note) throws ReleaseNotesException
+    {
+        String version = StringUtils.trimToNull(note.getVersion());
+
+        if (version == null) {
+            throw new ReleaseNotesException(NO_VERSION);
+        }
+
+        DocumentReference reference =
+            getReleaseNoteReference(this.productResolver.resolve(note.getProduct()), version);
+        XWikiContext xcontext = this.xcontextProvider.get();
+        // The page exists, and the instance the store answers with for a page that exists is the one it holds in its
+        // cache, which a caller must not write into: what is modified here is a copy of it, and the save is what
+        // makes the wiki hold it.
+        XWikiDocument document = loadDocument(reference, xcontext).clone();
+        BaseObject object = document.getXObject(ReleaseNotesReferences.RELEASE_NOTE_CLASS);
+
+        if (object == null) {
+            throw new ReleaseNotesNotFoundException(String.format(NO_RELEASE_NOTE, reference), reference);
+        }
+
+        try {
+            // Both properties are written, and not only the ones the passed release note carries: this replaces the
+            // release note, so a date the caller left out is emptied rather than kept.
+            setReleaseState(object, note, xcontext);
+        } catch (XWikiException e) {
+            throw new ReleaseNotesException(
+                String.format("Failed to write the release note of the page [%s].", reference), e);
+        }
+
+        this.documentWriter.save(document, "Updated release note");
+
+        return toReleaseNote(object);
     }
 
     @Override
@@ -187,16 +227,10 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
             loadDocument(reference, xcontext).getXObject(ReleaseNotesReferences.RELEASE_NOTE_CLASS);
 
         if (object == null) {
-            throw new ReleaseNotesException(String.format("The page [%s] holds no release note.", reference));
+            throw new ReleaseNotesNotFoundException(String.format(NO_RELEASE_NOTE, reference), reference);
         }
 
-        ReleaseNote note = new ReleaseNote();
-        note.setProduct(object.getStringValue(PRODUCT));
-        note.setVersion(object.getStringValue(VERSION));
-        note.setDate(object.getDateValue(DATE));
-        note.setReleased(object.getIntValue(RELEASED) == 1);
-
-        return note;
+        return toReleaseNote(object);
     }
 
     @Override
@@ -258,6 +292,43 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
         // A final version also displays the changes of its milestones and of its release candidates, which are
         // matched by pattern since their numbers are not known here.
         return List.of(shortVersion, shortVersion + "-milestone%", shortVersion + "-rc%");
+    }
+
+    /**
+     * Writes the two properties of a release note that change over its life: the day the version is released, and
+     * whether it has been.
+     *
+     * @param object the release note object to write them to
+     * @param note the release note holding them
+     * @param xcontext the context to write them with
+     * @throws XWikiException when they could not be written
+     */
+    private void setReleaseState(BaseObject object, ReleaseNote note, XWikiContext xcontext) throws XWikiException
+    {
+        object.set(RELEASED, note.isReleased() ? "1" : "0", xcontext);
+
+        if (note.getDate() == null) {
+            // An empty release date, and not no release date at all: the Live Data listing the release notes sorts
+            // them on their date and leaves out the ones that have no value for it.
+            object.set(DATE, "", xcontext);
+        } else {
+            object.set(DATE, note.getDate(), xcontext);
+        }
+    }
+
+    /**
+     * @param object the release note object of a page
+     * @return the release note that object holds
+     */
+    private ReleaseNote toReleaseNote(BaseObject object)
+    {
+        ReleaseNote note = new ReleaseNote();
+        note.setProduct(object.getStringValue(PRODUCT));
+        note.setVersion(object.getStringValue(VERSION));
+        note.setDate(object.getDateValue(DATE));
+        note.setReleased(object.getIntValue(RELEASED) == 1);
+
+        return note;
     }
 
     /**

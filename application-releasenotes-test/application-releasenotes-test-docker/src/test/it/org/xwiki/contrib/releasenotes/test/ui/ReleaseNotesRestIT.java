@@ -26,6 +26,7 @@ import org.xwiki.contrib.releasenotes.rest.model.ChangeRepresentation;
 import org.xwiki.contrib.releasenotes.rest.model.ChangesRepresentation;
 import org.xwiki.contrib.releasenotes.rest.model.ErrorRepresentation;
 import org.xwiki.contrib.releasenotes.rest.model.ReleaseNoteRepresentation;
+import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.ObjectPropertyReference;
 import org.xwiki.model.reference.ObjectReference;
@@ -58,6 +59,18 @@ class ReleaseNotesRestIT
 
     private static final DocumentReference THIRD_CHANGE = new DocumentReference("xwiki",
         List.of("ReleaseNotes", "Data", PRODUCT, "1.0M1", "Entry003"), "WebHome");
+
+    /**
+     * The release notes a test replaces are those of a product of its own, so that the entries the other test
+     * numbers are not the entries this one replaces.
+     */
+    private static final String UPDATE_PRODUCT = "RestUpdateProduct";
+
+    private static final DocumentReference UPDATED_RELEASE_NOTE =
+        new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", UPDATE_PRODUCT, "1.0M1"), "WebHome");
+
+    private static final DocumentReference UPDATED_CHANGE = new DocumentReference("xwiki",
+        List.of("ReleaseNotes", "Data", UPDATE_PRODUCT, "1.0M1", "Entry001"), "WebHome");
 
     /**
      * Walks what the endpoints exist for: one call creates the release note of a version, in the page its version
@@ -191,9 +204,112 @@ class ReleaseNotesRestIT
         assertNotNull(notFound.as(ErrorRepresentation.class).getMessage());
     }
 
+    /**
+     * Walks what a client does to illustrate a change, which is the one thing a write-once API made impossible: the
+     * media of a change name attachments of its own page, and that page does not exist until the change has been
+     * created. So the change is created, its image is attached to the page the creation answered, and the change is
+     * replaced with the name it now has. Then the version is marked released, which was write-once too.
+     */
+    @Test
+    void aChangeIsIllustratedAndAVersionIsMarkedReleased(TestUtils setup) throws Exception
+    {
+        setup.loginAsSuperAdmin();
+        // An entry left behind would be counted when the next one is numbered, so every page this test creates is
+        // deleted before it runs again.
+        setup.rest().delete(UPDATED_CHANGE);
+        setup.rest().delete(UPDATED_RELEASE_NOTE);
+
+        ReleaseNotesRestClient client = new ReleaseNotesRestClient(setup);
+
+        ReleaseNoteRepresentation note = new ReleaseNoteRepresentation();
+        note.setProduct(UPDATE_PRODUCT);
+        note.setVersion(VERSION);
+
+        assertEquals(201, client.post("/releasenotes", note).getStatus());
+
+        ChangeRepresentation change = new ChangeRepresentation();
+        change.setTitle("A change worth a screenshot");
+        change.setSummary("What it does.");
+
+        JsonResponse created = client.post(updatePath() + "/changes", change);
+
+        assertEquals(201, created.getStatus(), created.getBody());
+        // The entry the creation answers is what addresses the change from now on, so a client never has to work out
+        // the name of the page the wiki allocated.
+        assertEquals("Entry001", created.as(ChangeRepresentation.class).getEntry());
+
+        // The image can only be attached now: it goes to the page the creation allocated, through the attachment
+        // resource of the wiki, since this API stores no attachment of its own.
+        setup.rest().attachFile(new AttachmentReference("shot.png", UPDATED_CHANGE),
+            getClass().getResourceAsStream("/screenshot.png"), true);
+
+        change.setScreenshots(List.of("shot.png"));
+
+        JsonResponse illustrated = client.put(changePath("Entry001"), change);
+
+        assertEquals(200, illustrated.getStatus(), illustrated.getBody());
+        assertEquals(List.of("shot.png"), illustrated.as(ChangeRepresentation.class).getScreenshots());
+        assertEquals("shot.png",
+            propertyValue(setup, UPDATED_CHANGE, "ReleaseNotes.Code.Change.ChangeClass", "screenshots"));
+
+        // The change is read back at the URL it was replaced at, which is what makes that URL a resource rather than
+        // a write-only address.
+        ChangeRepresentation read = client.get(changePath("Entry001")).as(ChangeRepresentation.class);
+
+        assertEquals("A change worth a screenshot", read.getTitle());
+        assertEquals(List.of("shot.png"), read.getScreenshots());
+
+        // A replacement replaces: the summary this one leaves out is emptied rather than kept, which is what a
+        // client asking for the whole change to be stored asked for.
+        ChangeRepresentation withoutSummary = new ChangeRepresentation();
+        withoutSummary.setTitle("A change worth a screenshot");
+
+        assertEquals(200, client.put(changePath("Entry001"), withoutSummary).getStatus());
+        assertEquals("", propertyValue(setup, UPDATED_CHANGE, "ReleaseNotes.Code.Change.ChangeClass", "summary"));
+
+        // Marking the version released on the day it ships, which a release note could not be told either once it
+        // existed.
+        note.setReleased(true);
+        note.setDate("2026-09-10");
+
+        JsonResponse released = client.put(updatePath(), note);
+
+        assertEquals(200, released.getStatus(), released.getBody());
+        assertEquals("2026-09-10", released.as(ReleaseNoteRepresentation.class).getDate());
+        assertEquals(Boolean.TRUE, released.as(ReleaseNoteRepresentation.class).getReleased());
+        assertEquals("1", propertyValue(setup, UPDATED_RELEASE_NOTE, "ReleaseNotes.Code.ReleaseNoteClass",
+            "released"));
+
+        // The release note is read back at the URL it was replaced at, as the change was.
+        ReleaseNoteRepresentation readNote = client.get(updatePath()).as(ReleaseNoteRepresentation.class);
+
+        assertEquals(Boolean.TRUE, readNote.getReleased());
+        assertEquals("2026-09-10", readNote.getDate());
+        assertEquals("ReleaseNotes.Data.RestUpdateProduct.1\\.0M1.WebHome", readNote.getReference());
+
+        // An entry that holds no change, and a version that has no release note, are answered as what they are:
+        // nothing there. A replacement never creates, since the page of a change is the wiki's to allocate.
+        JsonResponse noEntry = client.put(changePath("Entry999"), change);
+
+        assertEquals(404, noEntry.getStatus(), noEntry.getBody());
+        assertNotNull(noEntry.as(ErrorRepresentation.class).getMessage());
+        assertEquals(404, client.put("/releasenotes/" + UPDATE_PRODUCT + "/9.9", note).getStatus());
+        assertEquals(404, client.get("/releasenotes/" + UPDATE_PRODUCT + "/9.9").getStatus());
+    }
+
     private static String changesPath()
     {
         return "/releasenotes/" + PRODUCT + "/" + VERSION + "/changes";
+    }
+
+    private static String updatePath()
+    {
+        return "/releasenotes/" + UPDATE_PRODUCT + "/" + VERSION;
+    }
+
+    private static String changePath(String entry)
+    {
+        return updatePath() + "/changes/" + entry;
     }
 
     private String propertyValue(TestUtils setup, DocumentReference page, String className, String property)

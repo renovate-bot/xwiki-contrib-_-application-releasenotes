@@ -33,6 +33,7 @@ import org.xwiki.model.ModelContext;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.rest.internal.Utils;
 import org.xwiki.rest.resources.pages.PageResource;
@@ -46,6 +47,19 @@ import org.xwiki.rest.resources.pages.PageResource;
  */
 public abstract class AbstractReleaseNotesResource
 {
+    /**
+     * What a client is told when the URL it called names no release note, which the URL of a change also always
+     * does.
+     */
+    protected static final String NO_RELEASE_NOTE_IN_URL =
+        "A change belongs to the release note of one version of one product, and the URL names neither.";
+
+    /**
+     * The name of the page an entry of a release note, and a release note itself, lives in: the space is what names
+     * them, so that the changes of a release note are the pages under it.
+     */
+    private static final String HOME_PAGE = "WebHome";
+
     @Inject
     protected ModelContext modelContext;
 
@@ -105,6 +119,20 @@ public abstract class AbstractReleaseNotesResource
     {
         return Utils.createURI(uriInfo.getBaseUri(), PageResource.class,
             reference.getWikiReference().getName(), Utils.getSpacesURLElements(reference), reference.getName());
+    }
+
+    /**
+     * Gives the page one entry of a release note lives in. The name is built into a reference rather than resolved
+     * from a serialized one, so a name carrying the characters a reference is written with names that page and
+     * nothing else.
+     *
+     * @param noteReference the page of the release note the entry belongs to
+     * @param entry the name of the entry, e.g. {@code Entry001}
+     * @return the page of that entry
+     */
+    protected DocumentReference getEntryReference(DocumentReference noteReference, String entry)
+    {
+        return new DocumentReference(HOME_PAGE, new SpaceReference(entry, noteReference.getLastSpaceReference()));
     }
 
     /**

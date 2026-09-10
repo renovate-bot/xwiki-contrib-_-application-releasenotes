@@ -50,6 +50,8 @@ public class ChangeRepresentation
 
     private String version;
 
+    private String entry;
+
     private String reference;
 
     /**
@@ -200,6 +202,26 @@ public class ChangeRepresentation
     public void setVersion(String version)
     {
         this.version = version;
+    }
+
+    /**
+     * @return the name of the entry the change lives in, e.g. {@code Entry001}, which is what addresses it: it is
+     *         the last path segment of the URL a change is read from and replaced at. Only returned: the entry of a
+     *         new change is allocated by the wiki.
+     * @since 2.8
+     */
+    public String getEntry()
+    {
+        return this.entry;
+    }
+
+    /**
+     * @param entry see {@link #getEntry()}
+     * @since 2.8
+     */
+    public void setEntry(String entry)
+    {
+        this.entry = entry;
     }
 
     /**

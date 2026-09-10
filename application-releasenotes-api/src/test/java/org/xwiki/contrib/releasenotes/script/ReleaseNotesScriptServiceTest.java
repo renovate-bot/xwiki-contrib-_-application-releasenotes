@@ -81,8 +81,10 @@ class ReleaseNotesScriptServiceTest
         when(this.releaseNoteManager.getReleaseNote(RELEASE_NOTE)).thenReturn(note);
         when(this.releaseNoteManager.getReleaseNotes("XWiki")).thenReturn(notes);
         when(this.releaseNoteManager.getAggregatedVersions(RELEASE_NOTE)).thenReturn(List.of("8.3"));
+        when(this.releaseNoteManager.updateReleaseNote(note)).thenReturn(note);
 
         assertEquals(RELEASE_NOTE, this.service.createReleaseNote(note));
+        assertSame(note, this.service.updateReleaseNote(note));
         assertEquals(RELEASE_NOTE, this.service.getReleaseNoteReference("XWiki", "8.3"));
         assertSame(note, this.service.getReleaseNote(RELEASE_NOTE));
         assertSame(notes, this.service.getReleaseNotes("XWiki"));
@@ -96,8 +98,10 @@ class ReleaseNotesScriptServiceTest
         when(this.changeManager.createChange(change)).thenReturn(ENTRY);
         when(this.changeManager.reserveNextEntry("XWiki", "8.3")).thenReturn(ENTRY);
         when(this.changeManager.getChange(ENTRY)).thenReturn(change);
+        when(this.changeManager.updateChange(ENTRY, change)).thenReturn(change);
 
         assertEquals(ENTRY, this.service.createChange(change));
+        assertSame(change, this.service.updateChange(ENTRY, change));
         assertEquals(ENTRY, this.service.reserveNextEntry("XWiki", "8.3"));
         assertSame(change, this.service.getChange(ENTRY));
     }

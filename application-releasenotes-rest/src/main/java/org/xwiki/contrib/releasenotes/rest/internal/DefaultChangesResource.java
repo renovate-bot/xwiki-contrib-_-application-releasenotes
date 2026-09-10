@@ -62,12 +62,6 @@ import com.xpn.xwiki.XWikiException;
 public class DefaultChangesResource extends AbstractReleaseNotesResource
     implements ChangesResource, XWikiRestComponent
 {
-    /**
-     * What a client is told when the URL it called names no release note, which the URL of a change always does.
-     */
-    private static final String NO_RELEASE_NOTE_IN_URL =
-        "A change belongs to the release note of one version of one product, and the URL names neither.";
-
     @Inject
     private ChangeManager changeManager;
 

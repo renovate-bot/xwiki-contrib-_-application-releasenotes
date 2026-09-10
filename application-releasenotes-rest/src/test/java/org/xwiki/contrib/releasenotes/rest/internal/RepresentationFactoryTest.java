@@ -259,6 +259,25 @@ class RepresentationFactoryTest
         assertEquals("ReleaseNotes.Data.XWiki.8\\.3.WebHome", representation.getReference());
     }
 
+    /**
+     * The entry a change lives in is what addresses it: it is the last path segment of the URL a change is read
+     * from and replaced at, so a client is given it rather than left to parse it out of the page reference.
+     */
+    @Test
+    void aChangeIsWrittenWithTheEntryItLivesIn()
+    {
+        ChangeRepresentation representation = this.factory.toRepresentation(new Change(),
+            new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", "XWiki", "8.3", "Entry001"), "WebHome"));
+
+        assertEquals("Entry001", representation.getEntry());
+        assertEquals("ReleaseNotes.Data.XWiki.8\\.3.Entry001.WebHome", representation.getReference());
+
+        ChangeRepresentation nowhere = this.factory.toRepresentation(new Change(), null);
+
+        assertNull(nowhere.getEntry());
+        assertNull(nowhere.getReference());
+    }
+
     @Test
     void aChangeWithNoAudienceAndNoImportanceIsWrittenWithNeither()
     {
@@ -266,6 +285,25 @@ class RepresentationFactoryTest
 
         assertNull(representation.getAudience());
         assertNull(representation.getImportance());
+    }
+
+    /**
+     * A release note that is replaced is the one the URL names, whatever the request says it is about: the product
+     * and the version are what its page is named after, so they locate it rather than being written to it.
+     */
+    @Test
+    void aReleaseNoteToReplaceIsReadWithTheProductAndTheVersionOfItsUrl()
+    {
+        ReleaseNoteRepresentation representation = new ReleaseNoteRepresentation();
+        representation.setProduct("Another");
+        representation.setVersion("9.9");
+        representation.setReleased(true);
+
+        ReleaseNote note = this.factory.toReleaseNote(representation, "XWiki", "8.3");
+
+        assertEquals("XWiki", note.getProduct());
+        assertEquals("8.3", note.getVersion());
+        assertTrue(note.isReleased());
     }
 
     private Importance importanceOf(String importance)

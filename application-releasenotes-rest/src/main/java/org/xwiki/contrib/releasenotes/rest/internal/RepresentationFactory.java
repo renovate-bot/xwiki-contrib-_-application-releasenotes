@@ -88,6 +88,23 @@ public class RepresentationFactory
     }
 
     /**
+     * @param representation the release note a client posted, or {@code null}
+     * @param product the product of the release note the URL names, which is what locates it rather than whatever
+     *            the posted release note says
+     * @param version the version of that release note, in its long form
+     * @return that release note, as the application models it
+     * @throws IllegalArgumentException when the date is not a day, or a day followed by a time
+     */
+    public ReleaseNote toReleaseNote(ReleaseNoteRepresentation representation, String product, String version)
+    {
+        ReleaseNote note = toReleaseNote(representation);
+        note.setProduct(product);
+        note.setVersion(version);
+
+        return note;
+    }
+
+    /**
      * @param note a release note of the wiki
      * @param reference the page it lives in, or {@code null} when it holds no product or no version and therefore
      *            lives nowhere this API can name
@@ -146,6 +163,7 @@ public class RepresentationFactory
         representation.setImportance(change.getImportance() == null ? null : toName(change.getImportance()));
         representation.setCategory(change.getCategory());
         representation.setScreenshots(change.getScreenshots());
+        representation.setEntry(reference == null ? null : reference.getLastSpaceReference().getName());
         representation.setReference(serialize(reference));
 
         return representation;

@@ -53,6 +53,28 @@ public interface ChangeManager
     DocumentReference createChange(Change change) throws ReleaseNotesException;
 
     /**
+     * Replaces a change: the change the page holds becomes the one passed, and a property the passed change leaves
+     * out is emptied rather than kept. The change template has no say here, unlike in
+     * {@link #createChange(Change)}: a template gives a new change the values its author has not written yet, and a
+     * replacement is written in full.
+     * <p>
+     * The product and the version of the change are not replaced: they say which release note the change belongs to,
+     * which is the page tree it lives in, so moving it there is a move of the page and not an update of its
+     * properties.
+     *
+     * @param reference the page of the change to replace
+     * @param change the change that page is to hold, which needs at least a title
+     * @return the change as it is stored once replaced, which is not exactly the change passed: a title is trimmed,
+     *         and the product and the version are the ones the change keeps
+     * @throws ReleaseNotesNotFoundException when that page holds no change
+     * @throws ReleaseNotesAccessDeniedException when the current user or the author of the calling script cannot
+     *             edit the page
+     * @throws ReleaseNotesException when the change carries no title, or the save failed
+     * @since 2.8
+     */
+    Change updateChange(DocumentReference reference, Change change) throws ReleaseNotesException;
+
+    /**
      * Takes the page of a new entry of a release note, saving it empty, and returns it. This is what the "Add Change"
      * buttons of the application do before sending their author to the editor.
      * <p>
@@ -76,7 +98,8 @@ public interface ChangeManager
     /**
      * @param reference the page of a change
      * @return the change that page holds
-     * @throws ReleaseNotesException when that page holds no change
+     * @throws ReleaseNotesNotFoundException when that page holds no change
+     * @throws ReleaseNotesException when that page could not be loaded
      */
     Change getChange(DocumentReference reference) throws ReleaseNotesException;
 
