@@ -34,10 +34,13 @@ import org.xwiki.contrib.releasenotes.ChangeQueryParser;
 import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.script.service.ScriptService;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 
 /**
@@ -80,6 +83,9 @@ public class ReleaseNotesScriptService implements ScriptService
     @Inject
     private ReleaseNotesConfiguration configuration;
 
+    @Inject
+    private ContextualAuthorizationManager authorization;
+
     /**
      * @param note the release note to create
      * @return the page the release note was created in
@@ -105,11 +111,14 @@ public class ReleaseNotesScriptService implements ScriptService
     /**
      * @param reference the page of a release note
      * @return the release note that page holds
+     * @throws ReleaseNotesAccessDeniedException when the current user may not view that page
      * @throws ReleaseNotesException when that page holds no release note
      * @see ReleaseNoteManager#getReleaseNote(DocumentReference)
      */
     public ReleaseNote getReleaseNote(DocumentReference reference) throws ReleaseNotesException
     {
+        checkViewRight(reference);
+
         return this.releaseNoteManager.getReleaseNote(reference);
     }
 
@@ -127,13 +136,13 @@ public class ReleaseNotesScriptService implements ScriptService
 
     /**
      * @param product the product to list the release notes of, or {@code null} to list them all
-     * @return the release notes of that product
+     * @return the release notes of that product the current user may view
      * @throws ReleaseNotesException when they could not be looked up
-     * @see ReleaseNoteManager#getReleaseNotes(String)
+     * @see ReleaseNoteManager#getReleaseNotes(String, java.util.function.Predicate)
      */
     public List<ReleaseNote> getReleaseNotes(String product) throws ReleaseNotesException
     {
-        return this.releaseNoteManager.getReleaseNotes(product);
+        return this.releaseNoteManager.getReleaseNotes(product, this::canView);
     }
 
     /**
@@ -185,11 +194,14 @@ public class ReleaseNotesScriptService implements ScriptService
     /**
      * @param reference the page of a change
      * @return the change that page holds
+     * @throws ReleaseNotesAccessDeniedException when the current user may not view that page
      * @throws ReleaseNotesException when that page holds no change
      * @see ChangeManager#getChange(DocumentReference)
      */
     public Change getChange(DocumentReference reference) throws ReleaseNotesException
     {
+        checkViewRight(reference);
+
         return this.changeManager.getChange(reference);
     }
 
@@ -211,13 +223,14 @@ public class ReleaseNotesScriptService implements ScriptService
 
     /**
      * @param query the changes to look for
-     * @return the page of the matching changes the query asks for, and whether more of them matched
+     * @return the page of the matching changes the current user may view that the query asks for, and whether more
+     *         of them matched
      * @throws ReleaseNotesException when the changes could not be looked up
-     * @see ChangeManager#search(ChangeQuery)
+     * @see ChangeManager#search(ChangeQuery, java.util.function.Predicate)
      */
     public ChangeSearchResult search(ChangeQuery query) throws ReleaseNotesException
     {
-        return this.changeManager.search(query);
+        return this.changeManager.search(query, this::canView);
     }
 
     /**
@@ -236,5 +249,26 @@ public class ReleaseNotesScriptService implements ScriptService
     public DocumentReference getDefaultTemplate()
     {
         return this.configuration.getDefaultTemplate();
+    }
+
+    /**
+     * The components of the application read a page whoever asks for it, since the rights are checked where a call
+     * enters the wiki: this is where a script call does. Only the current user is checked, as the platform does when a
+     * script reads a page.
+     *
+     * @param reference a page a script asked to read
+     * @return whether the current user may view that page
+     */
+    private boolean canView(DocumentReference reference)
+    {
+        return this.authorization.hasAccess(Right.VIEW, reference);
+    }
+
+    private void checkViewRight(DocumentReference reference) throws ReleaseNotesAccessDeniedException
+    {
+        if (!canView(reference)) {
+            throw new ReleaseNotesAccessDeniedException(
+                String.format("The current user is not allowed to view the page [%s].", reference), reference);
+        }
     }
 }

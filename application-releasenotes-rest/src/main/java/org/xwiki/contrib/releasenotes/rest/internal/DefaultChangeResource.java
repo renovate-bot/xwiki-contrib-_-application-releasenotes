@@ -75,6 +75,7 @@ public class DefaultChangeResource extends AbstractReleaseNotesResource
             }
 
             DocumentReference reference = getChangeReference(product, version, entry);
+            checkViewRight(reference);
 
             return this.representationFactory.toRepresentation(this.changeManager.getChange(reference), reference);
         });

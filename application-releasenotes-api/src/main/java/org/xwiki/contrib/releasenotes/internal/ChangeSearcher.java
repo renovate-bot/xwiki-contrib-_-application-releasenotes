@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -102,10 +103,12 @@ public class ChangeSearcher
 
     /**
      * @param query the changes to look for
+     * @param filter tells, for the page of a matching change, whether that change is part of the result
      * @return the page of the matching changes the query asks for, and whether more of them matched
      * @throws ReleaseNotesException when the changes could not be looked up
      */
-    public ChangeSearchResult search(ChangeQuery query) throws ReleaseNotesException
+    public ChangeSearchResult search(ChangeQuery query, Predicate<DocumentReference> filter)
+        throws ReleaseNotesException
     {
         List<String> conditions = new ArrayList<>();
         Map<String, String> bindings = new LinkedHashMap<>();
@@ -132,40 +135,67 @@ public class ChangeSearcher
             serialize(ReleaseNotesReferences.CHANGE_CLASS), CHANGE_ALIAS, String.join(" and ", conditions),
             CHANGE_ALIAS, IMPORTANCE);
 
-        return executeSearch(statement, bindings, query);
+        return executeSearch(statement, bindings, query, filter);
     }
 
     /**
      * Runs the search and cuts the page of changes out of what it returned.
+     * <p>
+     * The filter cannot be part of the statement, since it is typically a right check the database knows nothing of,
+     * so the changes it refuses are left out here, and the offset and the limit of the query count the changes it
+     * accepts. That is why the rows are read from the first one, in batches, until the page and the one change beyond
+     * it are found: that change tells whether a next page exists without a second, counting query, and it is never
+     * part of the result.
      */
-    private ChangeSearchResult executeSearch(String statement, Map<String, String> bindings, ChangeQuery query)
+    private ChangeSearchResult executeSearch(String statement, Map<String, String> bindings, ChangeQuery query,
+        Predicate<DocumentReference> filter) throws ReleaseNotesException
+    {
+        int batchSize = (int) Math.min(Integer.MAX_VALUE, (long) query.getOffset() + query.getLimit() + 1);
+        int skipped = 0;
+        // The page is a list of its own rather than a view of the rows, so that the caller may modify the list it is
+        // given: the pages displaying the changes of a release note take their own exclusions out of it.
+        List<String> names = new ArrayList<>();
+        List<DocumentReference> references = new ArrayList<>();
+
+        for (int batchOffset = 0;; batchOffset += batchSize) {
+            List<String> rows = executeBatch(statement, bindings, batchSize, batchOffset);
+
+            for (String name : rows) {
+                DocumentReference reference = this.documentReferenceResolver.resolve(name);
+
+                if (!filter.test(reference)) {
+                    continue;
+                }
+
+                if (skipped < query.getOffset()) {
+                    skipped++;
+                } else if (names.size() == query.getLimit()) {
+                    return new ChangeSearchResult(names, references, true);
+                } else {
+                    names.add(name);
+                    references.add(reference);
+                }
+            }
+
+            if (rows.size() < batchSize) {
+                return new ChangeSearchResult(names, references, false);
+            }
+        }
+    }
+
+    private List<String> executeBatch(String statement, Map<String, String> bindings, int limit, int offset)
         throws ReleaseNotesException
     {
-        List<String> rows;
-
         try {
             Query databaseQuery = this.queryManager.createQuery(statement, Query.XWQL);
             bindings.forEach(databaseQuery::bindValue);
-            // One row beyond the page is asked for, which tells whether a next page exists without a second,
-            // counting query. It is never part of the result.
-            databaseQuery.setLimit(query.getLimit() + 1);
-            databaseQuery.setOffset(query.getOffset());
-            rows = databaseQuery.execute();
+            databaseQuery.setLimit(limit);
+            databaseQuery.setOffset(offset);
+
+            return databaseQuery.execute();
         } catch (QueryException e) {
             throw new ReleaseNotesException("Failed to look up the changes of this wiki.", e);
         }
-
-        int pageSize = Math.min(rows.size(), query.getLimit());
-        // The page is copied out rather than the result trimmed in place, so that the caller may modify the list it
-        // is given: the pages displaying the changes of a release note take their own exclusions out of it.
-        List<String> names = new ArrayList<>(rows.subList(0, pageSize));
-        List<DocumentReference> references = new ArrayList<>(pageSize);
-
-        for (String name : names) {
-            references.add(this.documentReferenceResolver.resolve(name));
-        }
-
-        return new ChangeSearchResult(names, references, rows.size() > query.getLimit());
     }
 
     /**

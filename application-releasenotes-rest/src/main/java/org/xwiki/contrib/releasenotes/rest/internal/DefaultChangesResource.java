@@ -100,7 +100,7 @@ public class DefaultChangesResource extends AbstractReleaseNotesResource
             parameters.put(ChangeQueryParser.VERSIONS, getVersions(product, version, aggregated));
 
             ChangeQuery query = this.changeQueryParser.parse(parameters);
-            ChangeSearchResult result = this.changeManager.search(query);
+            ChangeSearchResult result = this.changeManager.search(query, this::canView);
             ChangesRepresentation representation = new ChangesRepresentation();
             representation.setHasMore(result.hasMore());
 

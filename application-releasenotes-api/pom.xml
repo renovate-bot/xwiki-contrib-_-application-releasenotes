@@ -149,6 +149,18 @@
                       <justification>The role is @Unstable and this repository holds its only implementation. A default method would carry no implementation worth having: replacing a release note is one of the things a release note manager is for.</justification>
                       <criticality>documented</criticality>
                     </item>
+                    <item>
+                      <code>java.method.addedToInterface</code>
+                      <new>method org.xwiki.contrib.releasenotes.ChangeSearchResult org.xwiki.contrib.releasenotes.ChangeManager::search(org.xwiki.contrib.releasenotes.ChangeQuery, java.util.function.Predicate&lt;org.xwiki.model.reference.DocumentReference&gt;) throws org.xwiki.contrib.releasenotes.ReleaseNotesException</new>
+                      <justification>The role is @Unstable and this repository holds its only implementation. A default method could only ignore the filter, which would make a caller relying on it return changes it asked to leave out; the search without a filter is now the default method, implemented with this one.</justification>
+                      <criticality>documented</criticality>
+                    </item>
+                    <item>
+                      <code>java.method.addedToInterface</code>
+                      <new>method java.util.List&lt;org.xwiki.contrib.releasenotes.ReleaseNote&gt; org.xwiki.contrib.releasenotes.ReleaseNoteManager::getReleaseNotes(java.lang.String, java.util.function.Predicate&lt;org.xwiki.model.reference.DocumentReference&gt;) throws org.xwiki.contrib.releasenotes.ReleaseNotesException</new>
+                      <justification>The role is @Unstable and this repository holds its only implementation. A default method could only ignore the filter, which would make a caller relying on it list release notes it asked to leave out; the listing without a filter is now the default method, implemented with this one.</justification>
+                      <criticality>documented</criticality>
+                    </item>
                   </differences>
                 </revapi.differences>
               </analysisConfiguration>

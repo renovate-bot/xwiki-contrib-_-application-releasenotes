@@ -21,8 +21,11 @@ package org.xwiki.contrib.releasenotes.script;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.xwiki.contrib.releasenotes.Change;
 import org.xwiki.contrib.releasenotes.ChangeManager;
 import org.xwiki.contrib.releasenotes.ChangeQuery;
@@ -30,14 +33,24 @@ import org.xwiki.contrib.releasenotes.ChangeQueryParser;
 import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -71,6 +84,15 @@ class ReleaseNotesScriptServiceTest
     @MockComponent
     private ReleaseNotesConfiguration configuration;
 
+    @MockComponent
+    private ContextualAuthorizationManager authorization;
+
+    @BeforeEach
+    void setUp()
+    {
+        when(this.authorization.hasAccess(eq(Right.VIEW), any())).thenReturn(true);
+    }
+
     @Test
     void theReleaseNotesAreHandedToTheReleaseNoteManager() throws Exception
     {
@@ -79,7 +101,7 @@ class ReleaseNotesScriptServiceTest
         when(this.releaseNoteManager.createReleaseNote(note)).thenReturn(RELEASE_NOTE);
         when(this.releaseNoteManager.getReleaseNoteReference("XWiki", "8.3")).thenReturn(RELEASE_NOTE);
         when(this.releaseNoteManager.getReleaseNote(RELEASE_NOTE)).thenReturn(note);
-        when(this.releaseNoteManager.getReleaseNotes("XWiki")).thenReturn(notes);
+        when(this.releaseNoteManager.getReleaseNotes(eq("XWiki"), any())).thenReturn(notes);
         when(this.releaseNoteManager.getAggregatedVersions(RELEASE_NOTE)).thenReturn(List.of("8.3"));
         when(this.releaseNoteManager.updateReleaseNote(note)).thenReturn(note);
 
@@ -113,10 +135,62 @@ class ReleaseNotesScriptServiceTest
         ChangeQuery query = new ChangeQuery();
         ChangeSearchResult result = new ChangeSearchResult(List.of(), List.of(), false);
         when(this.changeQueryParser.parse(parameters)).thenReturn(query);
-        when(this.changeManager.search(query)).thenReturn(result);
+        when(this.changeManager.search(eq(query), any())).thenReturn(result);
 
         assertSame(query, this.service.parseQuery(parameters));
         assertSame(result, this.service.search(query));
+    }
+
+    /**
+     * The components of the application read a page whoever asks for it, so the script service is where the view
+     * right of a script call is checked.
+     */
+    @Test
+    void aReleaseNoteTheCurrentUserCannotViewIsNotRead() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.VIEW, RELEASE_NOTE)).thenReturn(false);
+
+        ReleaseNotesAccessDeniedException exception =
+            assertThrows(ReleaseNotesAccessDeniedException.class, () -> this.service.getReleaseNote(RELEASE_NOTE));
+
+        assertEquals(RELEASE_NOTE, exception.getReference());
+        verify(this.releaseNoteManager, never()).getReleaseNote(any());
+    }
+
+    @Test
+    void aChangeTheCurrentUserCannotViewIsNotRead() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.VIEW, ENTRY)).thenReturn(false);
+
+        ReleaseNotesAccessDeniedException exception =
+            assertThrows(ReleaseNotesAccessDeniedException.class, () -> this.service.getChange(ENTRY));
+
+        assertEquals("The current user is not allowed to view the page "
+            + "[xwiki:ReleaseNotes.Data.XWiki.8\\.3.Entry001.WebHome].", exception.getMessage());
+        verify(this.changeManager, never()).getChange(any());
+    }
+
+    /**
+     * The release notes and the changes are listed with a filter that accepts the pages the current user can view
+     * and refuses the others, which the managers apply before cutting the result into pages.
+     */
+    @Test
+    void theListingsLeaveOutWhatTheCurrentUserCannotView() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.VIEW, ENTRY)).thenReturn(false);
+
+        this.service.getReleaseNotes("XWiki");
+        this.service.search(new ChangeQuery());
+
+        ArgumentCaptor<Predicate<DocumentReference>> noteFilter = ArgumentCaptor.captor();
+        verify(this.releaseNoteManager).getReleaseNotes(eq("XWiki"), noteFilter.capture());
+        ArgumentCaptor<Predicate<DocumentReference>> changeFilter = ArgumentCaptor.captor();
+        verify(this.changeManager).search(any(), changeFilter.capture());
+
+        for (Predicate<DocumentReference> filter : List.of(noteFilter.getValue(), changeFilter.getValue())) {
+            assertTrue(filter.test(RELEASE_NOTE));
+            assertFalse(filter.test(ENTRY));
+        }
     }
 
     @Test

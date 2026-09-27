@@ -33,6 +33,7 @@ import org.xwiki.contrib.releasenotes.Change;
 import org.xwiki.contrib.releasenotes.ChangeManager;
 import org.xwiki.contrib.releasenotes.Importance;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesNotFoundException;
 import org.xwiki.contrib.releasenotes.rest.model.ChangeRepresentation;
 import org.xwiki.contrib.releasenotes.rest.model.ErrorRepresentation;
@@ -41,6 +42,8 @@ import org.xwiki.model.internal.reference.DefaultSymbolScheme;
 import org.xwiki.model.internal.reference.LocalStringEntityReferenceSerializer;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -95,12 +98,16 @@ class DefaultChangeResourceTest
     private ModelContext modelContext;
 
     @MockComponent
+    private ContextualAuthorizationManager authorization;
+
+    @MockComponent
     @Named("current")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
     @BeforeEach
     void setUp()
     {
+        when(this.authorization.hasAccess(eq(Right.VIEW), any())).thenReturn(true);
         when(this.releaseNoteManager.getReleaseNoteReference(PRODUCT, VERSION)).thenReturn(RELEASE_NOTE);
     }
 
@@ -118,6 +125,19 @@ class DefaultChangeResourceTest
         assertEquals("The title", representation.getTitle());
         assertEquals(ENTRY_NAME, representation.getEntry());
         assertEquals("ReleaseNotes.Data.XWiki.8\\.3.Entry001.WebHome", representation.getReference());
+    }
+
+    @Test
+    void aChangeTheCurrentUserCannotViewIsNotRead() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.VIEW, ENTRY)).thenReturn(false);
+
+        ReleaseNotesAccessDeniedException exception = assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.resource.getChange("xwiki", PRODUCT, VERSION, ENTRY_NAME));
+
+        assertEquals("The current user is not allowed to view the page "
+            + "[xwiki:ReleaseNotes.Data.XWiki.8\\.3.Entry001.WebHome].", exception.getMessage());
+        verify(this.changeManager, never()).getChange(any());
     }
 
     /**

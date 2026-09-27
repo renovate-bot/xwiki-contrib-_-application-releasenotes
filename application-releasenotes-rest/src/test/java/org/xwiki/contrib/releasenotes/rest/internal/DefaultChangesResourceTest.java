@@ -22,6 +22,7 @@ package org.xwiki.contrib.releasenotes.rest.internal;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import jakarta.inject.Provider;
 
@@ -50,6 +51,8 @@ import org.xwiki.model.internal.reference.DefaultSymbolScheme;
 import org.xwiki.model.internal.reference.LocalStringEntityReferenceSerializer;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -60,10 +63,12 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -109,6 +114,9 @@ class DefaultChangesResourceTest
     private ModelContext modelContext;
 
     @MockComponent
+    private ContextualAuthorizationManager authorization;
+
+    @MockComponent
     @Named("current")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
@@ -122,6 +130,7 @@ class DefaultChangesResourceTest
     @BeforeEach
     void setUp() throws Exception
     {
+        when(this.authorization.hasAccess(eq(Right.VIEW), any())).thenReturn(true);
         this.uriInfo = mock(UriInfo.class);
         when(this.uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080/xwiki/rest"));
 
@@ -133,7 +142,24 @@ class DefaultChangesResourceTest
 
         when(this.releaseNoteManager.getReleaseNoteReference(PRODUCT, VERSION)).thenReturn(RELEASE_NOTE);
         when(this.changeQueryParser.parse(any())).thenReturn(new ChangeQuery());
-        when(this.changeManager.search(any())).thenReturn(new ChangeSearchResult(List.of(), List.of(), false));
+        when(this.changeManager.search(any(), any())).thenReturn(new ChangeSearchResult(List.of(), List.of(), false));
+    }
+
+    /**
+     * The changes are searched with a filter accepting the pages the current user can view, which the search applies
+     * before cutting the result into pages, so that a page is never short of the changes the user may see.
+     */
+    @Test
+    void theChangesAreSearchedWithTheViewRightOfTheCurrentUser() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.VIEW, ENTRY)).thenReturn(false);
+
+        this.resource.getChanges("xwiki", PRODUCT, VERSION, null, null, null, null, false, null, null);
+
+        ArgumentCaptor<Predicate<DocumentReference>> filter = ArgumentCaptor.captor();
+        verify(this.changeManager).search(any(), filter.capture());
+        assertTrue(filter.getValue().test(RELEASE_NOTE));
+        assertFalse(filter.getValue().test(ENTRY));
     }
 
     /**
@@ -143,7 +169,7 @@ class DefaultChangesResourceTest
     @Test
     void theChangesOfOneReleaseNoteAreAskedForExactly() throws Exception
     {
-        when(this.changeManager.search(any())).thenReturn(searchResult(true));
+        when(this.changeManager.search(any(), any())).thenReturn(searchResult(true));
         when(this.changeManager.getChange(ENTRY)).thenReturn(change());
 
         ChangesRepresentation representation =

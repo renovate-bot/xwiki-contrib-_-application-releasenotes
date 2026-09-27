@@ -21,6 +21,7 @@ package org.xwiki.contrib.releasenotes.rest.internal;
 
 import java.net.URI;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javax.inject.Named;
 import javax.ws.rs.core.Response;
@@ -28,6 +29,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
@@ -42,17 +44,22 @@ import org.xwiki.model.internal.reference.LocalStringEntityReferenceSerializer;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.WikiReference;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -86,6 +93,9 @@ class DefaultReleaseNotesResourceTest
     private ModelContext modelContext;
 
     @MockComponent
+    private ContextualAuthorizationManager authorization;
+
+    @MockComponent
     @Named("current")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
@@ -94,6 +104,7 @@ class DefaultReleaseNotesResourceTest
     @BeforeEach
     void setUp()
     {
+        when(this.authorization.hasAccess(eq(Right.VIEW), any())).thenReturn(true);
         this.uriInfo = mock(UriInfo.class);
         when(this.uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080/xwiki/rest"));
         when(this.configuration.getDefaultProduct()).thenReturn("XWiki");
@@ -103,7 +114,8 @@ class DefaultReleaseNotesResourceTest
     @Test
     void theReleaseNotesOfAProductAreListedWithThePageEachOfThemLivesIn() throws Exception
     {
-        when(this.releaseNoteManager.getReleaseNotes("XWiki")).thenReturn(List.of(note("XWiki", "8.3-milestone-1")));
+        when(this.releaseNoteManager.getReleaseNotes(eq("XWiki"), any()))
+            .thenReturn(List.of(note("XWiki", "8.3-milestone-1")));
 
         ReleaseNotesRepresentation representation = this.resource.getReleaseNotes("xwiki", "XWiki");
 
@@ -113,13 +125,32 @@ class DefaultReleaseNotesResourceTest
     }
 
     /**
+     * The release notes are listed with a filter accepting the pages the current user can view, which the manager
+     * applies to the page each release note actually lives in.
+     */
+    @Test
+    void theReleaseNotesAreListedWithTheViewRightOfTheCurrentUser() throws Exception
+    {
+        DocumentReference hidden = new DocumentReference("xwiki", List.of("ReleaseNotes", "Data", "XWiki", "9.0"),
+            "WebHome");
+        when(this.authorization.hasAccess(Right.VIEW, hidden)).thenReturn(false);
+
+        this.resource.getReleaseNotes("xwiki", "XWiki");
+
+        ArgumentCaptor<Predicate<DocumentReference>> filter = ArgumentCaptor.captor();
+        verify(this.releaseNoteManager).getReleaseNotes(eq("XWiki"), filter.capture());
+        assertTrue(filter.getValue().test(RELEASE_NOTE));
+        assertFalse(filter.getValue().test(hidden));
+    }
+
+    /**
      * A release note holding no product or no version lives nowhere the application can name, so it is listed
      * without a page rather than making the whole listing fail.
      */
     @Test
     void aReleaseNoteWithNoVersionIsListedWithNoPage() throws Exception
     {
-        when(this.releaseNoteManager.getReleaseNotes(null)).thenReturn(List.of(note("XWiki", "")));
+        when(this.releaseNoteManager.getReleaseNotes(isNull(), any())).thenReturn(List.of(note("XWiki", "")));
 
         ReleaseNotesRepresentation representation = this.resource.getReleaseNotes("xwiki", null);
 
@@ -242,7 +273,7 @@ class DefaultReleaseNotesResourceTest
     void theWikiOfTheRequestIsPutBackWhenTheEndpointFails() throws Exception
     {
         ReleaseNotesException failure = new ReleaseNotesException("Failed.");
-        when(this.releaseNoteManager.getReleaseNotes(null)).thenThrow(failure);
+        when(this.releaseNoteManager.getReleaseNotes(isNull(), any())).thenThrow(failure);
 
         ReleaseNotesException thrown =
             assertThrows(ReleaseNotesException.class, () -> this.resource.getReleaseNotes("subwiki", null));

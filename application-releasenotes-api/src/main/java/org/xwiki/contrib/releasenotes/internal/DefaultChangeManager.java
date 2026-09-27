@@ -21,6 +21,7 @@ package org.xwiki.contrib.releasenotes.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
@@ -259,9 +260,10 @@ public class DefaultChangeManager implements ChangeManager
     }
 
     @Override
-    public ChangeSearchResult search(ChangeQuery query) throws ReleaseNotesException
+    public ChangeSearchResult search(ChangeQuery query, Predicate<DocumentReference> filter)
+        throws ReleaseNotesException
     {
-        return this.changeSearcher.search(query);
+        return this.changeSearcher.search(query, filter);
     }
 
     /**

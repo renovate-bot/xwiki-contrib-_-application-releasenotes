@@ -466,6 +466,24 @@ class DefaultReleaseNoteManagerTest
         verify(this.query).bindValue("product", PRODUCT);
     }
 
+    /**
+     * The filter is handed the page each release note lives in, and the release notes it refuses are left out.
+     */
+    @Test
+    void theReleaseNotesTheFilterRefusesAreNotListed() throws Exception
+    {
+        this.manager.createReleaseNote(note(PRODUCT, "8.3"));
+        this.manager.createReleaseNote(note(PRODUCT, "8.4"));
+        when(this.query.execute())
+            .thenReturn(List.of("ReleaseNotes.Data.XWiki.8\\.3.WebHome", "ReleaseNotes.Data.XWiki.8\\.4.WebHome"));
+
+        List<ReleaseNote> notes =
+            this.manager.getReleaseNotes(PRODUCT, reference -> !reference.equals(reference("8.3")));
+
+        assertEquals(1, notes.size());
+        assertEquals("8.4", notes.get(0).getVersion());
+    }
+
     @Test
     void theReleaseNotesOfEveryProductAreLookedUpWithoutAProductFilter() throws Exception
     {

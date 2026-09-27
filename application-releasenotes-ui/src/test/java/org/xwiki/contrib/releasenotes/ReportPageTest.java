@@ -132,7 +132,8 @@ class ReportPageTest extends PageTest
     @Test
     void laterPageOffersBothDirections() throws Exception
     {
-        when(this.query.execute()).thenReturn(changes(PAGE_SIZE + 1));
+        // The changes before the page are read too, since the offset counts the changes the current user can view.
+        when(this.query.execute()).thenReturn(changes(3 * PAGE_SIZE + 1));
         this.request.put("products", "XWiki");
         this.request.put("offset", String.valueOf(2 * PAGE_SIZE));
 

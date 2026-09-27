@@ -27,6 +27,7 @@ import jakarta.inject.Named;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
 import org.xwiki.contrib.releasenotes.rest.model.ErrorRepresentation;
 import org.xwiki.model.ModelContext;
@@ -37,6 +38,8 @@ import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.model.reference.WikiReference;
 import org.xwiki.rest.internal.Utils;
 import org.xwiki.rest.resources.pages.PageResource;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 
 /**
  * What the endpoints of the application share: running in the wiki the request names, pointing at the page that was
@@ -66,6 +69,9 @@ public abstract class AbstractReleaseNotesResource
     @Inject
     @Named("local")
     protected EntityReferenceSerializer<String> localEntityReferenceSerializer;
+
+    @Inject
+    protected ContextualAuthorizationManager authorization;
 
     /**
      * What an endpoint does once the wiki of the request is the current one.
@@ -103,6 +109,32 @@ public abstract class AbstractReleaseNotesResource
             return operation.call();
         } finally {
             this.modelContext.setCurrentEntityReference(previousReference);
+        }
+    }
+
+    /**
+     * The components of the application read a page whoever asks for it, since the rights are checked where a request
+     * enters the wiki: this is where a REST request does.
+     *
+     * @param reference a page a client asked to read
+     * @return whether the current user may view that page
+     */
+    protected boolean canView(DocumentReference reference)
+    {
+        return this.authorization.hasAccess(Right.VIEW, reference);
+    }
+
+    /**
+     * @param reference a page a client asked to read
+     * @throws ReleaseNotesAccessDeniedException when the current user may not view that page, which the exception
+     *             mapper answers with a 401 for a guest and a 403 for anyone else
+     * @see #canView(DocumentReference)
+     */
+    protected void checkViewRight(DocumentReference reference) throws ReleaseNotesAccessDeniedException
+    {
+        if (!canView(reference)) {
+            throw new ReleaseNotesAccessDeniedException(
+                String.format("The current user is not allowed to view the page [%s].", reference), reference);
         }
     }
 

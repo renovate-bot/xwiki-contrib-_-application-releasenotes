@@ -23,8 +23,8 @@ import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
 
 /**
- * Raised when the page a release note or a change would be written to may not be edited, either by the current user
- * or by the author of the script that is calling.
+ * Raised when the page of a release note or of a change may not be read or written: read by the current user, or
+ * written by the current user or by the author of the script that is calling.
  *
  * @version $Id$
  * @since 2.7
@@ -37,8 +37,8 @@ public class ReleaseNotesAccessDeniedException extends ReleaseNotesException
     private final DocumentReference reference;
 
     /**
-     * @param message the reason why the page may not be edited, naming who may not edit it
-     * @param reference the page that may not be edited
+     * @param message the reason why the page may not be accessed, naming who may not access it
+     * @param reference the page that may not be accessed
      */
     public ReleaseNotesAccessDeniedException(String message, DocumentReference reference)
     {
@@ -48,7 +48,7 @@ public class ReleaseNotesAccessDeniedException extends ReleaseNotesException
     }
 
     /**
-     * @return the page that may not be edited
+     * @return the page that may not be accessed
      */
     public DocumentReference getReference()
     {

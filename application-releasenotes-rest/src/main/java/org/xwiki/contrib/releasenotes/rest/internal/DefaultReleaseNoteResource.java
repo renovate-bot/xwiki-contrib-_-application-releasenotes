@@ -64,6 +64,7 @@ public class DefaultReleaseNoteResource extends AbstractReleaseNotesResource
             }
 
             DocumentReference reference = this.releaseNoteManager.getReleaseNoteReference(product, version);
+            checkViewRight(reference);
 
             return this.representationFactory.toRepresentation(this.releaseNoteManager.getReleaseNote(reference),
                 reference);
