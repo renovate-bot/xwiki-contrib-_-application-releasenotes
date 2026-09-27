@@ -98,6 +98,13 @@ public class DefaultReleaseNotesResource extends AbstractReleaseNotesResource
                 return refuse(Response.Status.BAD_REQUEST, e.getMessage());
             }
 
+            // The product a release note posted without one is created for is the one configured for the wiki, which
+            // is what names its page.
+            String product = StringUtils.isBlank(created.getProduct()) ? this.configuration.getDefaultProduct()
+                : created.getProduct();
+            checkEditRight(
+                this.releaseNoteManager.getReleaseNoteReference(product.trim(), created.getVersion().trim()));
+
             // A release note that already exists, a page that may not be edited and a save that failed are answered
             // by the exception mapper, which is where every endpoint of the application turns a failure into a
             // status code.

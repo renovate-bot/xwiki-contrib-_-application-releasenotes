@@ -99,6 +99,7 @@ public class DefaultReleaseNoteResource extends AbstractReleaseNotesResource
             // the exception mapper, which is where every endpoint of the application turns a failure into a status
             // code.
             DocumentReference reference = this.releaseNoteManager.getReleaseNoteReference(product, version);
+            checkEditRight(reference);
 
             return Response.ok(this.representationFactory
                 .toRepresentation(this.releaseNoteManager.updateReleaseNote(replacement), reference)).build();

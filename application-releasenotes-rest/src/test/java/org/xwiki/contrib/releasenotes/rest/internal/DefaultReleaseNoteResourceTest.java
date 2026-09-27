@@ -55,7 +55,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,7 +96,7 @@ class DefaultReleaseNoteResourceTest
     @BeforeEach
     void setUp()
     {
-        when(this.authorization.hasAccess(eq(Right.VIEW), any())).thenReturn(true);
+        when(this.authorization.hasAccess(any(Right.class), any())).thenReturn(true);
         when(this.releaseNoteManager.getReleaseNoteReference(PRODUCT, VERSION)).thenReturn(RELEASE_NOTE);
     }
 
@@ -128,6 +127,19 @@ class DefaultReleaseNoteResourceTest
 
         assertEquals(RELEASE_NOTE, exception.getReference());
         verify(this.releaseNoteManager, never()).getReleaseNote(any());
+    }
+
+    @Test
+    void aUserWhoCannotEditThePageReplacesNoReleaseNote() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.EDIT, RELEASE_NOTE)).thenReturn(false);
+
+        ReleaseNotesAccessDeniedException exception = assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.resource.updateReleaseNote("xwiki", PRODUCT, VERSION, new ReleaseNoteRepresentation()));
+
+        assertEquals("The current user is not allowed to edit the page "
+            + "[xwiki:ReleaseNotes.Data.XWiki.8\\.3M1.WebHome].", exception.getMessage());
+        verify(this.releaseNoteManager, never()).updateReleaseNote(any());
     }
 
     /**

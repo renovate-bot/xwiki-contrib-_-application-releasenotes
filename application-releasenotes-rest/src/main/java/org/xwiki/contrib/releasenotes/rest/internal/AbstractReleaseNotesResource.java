@@ -139,6 +139,23 @@ public abstract class AbstractReleaseNotesResource
     }
 
     /**
+     * The components of the application write a page whoever asks them to, since the rights are checked where a
+     * request enters the wiki: this is where a REST request does. A REST request runs no script, so the current user
+     * is the only one whose right there is to check.
+     *
+     * @param reference a page a client asked to write
+     * @throws ReleaseNotesAccessDeniedException when the current user may not edit that page, which the exception
+     *             mapper answers with a 401 for a guest and a 403 for anyone else
+     */
+    protected void checkEditRight(DocumentReference reference) throws ReleaseNotesAccessDeniedException
+    {
+        if (!this.authorization.hasAccess(Right.EDIT, reference)) {
+            throw new ReleaseNotesAccessDeniedException(
+                String.format("The current user is not allowed to edit the page [%s].", reference), reference);
+        }
+    }
+
+    /**
      * Points at a page that was created through the generic page resource of the wiki, which is where a client goes
      * on to read it, to change it or to delete it: this API creates release notes and changes, and leaves everything
      * else to that resource.

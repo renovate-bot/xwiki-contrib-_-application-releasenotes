@@ -30,6 +30,9 @@ import org.xwiki.stability.Unstable;
  * <p>
  * A change lives in a page named {@code Entry###}, where {@code ###} is a zero-padded number, under the page of the
  * release note it belongs to.
+ * <p>
+ * No right is checked: the entry points of the application, its REST endpoints and its script service, check the
+ * rights of their caller before calling this, and a Java caller inside the wiki is trusted to have done the same.
  *
  * @version $Id$
  * @since 2.7
@@ -47,8 +50,6 @@ public interface ChangeManager
      * @param change the change to create, which needs at least a version and a title, and a product unless one is
      *            configured for the wiki
      * @return the page the change was created in
-     * @throws ReleaseNotesAccessDeniedException when the current user or the author of the calling script cannot
-     *             edit the page
      * @throws ReleaseNotesException when the change carries no version or no title, no product could be determined,
      *             no page name was free, or the save failed
      */
@@ -69,8 +70,6 @@ public interface ChangeManager
      * @return the change as it is stored once replaced, which is not exactly the change passed: a title is trimmed,
      *         and the product and the version are the ones the change keeps
      * @throws ReleaseNotesNotFoundException when that page holds no change
-     * @throws ReleaseNotesAccessDeniedException when the current user or the author of the calling script cannot
-     *             edit the page
      * @throws ReleaseNotesException when the change carries no title, or the save failed
      * @since 2.8
      */
@@ -91,8 +90,6 @@ public interface ChangeManager
      * @param product the product of the release note to add an entry to
      * @param version the version of the release note to add an entry to, in its long form
      * @return the page that was taken, or {@code null} when no page name was free
-     * @throws ReleaseNotesAccessDeniedException when the current user or the author of the calling script cannot
-     *             edit the page
      * @throws ReleaseNotesException when the existing entries could not be looked up, or the save failed
      */
     DocumentReference reserveNextEntry(String product, String version) throws ReleaseNotesException;

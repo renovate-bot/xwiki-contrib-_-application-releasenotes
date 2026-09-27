@@ -74,9 +74,6 @@ public class EntryPageAllocator
     private ReleaseNoteManager releaseNoteManager;
 
     @Inject
-    private ReleaseNotesDocumentWriter documentWriter;
-
-    @Inject
     private QueryManager queryManager;
 
     @Inject
@@ -95,16 +92,12 @@ public class EntryPageAllocator
      * @param version the version of the release note to add an entry to, in its long form
      * @param xcontext the context to load that page with
      * @return that page, or {@code null} when no page name was free
-     * @throws ReleaseNotesException when the caller may not edit the release note, or when the entries it already
-     *             holds could not be looked up
+     * @throws ReleaseNotesException when the entries the release note already holds could not be looked up
      */
     public XWikiDocument takeNextEntryPage(String product, String version, XWikiContext xcontext)
         throws ReleaseNotesException
     {
         DocumentReference noteReference = this.releaseNoteManager.getReleaseNoteReference(product, version);
-
-        this.documentWriter.checkEditRight(noteReference);
-
         SpaceReference versionSpace = noteReference.getLastSpaceReference();
         int highestNumber = getHighestEntryNumber(versionSpace);
 

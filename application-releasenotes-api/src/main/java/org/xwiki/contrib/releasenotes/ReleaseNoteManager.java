@@ -33,6 +33,9 @@ import org.xwiki.stability.Unstable;
  * version is the version with its separators taken out, e.g. {@code 8.3M1} for {@code 8.3-milestone-1}. That page
  * name is what the release note is found by and what the changes of the milestones and the release candidates of a
  * final version are aggregated from, so it is derived from the version rather than chosen.
+ * <p>
+ * No right is checked: the entry points of the application, its REST endpoints and its script service, check the
+ * rights of their caller before calling this, and a Java caller inside the wiki is trusted to have done the same.
  *
  * @version $Id$
  * @since 2.7
@@ -50,8 +53,6 @@ public interface ReleaseNoteManager
      *            for the wiki
      * @return the page the release note was created in
      * @throws ReleaseNoteAlreadyExistsException when a release note already exists for that product and version
-     * @throws ReleaseNotesAccessDeniedException when the current user or the author of the calling script cannot
-     *             edit the page
      * @throws ReleaseNotesException when the release note carries no version, no product could be determined, or the
      *             save failed
      */
@@ -70,8 +71,6 @@ public interface ReleaseNoteManager
      *            configured for the wiki when it carries none
      * @return the release note as it is stored once replaced
      * @throws ReleaseNotesNotFoundException when there is no release note for that product and version
-     * @throws ReleaseNotesAccessDeniedException when the current user or the author of the calling script cannot
-     *             edit the page
      * @throws ReleaseNotesException when the release note carries no version, no product could be determined, or the
      *             save failed
      * @since 2.8

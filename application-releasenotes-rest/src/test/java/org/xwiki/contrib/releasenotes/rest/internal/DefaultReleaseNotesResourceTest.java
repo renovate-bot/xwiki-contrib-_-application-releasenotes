@@ -33,6 +33,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
 import org.xwiki.contrib.releasenotes.rest.model.ErrorRepresentation;
@@ -104,7 +105,7 @@ class DefaultReleaseNotesResourceTest
     @BeforeEach
     void setUp()
     {
-        when(this.authorization.hasAccess(eq(Right.VIEW), any())).thenReturn(true);
+        when(this.authorization.hasAccess(any(Right.class), any())).thenReturn(true);
         this.uriInfo = mock(UriInfo.class);
         when(this.uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080/xwiki/rest"));
         when(this.configuration.getDefaultProduct()).thenReturn("XWiki");
@@ -156,6 +157,22 @@ class DefaultReleaseNotesResourceTest
 
         assertNull(representation.getReleaseNotes().get(0).getReference());
         verify(this.releaseNoteManager, never()).getReleaseNoteReference("XWiki", "");
+    }
+
+    /**
+     * The manager writes a page whoever asks it to, so the endpoint is where the edit right of a request is checked,
+     * on the page of the release note of the configured product when the request names none.
+     */
+    @Test
+    void aUserWhoCannotEditThePageCreatesNoReleaseNote() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.EDIT, RELEASE_NOTE)).thenReturn(false);
+
+        ReleaseNotesAccessDeniedException exception = assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.resource.createReleaseNote(this.uriInfo, "xwiki", posted("8.3-milestone-1")));
+
+        assertEquals(RELEASE_NOTE, exception.getReference());
+        verify(this.releaseNoteManager, never()).createReleaseNote(any());
     }
 
     @Test

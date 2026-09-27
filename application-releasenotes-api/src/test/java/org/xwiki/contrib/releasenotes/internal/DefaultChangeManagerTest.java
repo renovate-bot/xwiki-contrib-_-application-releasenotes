@@ -25,13 +25,11 @@ import java.util.function.Predicate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.contrib.releasenotes.Audience;
 import org.xwiki.contrib.releasenotes.Change;
 import org.xwiki.contrib.releasenotes.ChangeQuery;
 import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.Importance;
-import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesNotFoundException;
@@ -42,7 +40,6 @@ import org.xwiki.observation.ObservationManager;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
-import org.xwiki.security.authorization.Right;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -85,8 +82,6 @@ class DefaultChangeManagerTest
     /** The page name of the release note the changes are added to, which the version carrying a dot is short for. */
     private static final String SHORT_VERSION = "8.3M1";
 
-    private static final DocumentReference AUTHOR = new DocumentReference("xwiki", "XWiki", "Author");
-
     @InjectMockComponents
     private DefaultChangeManager manager;
 
@@ -127,11 +122,6 @@ class DefaultChangeManagerTest
         ReleaseNotesXClasses.install(this.oldcore);
         installChangeTemplate();
 
-        DocumentAccessBridge documentAccessBridge = this.oldcore.getMocker().getInstance(DocumentAccessBridge.class);
-        when(documentAccessBridge.getCurrentAuthorReference()).thenReturn(AUTHOR);
-        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
-            .thenReturn(true);
-        when(this.oldcore.getMockAuthorizationManager().hasAccess(any(Right.class), any(), any())).thenReturn(true);
 
         when(this.queryManager.createQuery(anyString(), anyString())).thenReturn(this.query);
         when(this.query.bindValue(anyString(), any())).thenReturn(this.query);
@@ -360,27 +350,6 @@ class DefaultChangeManagerTest
             "Expected the change to enforce its required rights, as its template does.");
     }
 
-    @Test
-    void aUserWhoCannotEditThePageCreatesNoChange() throws Exception
-    {
-        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
-            .thenReturn(false);
-
-        assertThrows(ReleaseNotesException.class, () -> this.manager.createChange(change()));
-
-        assertTrue(load(entry("Entry001")).isNew());
-    }
-
-    @Test
-    void aScriptAuthorWhoCannotEditThePageCreatesNoChange() throws Exception
-    {
-        when(this.oldcore.getMockAuthorizationManager().hasAccess(any(Right.class), any(), any())).thenReturn(false);
-
-        assertThrows(ReleaseNotesException.class, () -> this.manager.createChange(change()));
-
-        assertTrue(load(entry("Entry001")).isNew());
-    }
-
     /**
      * Replacing a change writes every property, and not only the ones the passed change carries: what the caller
      * left out is emptied rather than kept, and the template has no say in a replacement either.
@@ -473,21 +442,6 @@ class DefaultChangeManagerTest
             () -> this.manager.updateChange(entry("Entry001"), replacement));
 
         assertEquals("A change needs a title.", exception.getMessage());
-        assertEquals("Faster startup", this.manager.getChange(entry("Entry001")).getTitle());
-    }
-
-    @Test
-    void aUserWhoCannotEditThePageReplacesNoChange() throws Exception
-    {
-        this.manager.createChange(change());
-        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
-            .thenReturn(false);
-
-        Change replacement = change();
-        replacement.setTitle("Even faster startup");
-
-        assertThrows(ReleaseNotesAccessDeniedException.class,
-            () -> this.manager.updateChange(entry("Entry001"), replacement));
         assertEquals("Faster startup", this.manager.getChange(entry("Entry001")).getTitle());
     }
 

@@ -138,8 +138,6 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
         String product = this.productResolver.resolve(note.getProduct());
         DocumentReference reference = getReleaseNoteReference(product, version);
 
-        this.documentWriter.checkEditRight(reference);
-
         XWikiContext xcontext = this.xcontextProvider.get();
         XWikiDocument document = loadDocument(reference, xcontext);
 
