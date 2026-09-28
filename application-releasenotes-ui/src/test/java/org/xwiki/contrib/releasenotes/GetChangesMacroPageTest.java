@@ -376,8 +376,9 @@ class GetChangesMacroPageTest extends PageTest
     {
         render("{{getChanges products=\"TestProduct\" limit=\"10\" offset=\"20\" contextVariable=\"c\"/}}");
 
-        verify(this.query).setLimit(11);
-        verify(this.query).setOffset(20);
+        // The offset counts the changes the current user can view, so the rows before the page are read too.
+        verify(this.query).setLimit(31);
+        verify(this.query).setOffset(0);
     }
 
     /**

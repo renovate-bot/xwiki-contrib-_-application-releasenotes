@@ -20,6 +20,7 @@
 package org.xwiki.contrib.releasenotes;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.DocumentReference;
@@ -96,14 +97,34 @@ public interface ReleaseNoteManager
     ReleaseNote getReleaseNote(DocumentReference reference) throws ReleaseNotesException;
 
     /**
-     * Lists the release notes of the wiki, ordered by the page they live in. No right is checked: the release notes a
-     * wiki holds are what the pages of the application list, and those are not filtered by right either.
+     * Lists the release notes of the wiki, ordered by the page they live in. No right is checked: every release note
+     * is returned. An entry point of the application answering a caller who may not view every release note uses
+     * {@link #getReleaseNotes(String, Predicate)} instead.
      *
      * @param product the product to list the release notes of, or {@code null} to list them all
      * @return the release notes of that product
      * @throws ReleaseNotesException when the release notes could not be looked up
      */
-    List<ReleaseNote> getReleaseNotes(String product) throws ReleaseNotesException;
+    default List<ReleaseNote> getReleaseNotes(String product) throws ReleaseNotesException
+    {
+        return getReleaseNotes(product, reference -> true);
+    }
+
+    /**
+     * Lists the release notes of the wiki that the passed filter accepts, ordered by the page they live in.
+     * <p>
+     * The filter is handed the page a release note lives in, which is not always the page its product and its version
+     * name: that is what makes this, rather than a filter applied to the returned list, the way of leaving out the
+     * release notes a caller cannot view.
+     *
+     * @param product the product to list the release notes of, or {@code null} to list them all
+     * @param filter tells, for the page of a release note, whether that release note is part of the list
+     * @return the release notes of that product the filter accepts
+     * @throws ReleaseNotesException when the release notes could not be looked up
+     * @since 2.8
+     */
+    List<ReleaseNote> getReleaseNotes(String product, Predicate<DocumentReference> filter)
+        throws ReleaseNotesException;
 
     /**
      * Gives the versions the changes of a release note are gathered from. A milestone or a release candidate gathers

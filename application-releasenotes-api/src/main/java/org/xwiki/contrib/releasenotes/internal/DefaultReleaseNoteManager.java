@@ -21,6 +21,7 @@ package org.xwiki.contrib.releasenotes.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -234,7 +235,8 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
     }
 
     @Override
-    public List<ReleaseNote> getReleaseNotes(String product) throws ReleaseNotesException
+    public List<ReleaseNote> getReleaseNotes(String product, Predicate<DocumentReference> filter)
+        throws ReleaseNotesException
     {
         String className =
             this.localEntityReferenceSerializer.serialize(ReleaseNotesReferences.RELEASE_NOTE_CLASS);
@@ -265,7 +267,11 @@ public class DefaultReleaseNoteManager implements ReleaseNoteManager
         List<ReleaseNote> notes = new ArrayList<>(pages.size());
 
         for (String page : pages) {
-            notes.add(getReleaseNote(this.documentReferenceResolver.resolve(page)));
+            DocumentReference reference = this.documentReferenceResolver.resolve(page);
+
+            if (filter.test(reference)) {
+                notes.add(getReleaseNote(reference));
+            }
         }
 
         return notes;

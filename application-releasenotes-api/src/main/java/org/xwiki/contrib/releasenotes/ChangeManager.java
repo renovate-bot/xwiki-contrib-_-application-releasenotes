@@ -19,6 +19,8 @@
  */
 package org.xwiki.contrib.releasenotes;
 
+import java.util.function.Predicate;
+
 import org.xwiki.component.annotation.Role;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.stability.Unstable;
@@ -108,12 +110,32 @@ public interface ChangeManager
      * everything, so a search can match every change the wiki holds, and each change it returns costs a document
      * load in the pages displaying them.
      * <p>
-     * No right is checked: the changes a release note displays are what this returns, and those are not filtered by
-     * right either.
+     * No right is checked: every matching change is returned. An entry point of the application answering a caller
+     * who may not view every change uses {@link #search(ChangeQuery, Predicate)} instead.
      *
      * @param query the changes to look for
      * @return the page of the matching changes the query asks for, and whether more of them matched
      * @throws ReleaseNotesException when the changes could not be looked up
      */
-    ChangeSearchResult search(ChangeQuery query) throws ReleaseNotesException;
+    default ChangeSearchResult search(ChangeQuery query) throws ReleaseNotesException
+    {
+        return search(query, reference -> true);
+    }
+
+    /**
+     * Looks for the changes matching a query that the passed filter also accepts, one page of them at a time.
+     * <p>
+     * The filter is applied before the result is cut into pages: the limit and the offset of the query count the
+     * accepted changes only, and whether more changes follow the page is told of the accepted ones only. That is what
+     * makes this, rather than a filter applied to the returned page, the way of leaving out the changes a caller
+     * cannot view: the page is never shorter than the limit while more changes follow it, and a change that is left
+     * out does not announce a next page.
+     *
+     * @param query the changes to look for
+     * @param filter tells, for the page of a matching change, whether that change is part of the result
+     * @return the page of the matching changes the query asks for, and whether more of them matched
+     * @throws ReleaseNotesException when the changes could not be looked up
+     * @since 2.8
+     */
+    ChangeSearchResult search(ChangeQuery query, Predicate<DocumentReference> filter) throws ReleaseNotesException;
 }

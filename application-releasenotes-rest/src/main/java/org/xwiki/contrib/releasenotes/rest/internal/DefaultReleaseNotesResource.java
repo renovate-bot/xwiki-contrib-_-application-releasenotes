@@ -65,7 +65,7 @@ public class DefaultReleaseNotesResource extends AbstractReleaseNotesResource
         return inWiki(wikiName, () -> {
             ReleaseNotesRepresentation representation = new ReleaseNotesRepresentation();
 
-            for (ReleaseNote note : this.releaseNoteManager.getReleaseNotes(product)) {
+            for (ReleaseNote note : this.releaseNoteManager.getReleaseNotes(product, this::canView)) {
                 representation.getReleaseNotes()
                     .add(this.representationFactory.toRepresentation(note, getReference(note)));
             }

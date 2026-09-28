@@ -20,7 +20,10 @@
 package org.xwiki.contrib.releasenotes.internal;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
 
 import jakarta.inject.Named;
 
@@ -53,6 +56,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -89,6 +93,13 @@ class ChangeSearcherTest
     @Named("local")
     private EntityReferenceSerializer<String> localEntityReferenceSerializer;
 
+    /**
+     * The pages the filter of a search refuses, which is how a caller leaves out the changes it cannot view.
+     */
+    private final Set<DocumentReference> refused = new HashSet<>();
+
+    private final Predicate<DocumentReference> filter = reference -> !this.refused.contains(reference);
+
     @Mock
     private Query query;
 
@@ -123,7 +134,7 @@ class ChangeSearcherTest
     {
         doReturn(Arrays.asList("8.3", "9.0", "10.0")).when(this.existingVersionsQuery).execute();
 
-        this.searcher.search(versionQuery(new ChangeFilter(Operator.GTE, "9.0")));
+        this.searcher.search(versionQuery(new ChangeFilter(Operator.GTE, "9.0")), this.filter);
 
         verify(this.queryManager).createQuery(EXISTING_VERSIONS_STATEMENT, Query.XWQL);
         // The comparison is resolved into the existing versions it matches, so the search itself only tests
@@ -148,7 +159,7 @@ class ChangeSearcherTest
     {
         doReturn(Arrays.asList("8.3", "9.0", "10.0")).when(this.existingVersionsQuery).execute();
 
-        this.searcher.search(versionQuery(new ChangeFilter(operator, "9.0")));
+        this.searcher.search(versionQuery(new ChangeFilter(operator, "9.0")), this.filter);
 
         String[] versions = expectedVersions.split(",");
 
@@ -173,7 +184,7 @@ class ChangeSearcherTest
         query.setCategories(List.of(new ChangeFilter(Operator.LIKE, "UI")));
         query.setImportances(List.of(new ChangeFilter(Operator.LIKE, "2")));
 
-        this.searcher.search(query);
+        this.searcher.search(query, this.filter);
 
         verify(this.query).bindValue("product1", "XWiki");
         verify(this.query).bindValue("version1", "8.3");
@@ -199,7 +210,7 @@ class ChangeSearcherTest
         ChangeQuery query = new ChangeQuery();
         query.setContainsScreenshots(containsScreenshots);
 
-        this.searcher.search(query);
+        this.searcher.search(query, this.filter);
 
         ArgumentCaptor<String> statement = ArgumentCaptor.forClass(String.class);
         verify(this.queryManager).createQuery(statement.capture(), anyString());
@@ -216,7 +227,7 @@ class ChangeSearcherTest
     {
         doReturn(Arrays.asList("", "  ", "9.0")).when(this.existingVersionsQuery).execute();
 
-        this.searcher.search(versionQuery(new ChangeFilter(Operator.GTE, "1.0")));
+        this.searcher.search(versionQuery(new ChangeFilter(Operator.GTE, "1.0")), this.filter);
 
         verify(this.query).bindValue("version1", "9.0");
         verify(this.query, never()).bindValue("version2", "");
@@ -229,7 +240,7 @@ class ChangeSearcherTest
     @Test
     void theVersionsOfTheWikiAreOnlyReadWhenAFilterComparesThem() throws Exception
     {
-        this.searcher.search(versionQuery(new ChangeFilter(Operator.LIKE, "8.3%")));
+        this.searcher.search(versionQuery(new ChangeFilter(Operator.LIKE, "8.3%")), this.filter);
 
         verify(this.queryManager, never()).createQuery(startsWith("select"), anyString());
     }
@@ -241,7 +252,7 @@ class ChangeSearcherTest
     @Test
     void aComparisonMatchingNoExistingVersionMatchesNoChange() throws Exception
     {
-        this.searcher.search(versionQuery(new ChangeFilter(Operator.GTE, "99.0")));
+        this.searcher.search(versionQuery(new ChangeFilter(Operator.GTE, "99.0")), this.filter);
 
         verify(this.queryManager).createQuery(startsWith("from doc.object(ReleaseNotes.Code.EntryClass)"),
             anyString());
@@ -255,21 +266,75 @@ class ChangeSearcherTest
     @Test
     void theChangeBeyondThePageIsReportedRatherThanReturned() throws Exception
     {
-        doReturn(List.of(CHANGE, "second", "third")).when(this.query).execute();
+        doReturn(List.of("first", CHANGE, "second", "third")).when(this.query).execute();
         DocumentReference reference = new DocumentReference("xwiki",
             List.of("ReleaseNotes", "Data", "XWiki", "8.3", "Entry001"), "WebHome");
         when(this.documentReferenceResolver.resolve(CHANGE)).thenReturn(reference);
 
         ChangeQuery changeQuery = new ChangeQuery();
         changeQuery.setLimit(2);
-        changeQuery.setOffset(10);
-        ChangeSearchResult result = this.searcher.search(changeQuery);
+        changeQuery.setOffset(1);
+        ChangeSearchResult result = this.searcher.search(changeQuery, this.filter);
 
-        verify(this.query).setLimit(3);
-        verify(this.query).setOffset(10);
+        // The rows the offset skips are read too, since only the ones the filter accepts are counted.
+        verify(this.query).setLimit(4);
+        verify(this.query).setOffset(0);
         assertEquals(List.of(CHANGE, "second"), result.getChangeNames());
         assertEquals(reference, result.getChanges().get(0));
         assertTrue(result.hasMore());
+    }
+
+    /**
+     * The changes the filter refuses are left out of the result, and neither the offset nor the limit counts them:
+     * the page is still full, and the next batch of rows is read to fill it.
+     */
+    @Test
+    void theChangesTheFilterRefusesAreLeftOut() throws Exception
+    {
+        Query secondBatch = mock(Query.class);
+        when(this.queryManager.createQuery(anyString(), anyString())).thenReturn(this.query, secondBatch);
+        when(this.query.bindValue(anyString(), any())).thenReturn(this.query);
+        when(secondBatch.bindValue(anyString(), any())).thenReturn(secondBatch);
+        doReturn(List.of("hidden1", "visible1", "hidden2")).when(this.query).execute();
+        doReturn(List.of("visible2", "visible3")).when(secondBatch).execute();
+        for (String name : List.of("hidden1", "hidden2", "visible1", "visible2", "visible3")) {
+            DocumentReference reference = new DocumentReference("xwiki", "Space", name);
+            when(this.documentReferenceResolver.resolve(name)).thenReturn(reference);
+            if (name.startsWith("hidden")) {
+                this.refused.add(reference);
+            }
+        }
+
+        ChangeQuery changeQuery = new ChangeQuery();
+        changeQuery.setLimit(1);
+        changeQuery.setOffset(1);
+        ChangeSearchResult result = this.searcher.search(changeQuery, this.filter);
+
+        verify(secondBatch).setLimit(3);
+        verify(secondBatch).setOffset(3);
+        assertEquals(List.of("visible2"), result.getChangeNames());
+        assertEquals(List.of(new DocumentReference("xwiki", "Space", "visible2")), result.getChanges());
+        assertTrue(result.hasMore());
+    }
+
+    /**
+     * A change the filter refuses is not a reason to announce a next page.
+     */
+    @Test
+    void aChangeTheFilterRefusesDoesNotMakeANextPage() throws Exception
+    {
+        // The batch is full, so the next one is read, and the database has no more rows to give.
+        doReturn(List.of(CHANGE, "hidden"), List.of()).when(this.query).execute();
+        DocumentReference hidden = new DocumentReference("xwiki", "Space", "hidden");
+        when(this.documentReferenceResolver.resolve("hidden")).thenReturn(hidden);
+        this.refused.add(hidden);
+
+        ChangeQuery changeQuery = new ChangeQuery();
+        changeQuery.setLimit(1);
+        ChangeSearchResult result = this.searcher.search(changeQuery, this.filter);
+
+        assertEquals(List.of(CHANGE), result.getChangeNames());
+        assertFalse(result.hasMore());
     }
 
     /**
@@ -281,7 +346,7 @@ class ChangeSearcherTest
     {
         doReturn(List.of(CHANGE, "second")).when(this.query).execute();
 
-        ChangeSearchResult result = this.searcher.search(new ChangeQuery());
+        ChangeSearchResult result = this.searcher.search(new ChangeQuery(), this.filter);
 
         assertTrue(result.getChangeNames().removeAll(List.of("second")));
         assertEquals(List.of(CHANGE), result.getChangeNames());
@@ -297,7 +362,7 @@ class ChangeSearcherTest
     {
         when(this.query.execute()).thenThrow(new QueryException("Broken", null, null));
 
-        assertThrows(ReleaseNotesException.class, () -> this.searcher.search(new ChangeQuery()));
+        assertThrows(ReleaseNotesException.class, () -> this.searcher.search(new ChangeQuery(), this.filter));
     }
 
     /**
@@ -310,7 +375,7 @@ class ChangeSearcherTest
         when(this.existingVersionsQuery.execute()).thenThrow(new QueryException("Broken", null, null));
 
         assertThrows(ReleaseNotesException.class,
-            () -> this.searcher.search(versionQuery(new ChangeFilter(Operator.GTE, "9.0"))));
+            () -> this.searcher.search(versionQuery(new ChangeFilter(Operator.GTE, "9.0")), this.filter));
     }
 
     /**

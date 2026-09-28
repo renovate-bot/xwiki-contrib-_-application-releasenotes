@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesNotFoundException;
 import org.xwiki.contrib.releasenotes.rest.model.ErrorRepresentation;
 import org.xwiki.contrib.releasenotes.rest.model.ReleaseNoteRepresentation;
@@ -41,6 +42,8 @@ import org.xwiki.model.internal.reference.DefaultSymbolScheme;
 import org.xwiki.model.internal.reference.LocalStringEntityReferenceSerializer;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.security.authorization.ContextualAuthorizationManager;
+import org.xwiki.security.authorization.Right;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.junit5.mockito.ComponentTest;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
@@ -52,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -84,12 +88,16 @@ class DefaultReleaseNoteResourceTest
     private ModelContext modelContext;
 
     @MockComponent
+    private ContextualAuthorizationManager authorization;
+
+    @MockComponent
     @Named("current")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
     @BeforeEach
     void setUp()
     {
+        when(this.authorization.hasAccess(eq(Right.VIEW), any())).thenReturn(true);
         when(this.releaseNoteManager.getReleaseNoteReference(PRODUCT, VERSION)).thenReturn(RELEASE_NOTE);
     }
 
@@ -103,6 +111,23 @@ class DefaultReleaseNoteResourceTest
         assertEquals(VERSION, representation.getVersion());
         assertEquals(PRODUCT, representation.getProduct());
         assertEquals("ReleaseNotes.Data.XWiki.8\\.3M1.WebHome", representation.getReference());
+    }
+
+    /**
+     * The manager reads a page whoever asks for it, so the endpoint is where the view right of a request is checked.
+     * The refusal is an exception, which the exception mapper answers with a 401 for a guest and a 403 for anyone
+     * else.
+     */
+    @Test
+    void aReleaseNoteTheCurrentUserCannotViewIsNotRead() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.VIEW, RELEASE_NOTE)).thenReturn(false);
+
+        ReleaseNotesAccessDeniedException exception = assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.resource.getReleaseNote("xwiki", PRODUCT, VERSION));
+
+        assertEquals(RELEASE_NOTE, exception.getReference());
+        verify(this.releaseNoteManager, never()).getReleaseNote(any());
     }
 
     /**

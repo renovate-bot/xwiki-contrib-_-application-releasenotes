@@ -21,6 +21,7 @@ package org.xwiki.contrib.releasenotes.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -509,9 +510,10 @@ class DefaultChangeManagerTest
     {
         ChangeQuery query = new ChangeQuery();
         ChangeSearchResult result = new ChangeSearchResult(List.of(), List.of(), false);
-        when(this.changeSearcher.search(query)).thenReturn(result);
+        Predicate<DocumentReference> filter = reference -> false;
+        when(this.changeSearcher.search(query, filter)).thenReturn(result);
 
-        assertSame(result, this.manager.search(query));
+        assertSame(result, this.manager.search(query, filter));
     }
 
     /**
