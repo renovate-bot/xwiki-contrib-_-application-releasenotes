@@ -42,6 +42,7 @@ import org.xwiki.contrib.releasenotes.ChangeQueryParser;
 import org.xwiki.contrib.releasenotes.ChangeSearchResult;
 import org.xwiki.contrib.releasenotes.Importance;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
+import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
 import org.xwiki.contrib.releasenotes.rest.model.ChangeRepresentation;
 import org.xwiki.contrib.releasenotes.rest.model.ChangesRepresentation;
@@ -68,7 +69,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -130,7 +130,7 @@ class DefaultChangesResourceTest
     @BeforeEach
     void setUp() throws Exception
     {
-        when(this.authorization.hasAccess(eq(Right.VIEW), any())).thenReturn(true);
+        when(this.authorization.hasAccess(any(Right.class), any())).thenReturn(true);
         this.uriInfo = mock(UriInfo.class);
         when(this.uriInfo.getBaseUri()).thenReturn(URI.create("http://localhost:8080/xwiki/rest"));
 
@@ -227,6 +227,24 @@ class DefaultChangesResourceTest
             () -> this.resource.getChanges("xwiki", " ", VERSION, null, null, null, null, false, null, null));
 
         assertRefusal(exception.getResponse(), Response.Status.BAD_REQUEST, NO_RELEASE_NOTE_IN_URL);
+    }
+
+    /**
+     * A new change is written to an entry page of its release note that is only known once taken, so the right
+     * checked is the right to edit the release note.
+     */
+    @Test
+    void aUserWhoCannotEditTheReleaseNoteCreatesNoChange() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.EDIT, RELEASE_NOTE)).thenReturn(false);
+        ChangeRepresentation posted = new ChangeRepresentation();
+        posted.setTitle("The title");
+
+        ReleaseNotesAccessDeniedException exception = assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.resource.createChange(this.uriInfo, "xwiki", PRODUCT, VERSION, posted));
+
+        assertEquals(RELEASE_NOTE, exception.getReference());
+        verify(this.changeManager, never()).createChange(any());
     }
 
     @Test

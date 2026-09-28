@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.xwiki.contrib.releasenotes.Change;
+import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.contrib.releasenotes.ChangeManager;
 import org.xwiki.contrib.releasenotes.ChangeQuery;
 import org.xwiki.contrib.releasenotes.ChangeQueryParser;
@@ -35,7 +36,9 @@ import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteManager;
 import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
+import org.xwiki.contrib.releasenotes.internal.ProductResolver;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.security.authorization.AuthorizationManager;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -66,6 +69,8 @@ class ReleaseNotesScriptServiceTest
     private static final DocumentReference RELEASE_NOTE = new DocumentReference("xwiki",
         List.of("ReleaseNotes", "Data", "XWiki", "8.3"), "WebHome");
 
+    private static final DocumentReference AUTHOR = new DocumentReference("xwiki", "XWiki", "Author");
+
     private static final DocumentReference ENTRY = new DocumentReference("xwiki",
         List.of("ReleaseNotes", "Data", "XWiki", "8.3", "Entry001"), "WebHome");
 
@@ -87,10 +92,23 @@ class ReleaseNotesScriptServiceTest
     @MockComponent
     private ContextualAuthorizationManager authorization;
 
+    @MockComponent
+    private AuthorizationManager authorAuthorization;
+
+    @MockComponent
+    private DocumentAccessBridge documentAccessBridge;
+
+    @MockComponent
+    private ProductResolver productResolver;
+
     @BeforeEach
-    void setUp()
+    void setUp() throws Exception
     {
-        when(this.authorization.hasAccess(eq(Right.VIEW), any())).thenReturn(true);
+        when(this.authorization.hasAccess(any(Right.class), any())).thenReturn(true);
+        when(this.authorAuthorization.hasAccess(any(Right.class), any(), any())).thenReturn(true);
+        when(this.documentAccessBridge.getCurrentAuthorReference()).thenReturn(AUTHOR);
+        when(this.productResolver.resolve(any())).thenReturn("XWiki");
+        when(this.releaseNoteManager.getReleaseNoteReference("XWiki", "8.3")).thenReturn(RELEASE_NOTE);
     }
 
     @Test
@@ -191,6 +209,68 @@ class ReleaseNotesScriptServiceTest
             assertTrue(filter.test(RELEASE_NOTE));
             assertFalse(filter.test(ENTRY));
         }
+    }
+
+    /**
+     * The components of the application write a page whoever asks them to, so the script service is where the edit
+     * right of a script call is checked. Every write of a release note, and every new change, which is written to an
+     * entry page of its release note that is only known once taken, is checked on the page of that release note.
+     */
+    @Test
+    void aUserWhoCannotEditTheReleaseNoteWritesNothingToIt() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.EDIT, RELEASE_NOTE)).thenReturn(false);
+        ReleaseNote note = new ReleaseNote();
+        note.setVersion("8.3");
+        Change change = new Change();
+        change.setVersion("8.3");
+
+        assertThrows(ReleaseNotesAccessDeniedException.class, () -> this.service.createReleaseNote(note));
+        assertThrows(ReleaseNotesAccessDeniedException.class, () -> this.service.updateReleaseNote(note));
+        assertThrows(ReleaseNotesAccessDeniedException.class, () -> this.service.createChange(change));
+        ReleaseNotesAccessDeniedException exception = assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.service.reserveNextEntry(null, "8.3"));
+
+        // A release note without a product is the release note of the product configured for the wiki, which is the
+        // page whose right is checked.
+        assertEquals("The current user is not allowed to edit the page "
+            + "[xwiki:ReleaseNotes.Data.XWiki.8\\.3.WebHome].", exception.getMessage());
+        verify(this.releaseNoteManager, never()).createReleaseNote(any());
+        verify(this.releaseNoteManager, never()).updateReleaseNote(any());
+        verify(this.changeManager, never()).createChange(any());
+        verify(this.changeManager, never()).reserveNextEntry(any(), any());
+    }
+
+    /**
+     * The right of the author of the calling script is checked too: this service is reachable with the script right
+     * alone, so a check done for the user only would let a script write on behalf of whoever reads the page it is on.
+     */
+    @Test
+    void aScriptAuthorWhoCannotEditThePageWritesNothingToIt() throws Exception
+    {
+        when(this.authorAuthorization.hasAccess(Right.EDIT, AUTHOR, ENTRY)).thenReturn(false);
+
+        ReleaseNotesAccessDeniedException exception = assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.service.updateChange(ENTRY, new Change()));
+
+        assertEquals("The author [xwiki:XWiki.Author] of the calling script is not allowed to edit the page "
+            + "[xwiki:ReleaseNotes.Data.XWiki.8\\.3.Entry001.WebHome].", exception.getMessage());
+        assertEquals(ENTRY, exception.getReference());
+        verify(this.changeManager, never()).updateChange(any(), any());
+    }
+
+    /**
+     * A release note without a version names no page, and is left for the manager to refuse.
+     */
+    @Test
+    void aReleaseNoteWithoutAVersionIsLeftForTheManagerToRefuse() throws Exception
+    {
+        ReleaseNote note = new ReleaseNote();
+
+        this.service.createReleaseNote(note);
+
+        verify(this.authorization, never()).hasAccess(eq(Right.EDIT), any());
+        verify(this.releaseNoteManager).createReleaseNote(note);
     }
 
     @Test

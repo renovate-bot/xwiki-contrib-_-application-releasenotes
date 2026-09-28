@@ -27,10 +27,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.contrib.releasenotes.ReleaseNote;
 import org.xwiki.contrib.releasenotes.ReleaseNoteAlreadyExistsException;
-import org.xwiki.contrib.releasenotes.ReleaseNotesAccessDeniedException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesConfiguration;
 import org.xwiki.contrib.releasenotes.ReleaseNotesException;
 import org.xwiki.contrib.releasenotes.ReleaseNotesNotFoundException;
@@ -40,7 +38,6 @@ import org.xwiki.observation.ObservationManager;
 import org.xwiki.query.Query;
 import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
-import org.xwiki.security.authorization.Right;
 import org.xwiki.test.annotation.ComponentList;
 import org.xwiki.test.junit5.mockito.InjectMockComponents;
 import org.xwiki.test.junit5.mockito.MockComponent;
@@ -78,8 +75,6 @@ import static org.mockito.Mockito.when;
 class DefaultReleaseNoteManagerTest
 {
     private static final String PRODUCT = "XWiki";
-
-    private static final DocumentReference AUTHOR = new DocumentReference("xwiki", "XWiki", "Author");
 
     private static final DocumentReference TEMPLATE =
         new DocumentReference("xwiki", List.of("ReleaseNotes", "Code"), "ReleaseNoteTemplate");
@@ -120,11 +115,6 @@ class DefaultReleaseNoteManagerTest
     {
         ReleaseNotesXClasses.install(this.oldcore);
 
-        DocumentAccessBridge documentAccessBridge = this.oldcore.getMocker().getInstance(DocumentAccessBridge.class);
-        when(documentAccessBridge.getCurrentAuthorReference()).thenReturn(AUTHOR);
-        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
-            .thenReturn(true);
-        when(this.oldcore.getMockAuthorizationManager().hasAccess(any(Right.class), any(), any())).thenReturn(true);
 
         when(this.localization.getTranslationPlain(eq(TITLE_KEY), any(), any()))
             .thenAnswer(invocation -> String.format("Release Notes for %s %s", invocation.getArgument(1),
@@ -322,27 +312,6 @@ class DefaultReleaseNoteManagerTest
         assertTrue(load("8.3").isNew(), "A release note whose template is missing must not have been created.");
     }
 
-    @Test
-    void aUserWhoCannotEditThePageCreatesNoReleaseNote() throws Exception
-    {
-        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
-            .thenReturn(false);
-
-        assertThrows(ReleaseNotesException.class, () -> this.manager.createReleaseNote(note(PRODUCT, "8.3")));
-
-        assertTrue(load("8.3").isNew());
-    }
-
-    @Test
-    void aScriptAuthorWhoCannotEditThePageCreatesNoReleaseNote() throws Exception
-    {
-        when(this.oldcore.getMockAuthorizationManager().hasAccess(any(Right.class), any(), any())).thenReturn(false);
-
-        assertThrows(ReleaseNotesException.class, () -> this.manager.createReleaseNote(note(PRODUCT, "8.3")));
-
-        assertTrue(load("8.3").isNew());
-    }
-
     /**
      * Marking a version released on the day it ships is what replacing a release note is for: neither value could
      * be written once its page existed.
@@ -423,20 +392,6 @@ class DefaultReleaseNoteManagerTest
             () -> this.manager.updateReleaseNote(note(PRODUCT, " ")));
 
         assertEquals("A release note needs the version it is about.", exception.getMessage());
-    }
-
-    @Test
-    void aUserWhoCannotEditThePageReplacesNoReleaseNote() throws Exception
-    {
-        this.manager.createReleaseNote(note(PRODUCT, "8.3"));
-        when(this.oldcore.getMockContextualAuthorizationManager().hasAccess(any(Right.class), any()))
-            .thenReturn(false);
-
-        ReleaseNote replacement = note(PRODUCT, "8.3");
-        replacement.setReleased(true);
-
-        assertThrows(ReleaseNotesAccessDeniedException.class, () -> this.manager.updateReleaseNote(replacement));
-        assertFalse(this.manager.getReleaseNote(reference("8.3")).isReleased());
     }
 
     @Test

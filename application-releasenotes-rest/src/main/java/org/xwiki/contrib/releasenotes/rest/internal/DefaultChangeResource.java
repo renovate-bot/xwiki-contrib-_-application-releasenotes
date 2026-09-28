@@ -105,6 +105,7 @@ public class DefaultChangeResource extends AbstractReleaseNotesResource
             // An entry that holds no change is answered by the exception mapper with a 404, which is where every
             // endpoint of the application turns a failure into a status code.
             DocumentReference reference = getChangeReference(product, version, entry);
+            checkEditRight(reference);
 
             return Response.ok(this.representationFactory
                 .toRepresentation(this.changeManager.updateChange(reference, replacement), reference)).build();

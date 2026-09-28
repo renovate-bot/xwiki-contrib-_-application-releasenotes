@@ -107,7 +107,7 @@ class DefaultChangeResourceTest
     @BeforeEach
     void setUp()
     {
-        when(this.authorization.hasAccess(eq(Right.VIEW), any())).thenReturn(true);
+        when(this.authorization.hasAccess(any(Right.class), any())).thenReturn(true);
         when(this.releaseNoteManager.getReleaseNoteReference(PRODUCT, VERSION)).thenReturn(RELEASE_NOTE);
     }
 
@@ -138,6 +138,20 @@ class DefaultChangeResourceTest
         assertEquals("The current user is not allowed to view the page "
             + "[xwiki:ReleaseNotes.Data.XWiki.8\\.3.Entry001.WebHome].", exception.getMessage());
         verify(this.changeManager, never()).getChange(any());
+    }
+
+    @Test
+    void aUserWhoCannotEditThePageReplacesNoChange() throws Exception
+    {
+        when(this.authorization.hasAccess(Right.EDIT, ENTRY)).thenReturn(false);
+        ChangeRepresentation sent = new ChangeRepresentation();
+        sent.setTitle("The title");
+
+        ReleaseNotesAccessDeniedException exception = assertThrows(ReleaseNotesAccessDeniedException.class,
+            () -> this.resource.updateChange("xwiki", PRODUCT, VERSION, ENTRY_NAME, sent));
+
+        assertEquals(ENTRY, exception.getReference());
+        verify(this.changeManager, never()).updateChange(any(), any());
     }
 
     /**

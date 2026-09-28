@@ -124,6 +124,10 @@ public class DefaultChangesResource extends AbstractReleaseNotesResource
             }
 
             DocumentReference noteReference = this.releaseNoteManager.getReleaseNoteReference(product, version);
+            // The change is written to a new entry page of the release note, which is not known until it is taken,
+            // so the right checked is the right to edit the release note, as the pages of the application do before
+            // offering to add a change.
+            checkEditRight(noteReference);
 
             if (!exists(noteReference)) {
                 return refuse(Response.Status.NOT_FOUND, String
